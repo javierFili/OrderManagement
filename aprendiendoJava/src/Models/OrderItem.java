@@ -1,5 +1,6 @@
 package Models;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public class OrderItem {
@@ -14,8 +15,8 @@ public class OrderItem {
         this.quantity = quantity;
     }
 
-    public BigInteger getSubTotalPrice() {
-        return product.getprice().multiply(BigInteger.valueOf(quantity));
+    public BigDecimal getSubTotalPrice() {
+        return product.getprice().multiply(BigDecimal.valueOf(quantity));
     }
 
 

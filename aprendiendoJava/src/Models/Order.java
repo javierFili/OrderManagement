@@ -1,5 +1,6 @@
 package Models;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +16,8 @@ public class Order {
         orderItems = new ArrayList<OrderItem>();
     }
 
-    public BigInteger getTotalPrice() {
-        BigInteger res = new BigInteger("0");
+    public BigDecimal getTotalPrice() {
+        BigDecimal res = new BigDecimal("0");
         for (OrderItem orderItem : orderItems) {
             res= res.add(orderItem.getSubTotalPrice());
         }
