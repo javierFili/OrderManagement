@@ -13,13 +13,6 @@ public class Customer {
         this.email = email;
     }
 
-    public boolean createClient() {
-        return true;
-    }
-
-    public Customer getClient() {
-        return this;
-    }
 
     public void setName(String name) {
         this.name = name;
@@ -29,5 +22,16 @@ public class Customer {
         this.email = email;
     }
 
+    public BigInteger getId() {
+        return this.id;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
 
 }

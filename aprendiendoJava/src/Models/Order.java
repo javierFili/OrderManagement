@@ -1,6 +1,7 @@
 package Models;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Order {
@@ -8,22 +9,24 @@ public class Order {
     private Customer customer;
     private List<OrderItem> orderItems;
 
-    public Order(BigInteger id, Customer customer, List<OrderItem> orderItems) {
+    public Order(BigInteger id, Customer customer) {
         this.id = id;
         this.customer = customer;
-        this.orderItems = orderItems;
+        orderItems = new ArrayList<OrderItem>();
     }
 
     public BigInteger getTotalPrice() {
         BigInteger res = new BigInteger("0");
         for (OrderItem orderItem : orderItems) {
-            res  = res.add(orderItem.getSubTotalPrice());
+            res= res.add(orderItem.getSubTotalPrice());
         }
         return res;
     }
 
-    public boolean addItem(OrderItem orderItem) {
-        return orderItems.add(orderItem);
+    public boolean addItem(Product product,int quantity) {
+        OrderItem orderItem = new OrderItem(product,quantity);
+
+        return this.orderItems.add(orderItem);
     }
 
 }

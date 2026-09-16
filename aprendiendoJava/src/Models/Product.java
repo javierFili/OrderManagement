@@ -10,19 +10,22 @@ public class Product {
     public Product(BigInteger id, String name, BigInteger price) {
         this.id = id;
         this.name = name;
+        if(price.longValueExact() < 0) {
+            throw new IllegalArgumentException("Price cannot be negative");
+        }
         this.price = price;
     }
 
-    public String getName(){
+    public String getName() {
         return this.name;
     }
 
-    public BigInteger getprice(){
+    public BigInteger getprice() {
         return this.price;
     }
 
-    public boolean setPrice(BigInteger price){
-        if(price.longValueExact()>0){
+    public boolean setPrice(BigInteger price) {
+        if (price.longValueExact() >= 0) {
             this.price = price;
             return true;
         }
