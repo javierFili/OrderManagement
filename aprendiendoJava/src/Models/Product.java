@@ -1,21 +1,21 @@
 package Models;
 
+import Interfaces.ShippingStragy;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-public abstract class Product {
+public class Product {
     private BigInteger id;
     private String name;
     private BigDecimal price;
-    protected ShippingStragy shippingStragy;
-    public Product(BigInteger id, String name, BigDecimal price, ShippingStragy shippingStragy) {
+    public Product(BigInteger id, String name, BigDecimal price) {
         this.id = id;
         this.name = name;
         if (!this.isValidValue(price)) {
             throw new IllegalArgumentException("Price cannot be negative");
         }
         this.price = price;
-        this.shippingStragy = shippingStragy;
     }
 
     public String getName() {
@@ -37,6 +37,4 @@ public abstract class Product {
     private boolean isValidValue(BigDecimal price) {
         return price.floatValue() >=0;
     }
-
-    public abstract BigDecimal calculateShippingCost();
 }

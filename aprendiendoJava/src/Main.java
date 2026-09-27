@@ -1,4 +1,9 @@
+import Interfaces.ShippingStragy;
 import Models.*;
+import Models.products.ConsultingService;
+import Models.products.DigitalProduct;
+import Models.products.PhysicalProduct;
+import Models.products.RenewableProduct;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -6,27 +11,28 @@ import java.math.BigInteger;
 public class Main {
     public static void main(String[] args) {
         Customer customer = new Customer(new BigInteger("1"), "John Doe", "javierfiligrana@gmail.com");
-        ShippingStragy shippingNot = new NoShipping();
-        ShippingStragy shippingPhysical = new PhysicalShipping();
-        Product laptp = new PhysicalProduct(new BigInteger("1"), "Laptop", new BigDecimal("1000"),new BigDecimal("43"),shippingPhysical);
-        Product mouse = new PhysicalProduct(new BigInteger("2"), "Mouse", new BigDecimal("50"),new BigDecimal("54"),shippingPhysical);
-        Product keyboard = new PhysicalProduct(new BigInteger("3"), "Keyboard", new BigDecimal("80"),new BigDecimal("62"),shippingPhysical);
+        Product laptop = new PhysicalProduct(new BigInteger("1"), "Laptop", new BigDecimal("1000"),new BigDecimal("43"));
+//        Product mouse = new PhysicalProduct(new BigInteger("2"), "Mouse", new BigDecimal("50"),new BigDecimal("54"));
+//        Product keyboard = new PhysicalProduct(new BigInteger("3"), "Keyboard", new BigDecimal("80"),new BigDecimal("62"));
 
-        Product courseJava = new DigitalProduct(new BigInteger("4"), "Java Course", new BigDecimal("100"), new BigDecimal("100"),shippingNot);
-        Product coursePython = new DigitalProduct(new BigInteger("5"), "Python Course", new BigDecimal("100"), new BigDecimal("100"),shippingNot);
+        Product courseJava = new DigitalProduct(new BigInteger("4"), "Java Course", new BigDecimal("100"), new BigDecimal("100"));
+        //Product coursePython = new DigitalProduct(new BigInteger("5"), "Python Course", new BigDecimal("100"), new BigDecimal("100"));
+
+        Product netflixSubscription = new RenewableProduct(new BigInteger("6"),"netflixSubscription",new BigDecimal("100"),3);
+
+        Product consultingService = new ConsultingService(new BigInteger("7"),"Consultoria de casas",new BigDecimal("123"));
 
         Order order = new Order(new BigInteger("1"),customer);
 
-        order.addItem(laptp,3);
-        order.addItem(mouse,4);
-        order.addItem(keyboard,29);
-
+        order.addItem(laptop,3);
         order.addItem(courseJava,4);
-        order.addItem(coursePython,4);
+        order.addItem(netflixSubscription,2);
+        order.addItem(consultingService,2);
 
         System.out.println(order.getTotalPrice());
-        System.out.println(laptp.calculateShippingCost());
-        System.out.println(courseJava.calculateShippingCost());
+        //detalle por producto.
+
+
     }
 }
 

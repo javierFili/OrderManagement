@@ -1,5 +1,7 @@
 package Models;
 
+import Interfaces.ShippingStragy;
+
 import java.math.BigDecimal;
 
 public class NoShipping implements ShippingStragy {
