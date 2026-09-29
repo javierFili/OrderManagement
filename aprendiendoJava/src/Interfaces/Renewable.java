@@ -1,10 +1,13 @@
 package Interfaces;
 
 import Models.Product;
+import objects.Renewal;
+import objects.RenewalStatus;
 
 import java.math.BigDecimal;
 
 public interface Renewable {
-    public String paySubscription();
-    public String checkSubscription();
+    Renewal renew();
+
+    RenewalStatus getRenewalStatus();
 }

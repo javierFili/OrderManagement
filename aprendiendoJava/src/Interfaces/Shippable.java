@@ -6,5 +6,5 @@ import java.math.BigDecimal;
 
 public interface Shippable {
 
-    public BigDecimal shippingCost(BigDecimal cost);
+    public BigDecimal calculateShippingCost();
 }

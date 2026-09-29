@@ -22,7 +22,7 @@ public class Product {
         return this.name;
     }
 
-    public BigDecimal getprice() {
+    public BigDecimal getPrice() {
         return this.price;
     }
 

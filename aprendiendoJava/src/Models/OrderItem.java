@@ -16,7 +16,7 @@ public class OrderItem {
     }
 
     public BigDecimal getSubTotalPrice() {
-        return product.getprice().multiply(BigDecimal.valueOf(quantity));
+        return product.getPrice().multiply(BigDecimal.valueOf(quantity));
     }
 
 

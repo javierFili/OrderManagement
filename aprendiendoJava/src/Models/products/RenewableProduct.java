@@ -2,6 +2,8 @@ package Models.products;
 
 import Interfaces.Renewable;
 import Models.Product;
+import objects.Renewal;
+import objects.RenewalStatus;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -13,8 +15,14 @@ public class RenewableProduct extends Product implements Renewable {
         super(id, name, price);
         this.months = months;
     }
+
     @Override
-    public boolean renewableProduct(BigDecimal months){
-        return  true;
+    public Renewal renew() {
+        return new Renewal();
+    }
+
+    @Override
+    public RenewalStatus getRenewalStatus() {
+        return RenewalStatus.ACTIVE;
     }
 }

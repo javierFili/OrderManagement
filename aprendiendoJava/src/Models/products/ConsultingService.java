@@ -13,10 +13,10 @@ public class ConsultingService extends Product implements Consultable, Downloada
 
     }
 
-    @Override
-    public BigDecimal consultableProduct(){
-        return super.getprice();
-    }
+//    @Override
+//    public BigDecimal consultableProduct(){
+//        return super.getprice();
+//    }
 
     @Override
     public String download(){
