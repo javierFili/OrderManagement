@@ -9,6 +9,7 @@ public class Product {
     private BigInteger id;
     private String name;
     private BigDecimal price;
+
     public Product(BigInteger id, String name, BigDecimal price) {
         this.id = id;
         this.name = name;
@@ -35,6 +36,16 @@ public class Product {
     }
 
     private boolean isValidValue(BigDecimal price) {
-        return price.floatValue() >=0;
+        return price.floatValue() >= 0;
     }
+
+    public BigInteger getId() {
+        return id;
+    }
+
+    @Override
+    public String toString() {
+        return "Product{id=" + id + "name=" + name + "price=" + price + "}";
+    }
+
 }

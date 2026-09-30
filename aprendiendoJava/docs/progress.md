@@ -1,8 +1,28 @@
 # Progreso — Java Learning Lab
 
+> Plan completo (26 semanas, 28 sep 2026 → 28 mar 2027): `docs/roadmap.md` · **Semana actual: 1**
+
 ## ▶ TAREA EN CURSO (retomar aquí)
 
-**Estado:** asignada el 2026-09-29, **aún no empezada**. Siguiente paso: implementarla y pedir "revisa".
+**Estado:** asignada el 2026-09-29, **aún no empezada**. Se retrocede a `List`/`ArrayList`
+a pedido del alumno (solo tuvo una introducción a `ArrayList`; `equals/hashCode` iba demasiado rápido).
+
+**Tema:** `List` / `ArrayList` — lección completa en `docs/lessons/01-list-arraylist.md`
+(teoría, ejemplo, 5 tareas de fácil a avanzado, preguntas, criterios y entregables).
+
+| Tarea | Archivo | Estado |
+|-------|---------|--------|
+| 1. Operaciones básicas | `src/practical/lists/ListBasics.java` | pendiente |
+| 2. Recorrer y eliminar (trampas) | `src/practical/lists/ListIteration.java` | pendiente |
+| 3. `List<Product>` + BigDecimal | `src/practical/lists/ProductListLab.java` + `Product` | pendiente |
+| 4. Aplicarlo a `Order` (encapsulación) | `Order`, `OrderItem`, `Main` | pendiente |
+| 5. Puente a `equals` | `src/practical/lists/ContainsLab.java` | pendiente |
+
+Siguiente paso: implementar una tarea y pedir "revisa tarea N".
+
+---
+
+## ⏭ SIGUIENTE TAREA (ya diseñada, no empezar hasta cerrar List)
 
 **Tema:** `equals()` / `hashCode()` + `HashSet`
 
@@ -41,6 +61,18 @@ decisión `getClass`/`instanceof` justificada, predicciones vs resultados reales
 
 ---
 
+## 2026-09-29 — Replanificación: volver a `List`
+
+* El alumno indica que se saltó `List`/`ArrayList` (solo introducción). Se pospone `equals/hashCode`.
+* Revisión del código relacionado con listas (hallazgos que cubren las tareas de la lección 01):
+  * `Order` no expone sus items → el "detalle por producto" de `Main` no se puede implementar
+  * `OrderItem` sin getters, no valida `product == null`, mensaje "cannot be negative" pero rechaza 0
+  * `Order`: `new ArrayList<OrderItem>()` sin diamond, lista no `final`, `new BigDecimal("0")` en vez de `ZERO`
+  * `Product` sin `getId()` ni `toString()` → imprimir una `List<Product>` muestra `Laptop@1b6d3586`
+  * `CollectiosPolimorfismo`: variable `listProducts` para una `List<Shippable>` (nombre engañoso)
+* Entorno: en la terminal `javac` es 21 pero `java` es 11 → `UnsupportedClassVersionError`
+  (ver `CLAUDE.md` → Entorno).
+
 ## 2026-09-29 — Diagnóstico inicial (a partir del código existente)
 
 > Estado inferido de inspeccionar el código y los commits (`poo`, `update`, `collections`).
@@ -70,6 +102,7 @@ decisión `getClass`/`instanceof` justificada, predicciones vs resultados reales
 
 ### Pendiente
 
+* List / ArrayList a fondo (lección 01, en curso)
 * equals() / hashCode()
 * Set, HashSet, LinkedHashSet, TreeSet
 * Map, HashMap
@@ -78,5 +111,4 @@ decisión `getClass`/`instanceof` justificada, predicciones vs resultados reales
 
 ### Siguiente
 
-Collections → `equals()` / `hashCode()` en `Product` + `HashSet`
-(tarea: `practical/EqualsHashCodeLab.java`)
+~~Collections → `equals()` / `hashCode()`~~ → reemplazado: primero `List`/`ArrayList` (ver TAREA EN CURSO)

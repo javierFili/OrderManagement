@@ -10,6 +10,7 @@ Objetivo: backend, APIs, sistemas empresariales, arquitectura limpia, Spring Boo
 ## Al iniciar cada sesión
 
 1. Leer este archivo y `docs/progress.md` (sección **TAREA EN CURSO** = dónde retomar).
+   Ubicar la semana actual en `docs/roadmap.md` (índice de temas, 26 semanas × 5 h) y avisar si hay atraso.
 2. Revisar `git status` y commits recientes.
 3. Inspeccionar el código relacionado con el concepto actual.
 4. No asumir dominio de un tema solo porque exista código: analizar la implementación.
@@ -53,6 +54,9 @@ después "refactoriza". Nunca modificar tests solo para que pasen.
 
 ## Ruta
 
+Orden conceptual. La planificación semanal, los criterios de salida y qué recortar si hay atraso están en `docs/roadmap.md`.
+Cada tema tiene su lección en `docs/lessons/NN-tema.md`.
+
 1. Java moderno (tipos, control de flujo, excepciones, BigDecimal, fechas, Optional, records, enums)
 2. POO (encapsulación, composición, herencia, abstractas, interfaces, polimorfismo, SRP)
 3. Collections (List, Set, Map y sus implementaciones, equals/hashCode, Comparable, Comparator)
@@ -91,3 +95,6 @@ Mantener `docs/progress.md` (fecha, tema, conceptos, ejercicios, errores, pendie
 
 Proyecto IntelliJ sin Maven/Gradle (fuentes en `src/`, salida en `out/`, ignorado). Java 24.
 Compilar desde la terminal: `javac -d out/cli $(find src -name '*.java') && java -cp out/cli Main`
+Ojo: en la terminal `javac` es JDK 21 pero `java` en el PATH es 11 → `UnsupportedClassVersionError`.
+Ejecutar con `/usr/lib/jvm/java-21-openjdk-amd64/bin/java` o cambiar el default con
+`sudo update-alternatives --config java`.
