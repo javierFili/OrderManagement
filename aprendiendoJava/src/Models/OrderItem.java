@@ -19,5 +19,11 @@ public class OrderItem {
         return product.getPrice().multiply(BigDecimal.valueOf(quantity));
     }
 
+    public Product getProduct(){
+        return product;
+    }
 
+    public int getQuantity(){
+        return quantity;
+    }
 }
