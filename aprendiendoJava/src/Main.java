@@ -30,10 +30,23 @@ public class Main {
         order.addItem(consultingService,2);
 
         System.out.println(order.getTotalPrice());
-        //detalle por producto.
 
+        for (OrderItem item:order.getItems()){
+            String print = item.getProduct().getName()+" "+"x"+item.getQuantity()+" "+item.getProduct().getPrice()+" "+item.getProduct().getPrice().multiply(new BigDecimal(item.getQuantity()+""));
+            System.out.println(print);
+        }
 
-
+        try {
+            order.getItems();
+            order.removeItem(99);
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        /**
+         * 1: Por que se estaria exponiendo la lista, la lista que se devuelve en un get debe inmutable, es dedir que el que la reciba no deberia poder modificarla
+         * 2: impide hacer modificaciones una vez que el atriburto fue modificado, si deja usarlo obviamente, pero no modificarlo como tal
+         * 3: el count cunta la cantidad de items, mientra el otro cuenta las unidades
+         */
     }
 }
 
