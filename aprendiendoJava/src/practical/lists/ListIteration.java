@@ -15,15 +15,16 @@ public class ListIteration {
         }
         System.out.println("3------------");
         Integer sum = 0;
-        for (Integer num : numbers) {
-            sum += num;
+        for (int i = 0; i < numbers.size() - 1; i++) {
+            sum += numbers.get(i);
+            System.out.println(numbers.get(i));
         }
         System.out.println(sum);
         System.out.println("4------------");
         List<Integer> t = new ArrayList<>(List.of(10, 20, 30));
         t.remove(1);
         System.out.println(t);
-        ArrayList<Integer> t1 = new ArrayList<>(List.of(10,20,30));
+        ArrayList<Integer> t1 = new ArrayList<>(List.of(10, 20, 30));
         t1.remove(Integer.valueOf(10));
         System.out.println(t1);
 

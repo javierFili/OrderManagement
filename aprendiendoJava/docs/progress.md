@@ -4,21 +4,23 @@
 
 ## ▶ TAREA EN CURSO (retomar aquí)
 
-**Estado:** asignada el 2026-09-29, **aún no empezada**. Se retrocede a `List`/`ArrayList`
-a pedido del alumno (solo tuvo una introducción a `ArrayList`; `equals/hashCode` iba demasiado rápido).
+**Estado:** entregada el 2026-10-01 → **code review hecho, las 5 tareas en 🔁 rehacer.**
+Detalle por paso al final de `docs/lessons/01-list-arraylist.md` (sección 5).
 
 **Tema:** `List` / `ArrayList` — lección completa en `docs/lessons/01-list-arraylist.md`
-(teoría, ejemplo, 5 tareas de fácil a avanzado, preguntas, criterios y entregables).
 
-| Tarea | Archivo | Estado |
-|-------|---------|--------|
-| 1. Operaciones básicas | `src/practical/lists/ListBasics.java` | pendiente |
-| 2. Recorrer y eliminar (trampas) | `src/practical/lists/ListIteration.java` | pendiente |
-| 3. `List<Product>` + BigDecimal | `src/practical/lists/ProductListLab.java` + `Product` | pendiente |
-| 4. Aplicarlo a `Order` (encapsulación) | `Order`, `OrderItem`, `Main` | pendiente |
-| 5. Puente a `equals` | `src/practical/lists/ContainsLab.java` | pendiente |
+| Tarea | Archivo | Nota | Estado |
+|-------|---------|------|--------|
+| 1. Operaciones básicas | `src/practical/lists/ListBasics.java` | 7/10 | 🟡 casi: corregir pasos 7–10 y P1.3 |
+| 2. Recorrer y eliminar (trampas) | `src/practical/lists/ListIteration.java` | 5/10 | 🔁 rehacer |
+| 3. `List<Product>` + BigDecimal | `src/practical/lists/ProductListLab.java` + `Product` | 5/10 | 🔁 rehacer |
+| 4. Aplicarlo a `Order` (encapsulación) | `Order`, `OrderItem`, `Main` | 5/10 | 🔁 rehacer |
+| 5. Puente a `equals` | `src/practical/lists/ContainsLab.java` | 3/10 | 🔁 rehacer |
 
-Siguiente paso: implementar una tarea y pedir "revisa tarea N".
+**Conceptos a reforzar:** valor de retorno vs efecto (`set`/`remove`), `ConcurrentModificationException` (iterator oculto del for-each),
+sobrecarga `remove(int)` vs `remove(Object)`, `final` (referencia vs objeto), contrato de `compareTo` (solo el signo).
+
+Siguiente paso: rehacer (empezar por 1, 2 y 5) y pedir "revisa tarea N".
 
 ---
 
@@ -60,6 +62,27 @@ decisión `getClass`/`instanceof` justificada, predicciones vs resultados reales
 **Después:** `Order` sin items duplicados → `Map<Product, OrderItem>` / `LinkedHashMap`.
 
 ---
+
+## 2026-10-01 — Code review lección 01 (`List`/`ArrayList`)
+
+### Bien hecho
+* `BigDecimal`: `ZERO`, `total = total.add(...)`, constructor con String
+* `Iterator` + `it.remove()`, `removeIf`, `List.copyOf` en `getItems()`, `instanceof` + cast
+* `getItemCount` / `getTotalUnits` / `removeItem` con validación de índice
+
+### Errores detectados
+* ninguna predicción `// espero:` en las 5 tareas; varios sub-pasos sin hacer
+* P2.1: cree que la CME se evita por `hasNext()` (no conoce el iterator oculto del for-each)
+* P2.2: no identificó la sobrecarga `remove(int)` vs `remove(Object)`
+* P4.2: `final` explicado de forma ambigua (no distingue referencia de contenido)
+* `compareTo(...) >= 1` en vez de `> 0`
+* `findByName` lanza excepción con lista vacía (excepción para un resultado normal)
+* lógica de subtotal duplicada en `Main`; encapsulación no demostrada (paso 12)
+* Tarea 5: agregó ambos laptops → experimento invalidado
+* declaración `ArrayList<Integer> t1` (implementación en vez de interfaz); `Integer` como acumulador
+
+### Siguiente
+Rehacer las tareas 1–5 de la lección 01 → luego semana 2 (`equals`/`hashCode` + `Set`).
 
 ## 2026-09-29 — Replanificación: volver a `List`
 
