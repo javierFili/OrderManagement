@@ -10,21 +10,26 @@ public class ListIteration {
         System.out.println("1------------");
         List<Integer> numbers = new ArrayList<>(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
         System.out.println("2------------");
-        for (Integer num : numbers) {
-            System.out.println(num);
+        for (int i = 0; i < numbers.size() - 1; i++) {
+            System.out.println(numbers.get(i));
         }
         System.out.println("3------------");
         Integer sum = 0;
-        for (int i = 0; i < numbers.size() - 1; i++) {
-            sum += numbers.get(i);
-            System.out.println(numbers.get(i));
+        for (Integer num:numbers) {
+            sum = sum + num;
         }
         System.out.println(sum);
         System.out.println("4------------");
-        List<Integer> t = new ArrayList<>(List.of(10, 20, 30));
+        List<Integer> t = new ArrayList<>();
+        t.add(10);
+        t.add(20);
+        t.add(30);
         t.remove(1);
         System.out.println(t);
         ArrayList<Integer> t1 = new ArrayList<>(List.of(10, 20, 30));
+        t1.add(10);
+        t1.add(20);
+        t1.add(30);
         t1.remove(Integer.valueOf(10));
         System.out.println(t1);
 
@@ -37,7 +42,7 @@ public class ListIteration {
             }
 
         } catch (ConcurrentModificationException e) {
-            System.out.println(e.getMessage());
+            System.out.println(e.getClass().getSimpleName());
             System.out.println(numbers);
         }
 
@@ -61,7 +66,7 @@ public class ListIteration {
             List<Integer> fixed = List.of(1, 2, 3);
             fixed.add(4);
         } catch (UnsupportedOperationException e) {
-            System.out.println(e.getMessage());
+            System.out.println(e);
 
         }
     }
@@ -71,4 +76,15 @@ public class ListIteration {
  * en la 5 estamos eliminando directamente sin aseguarnos el que pasara despues
  * 2: el paso 2 funciono como deberia funcionar, es decir elimino, quzas no hize bien el procedimiento?
  * 3: se usa el list.of para cuando quieres que la lista que estar creando sea inmutable, mientras que el new array es para crear listar que posteriormente puedan crecer o no
+ */
+
+/**
+ * revicion 1:
+ *
+ * critico:1-->
+ * A: se eliminio dos por que se llamo al metodo remove.. pero la siguiente vez que el iterador(for each) intento ingresar en el siguiente note que habia una modifcacion, por lo tanto lanzo una excepcion
+ * B: for (Integer num : numbers) ... creo que ahi, ya que el iterador fue quien detecto la anomalia
+ *
+ * critico:2-->
+ *
  */

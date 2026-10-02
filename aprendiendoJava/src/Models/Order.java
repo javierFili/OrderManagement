@@ -13,7 +13,7 @@ public class Order {
     public Order(BigInteger id, Customer customer) {
         this.id = id;
         this.customer = customer;
-        orderItems = new ArrayList<OrderItem>();
+        orderItems = new ArrayList<>();
     }
 
     public BigDecimal getTotalPrice() {
@@ -31,7 +31,7 @@ public class Order {
     }
 
     public List<OrderItem> getItems() {
-        return List.copyOf(orderItems);
+        return List.copyOf(orderItems);// es que a este es al que entiendo mejor ademas que no se como usar el otro.
     }
 
     public int getItemCount() {
@@ -52,6 +52,10 @@ public class Order {
         }
         orderItems.remove(index);
         return true;
+    }
+
+    public boolean isEmpty(){
+        return orderItems.isEmpty();
     }
 
 }

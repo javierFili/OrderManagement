@@ -12,7 +12,7 @@ public class Main {
     public static void main(String[] args) {
         Customer customer = new Customer(new BigInteger("1"), "John Doe", "javierfiligrana@gmail.com");
         Product laptop = new PhysicalProduct(new BigInteger("1"), "Laptop", new BigDecimal("1000"),new BigDecimal("43"));
-//        Product mouse = new PhysicalProduct(new BigInteger("2"), "Mouse", new BigDecimal("50"),new BigDecimal("54"));
+        Product mouse = new PhysicalProduct(new BigInteger("2"), "Mouse", new BigDecimal("50"),new BigDecimal("54"));
 //        Product keyboard = new PhysicalProduct(new BigInteger("3"), "Keyboard", new BigDecimal("80"),new BigDecimal("62"));
 
         Product courseJava = new DigitalProduct(new BigInteger("4"), "Java Course", new BigDecimal("100"), new BigDecimal("100"));
@@ -32,15 +32,23 @@ public class Main {
         System.out.println(order.getTotalPrice());
 
         for (OrderItem item:order.getItems()){
-            String print = item.getProduct().getName()+" "+"x"+item.getQuantity()+" "+item.getProduct().getPrice()+" "+item.getProduct().getPrice().multiply(new BigDecimal(item.getQuantity()+""));
+            String print = item.getProduct().getName()+" "+"x"+item.getQuantity()+" "+item.getProduct().getPrice()+" "+ item.getSubTotalPrice();
             System.out.println(print);
+        }
+        System.out.println("Total: "+order.getTotalPrice());
+
+        try {
+            OrderItem ordI = new OrderItem(mouse,3);
+            order.getItems().add(ordI);
+        }catch (Exception e){
+            System.out.println(e.getClass().getSimpleName());
         }
 
         try {
             order.getItems();
             order.removeItem(99);
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            System.out.println(e.getClass().getSimpleName());
         }
         /**
          * 1: Por que se estaria exponiendo la lista, la lista que se devuelve en un get debe inmutable, es dedir que el que la reciba no deberia poder modificarla

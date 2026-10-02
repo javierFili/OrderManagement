@@ -23,8 +23,10 @@ public class ProductListLab {
         System.out.println(products);
 
         System.out.println("3----------------");
+        int iterador = 1;
         for (Product p : products) {
-            System.out.println("N." + p.getName() + " - " + p.getPrice());
+            System.out.println(iterador + "." + p.getName() + " - " + p.getPrice());
+            iterador++;
         }
 
         System.out.println("4----------");
@@ -39,7 +41,7 @@ public class ProductListLab {
         Product mostCost = products.get(0);
         for (Product p : products) {
             int compare = p.getPrice().compareTo(mostCost.getPrice());
-            if (compare >= 1) {
+            if (compare > 0) {
                 mostCost = p;
             }
         }
@@ -48,21 +50,25 @@ public class ProductListLab {
         System.out.println("6-------------");
 
         List<Product> expensive = new ArrayList<>();
+        BigDecimal comparator = new BigDecimal("500");
         for (Product product : products) {
-            if (product.getPrice().compareTo(new BigDecimal("500")) >= 1) {
+            if (product.getPrice().compareTo(comparator) > 0) {
                 expensive.add(product);
             }
         }
         System.out.println(expensive);
         System.out.println("7-------------");
         Product find = findByName(products, "netflix");
-        System.out.println(find);
+        System.out.println(find == null ? find : "no existe!");
 
         Product dontFind = findByName(products, "nadaaa");
 
-        System.out.println(dontFind);
+        System.out.println(dontFind == null ? dontFind : "no existe!");
         System.out.println("8-------------");
         List<Shippable> listOnlyShippable = onlyShippable(products);
+        for (Shippable ship : listOnlyShippable) {
+            System.out.println(ship.calculateShippingCost());
+        }
         System.out.println(listOnlyShippable);
 
     }
@@ -90,4 +96,13 @@ public class ProductListLab {
         }
         return listShippable;
     }
+    BigDecimal asdf = new BigDecimal("123");
 }
+/**
+ * 1: De donde te sacaste eso de: total.add(p.getPrice())???
+ * 2: Por que el contructior de BigDecimal solo recibe String, lo cual es razonable ya que el si le paso un 12333... podria facilmente desbordar el tamanio por defecto que tiene el int, ademas que ya estoy diciendo que puede prefectamente caber en un int, mientras que una cademas puede ser tan larga  como se requiere.
+ * 3: Tenemos que asegurarnos que los objetos esten cumpliendo con el contrato que tiene shippable, y para hacer eso necesitamos, es una carasteristica introduccida en java16 el cual nos ayuda a hace un casting mas seguro, pero no lo estoy usando
+ * 4: pues que el usuario, o el que hace la peticion no tiene una informacion completa de que es lo que paso.
+ *
+ *
+ */

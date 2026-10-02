@@ -240,6 +240,119 @@ javac -d out/cli $(find src -name '*.java') && java -cp out/cli practical.lists.
 
 **Criterios:** los 12 pasos presentes y en orden, predicciones escritas antes de ejecutar, declaración `List<String> = new ArrayList<>()`.
 
+
+> ## 🔍 REVISIÓN TAREA 1 — 2026-10-02 · **7/10** · 🟡 casi
+> Historial: v1 6/10 → v2 7/10 → **v3 7/10**. Revisado ejecutando `ListBasics`.
+
+**✅ Ya está bien:** pasos 1–6, 11 y 12. `contains` agregado en el paso 8. Imprimes la lista después de los
+pasos 9 y 10. P1.1 y P1.2 correctas. La predicción del valor devuelto en el paso 10 (`luis`) acertó.
+
+**Tus predicciones contra la salida real:**
+
+| Paso | Línea | Tu predicción | Salida real | |
+|------|-------|---------------|-------------|---|
+| 7 | lo que devuelve `set(0, "sofia")` | `sofia` | `ana` | ❌ |
+| 7 | la lista | 7 elementos `[sofia, ana, luis, ...]` | `[sofia, luis, carlos, Marta, Pedro, ana]` (6) | ❌ |
+| 8 | `contains("ana")` | `true` | `true` | ✅ |
+| 8 | `indexOf("ana")` | `1` | `5` | ❌ sin `porque` |
+| 9 | lo que devuelve `remove("ana")` | (`//true`, sin `espero:`) | `true` | ⚠️ |
+| 9 | la lista | `[sofia, luis, carlos, Marta, Pedro, ana]` | `[sofia, luis, carlos, Marta, Pedro]` | ❌ sin `real` |
+| 10 | lo que devuelve `remove(1)` | `luis` | `luis` | ✅ |
+| 10 | la lista | `[sofia, carlos, Marta, Pedro, ana]` | `[sofia, carlos, Marta, Pedro]` | ❌ sin `real` |
+
+---
+
+#### ❌ CRÍTICO 1 — `set` reemplaza y devuelve el valor **anterior**
+
+**Qué pasa:** predijiste que `set(0, "sofia")` devuelve `"sofia"` (el valor nuevo) y que la lista crece a 7.
+Las dos cosas son falsas. Devuelve `"ana"` y la lista sigue con 6.
+
+**Teoría:** `set(i, e)` hace **dos** cosas a la vez:
+1. **Efecto:** pone `e` en la posición `i`. El `size()` **no cambia**, porque no inserta nada.
+2. **Devuelve:** lo que había en `i` **antes** de reemplazarlo.
+
+¿Por qué devuelve el anterior? Porque el nuevo ya lo conoces (lo acabas de pasar). Lo que perderías es el viejo.
+Así puedes saber qué sobrescribiste sin hacer un `get(i)` previo.
+
+**Ejemplo (otros datos):**
+```
+List<String> colors = [rojo, verde, azul]          size 3
+
+String old = colors.set(1, "negro");
+  antes:   [0:rojo] [1:verde] [2:azul]
+  después: [0:rojo] [1:negro] [2:azul]              size 3  ← no cambió
+  old = "verde"                                     ← el que se fue
+
+colors.add(1, "negro");   // en cambio, add INSERTA:
+  [rojo, negro, verde, azul]                        size 4
+```
+(Comprobado: `colors.set(1, "negro")` devuelve `verde` → `[rojo, negro, azul]`.)
+
+**Profesionalmente:** "dame el valor anterior al cambiarlo" es justo lo que necesita un **log de auditoría**
+("el precio pasó de 100 a 120"). `Map.put` hace lo mismo y lo verás en la semana 3.
+
+**Fíjate:** en P1.2 escribiste que `set` **reemplaza**, así que la teoría la tienes. El fallo está en aplicarla
+al predecir, y para eso existen las predicciones.
+
+---
+
+#### ❌ CRÍTICO 2 — Un error en cascada que no reconciliaste
+
+**Qué pasa:** un único modelo mental equivocado en el paso 7 ("set inserta") hizo fallar las predicciones
+de los pasos 7, 8, 9 y 10. Escribiste `real:` en algunas líneas, pero **nunca** el `porque`. En los pasos 9 y 10
+ni siquiera anotaste la salida real, aunque no coincidía.
+
+**Teoría: el ciclo predecir → ejecutar → comparar**
+1. Ejecutas y comparas **línea por línea**.
+2. Cuando `real ≠ espero`, **te detienes** en la **primera** línea donde se separaron.
+3. Los fallos siguientes casi siempre son consecuencias de ese primero. Si arreglas la causa, se arreglan todos.
+
+Así se depura también en el trabajo: el bug está en el **primer** punto donde el estado real y el esperado
+se separan, no en el último donde lo notas.
+
+**Técnica: una tabla de estado.** Escribe cómo está la lista después de cada paso. Con otros datos:
+```
+paso              | lista después                 | size
+add x3            | [rojo, verde, azul]           | 3
+set(0, "negro")   | [negro, verde, azul]          | 3    ← "rojo" ya no existe
+indexOf("rojo")   | (no cambia)                   | 3    → -1, porque "rojo" se fue en el paso anterior
+```
+
+**Qué hacer:** en cada línea que falló, escribe `// real: ... porque ...`. Por ejemplo, en el paso 8:
+¿en qué posición quedó la única `"ana"` que sobrevivió al paso 7?
+
+---
+
+#### 🟠 IMPORTANTE 3 — P1.3 sigue sin mirar tu propia salida
+
+**Qué pasa:** respondiste "solo se elimina una... puede que sea la primera". Es vago. La pregunta tiene una
+respuesta concreta en **tu** salida.
+
+**Pista:** cuenta las `"ana"` en la salida real del paso 7. Hay **una**: la de la posición 0 fue reemplazada
+por `"sofia"`. Entonces, en este programa, ¿se eliminó solo una porque `remove` para en la primera, o porque
+solo había una?
+
+**Teoría:** tu regla es correcta. `remove(Object)` recorre la lista desde el índice 0 y elimina **solo la primera**
+coincidencia que encuentra (según `equals`). El problema es que el orden de los pasos del enunciado **no permite
+verla** aquí, y eso es culpa del enunciado, no tuya.
+
+**Dato:** en la Tarea 2, paso 4, **sí** la observaste sin querer. `[10, 20, 30, 10, 20, 30]` con
+`remove(Integer.valueOf(10))` dio `[20, 30, 10, 20, 30]`: solo se fue el primer `10`.
+
+---
+
+#### 🟡 MEJORABLE
+
+- En el paso 9, `//true` no dice si es predicción o resultado. Usa siempre `// espero:` y después `// real:`.
+- Los nombres en minúscula (`"ana"`) están bien mientras seas consistente.
+
+#### ☐ Checklist para cerrar la Tarea 1
+- [ ] Paso 7: `// real: ana porque ...` en la línea del `set`, y `// real: ... porque ...` en la lista
+- [ ] Paso 8: `porque` del `indexOf` = 5
+- [ ] Pasos 9 y 10: `// real:` en las listas, con su `porque`
+- [ ] Paso 9: marcar `//true` como `// espero:` o `// real:`
+- [ ] P1.3: responder con tu salida real (¿cuántas `"ana"` había antes del paso 9?)
+
 ---
 
 ### Tarea 2 — Recorrer y eliminar (fácil-medio)
@@ -269,6 +382,141 @@ javac -d out/cli $(find src -name '*.java') && java -cp out/cli practical.lists.
 - P2.3 ¿Cuándo usarías `List.of` y cuándo `new ArrayList<>()`?
 
 **Criterios:** las tres formas de recorrer, las tres trampas reproducidas y explicadas con tus palabras.
+
+
+> ## 🔍 REVISIÓN TAREA 2 — 2026-10-02 · **6/10** · 🔁 rehacer
+> Historial: v1 5/10 → **v2 6/10**. Revisado ejecutando `ListIteration`.
+
+**✅ Ya está bien:** pasos 5–8. Ahora imprimes el **nombre** de la excepción (`getSimpleName()`).
+Tus respuestas a la mini-tarea del CRÍTICO 1 (A y B) son **correctas**: ver abajo.
+P2.3 correcta.
+
+| Paso | | Comentario |
+|------|---|------------|
+| 1 | ✅ | |
+| 2 | ❌ | ahora usas índice, pero **no imprime el último** (ver CRÍTICO 1). Falta el formato `posición X → valor Y` |
+| 3 | 🟡 | sigue `Integer sum` (ver IMPORTANTE 4) |
+| 4 | 🟡 | sigue `ArrayList<Integer> t1` (ver IMPORTANTE 5). Tu `t1` duplicado demostró la regla de "primera coincidencia" ✅ |
+| 5–8 | ✅ | |
+| predicciones | ❌ | **ninguna** en toda la tarea (ver IMPORTANTE 3) |
+| P2.1 / mini-tarea A y B | ✅ | ver la revisión de tu respuesta |
+| P2.2 | ❌ | sin responder: la sección `critico:2-->` está vacía (ver CRÍTICO 2) |
+
+---
+
+#### ❌ CRÍTICO 1 — *Off-by-one*: tu bucle del paso 2 nunca imprime el `10`
+
+**Qué pasa:** `for (int i = 0; i < numbers.size() - 1; i++)`. La salida real termina en `9` y el `10` no aparece.
+
+**Teoría:** con `size() = 10`, los índices válidos van de `0` a `9`.
+- `i < size()` → `i` toma 0…9 ✅. Ya excluye el 10, que no es un índice válido.
+- `i < size() - 1` → `i` toma 0…8 ❌. Excluye **también** el último elemento.
+
+El `- 1` va en **una** de las dos formas, no en ambas:
+
+| Condición | Índices recorridos (size 3) | |
+|-----------|-----------------------------|---|
+| `i < size()` | 0, 1, 2 | ✅ forma idiomática |
+| `i <= size() - 1` | 0, 1, 2 | ✅ equivalente, menos común |
+| `i < size() - 1` | 0, 1 | ❌ pierde el último |
+
+Este es el error más frecuente con índices en cualquier lenguaje (*off-by-one*). Y en la Tarea 1, P1.1,
+lo explicaste perfecto: "el último elemento es `size() - 1`". Aquí lo aplicaste dos veces.
+
+**Por qué existe el paso 2:** el for con índice solo tiene sentido **cuando necesitas la posición**. Por eso el
+formato pide `posición X → valor Y`. Si imprimes solo el valor, un for-each bastaba.
+
+---
+
+#### ❌ CRÍTICO 2 — P2.2: sobrecarga de `remove` (sin responder)
+
+**Teoría: sobrecarga (*overloading*).** Varios métodos con el **mismo nombre** y **distintos parámetros**.
+`List` tiene dos:
+```java
+E       remove(int index)    // elimina por POSICIÓN y devuelve el elemento
+boolean remove(Object o)     // elimina por VALOR (primera coincidencia) y dice si lo encontró
+```
+El **compilador** elige cuál llamar según el tipo del argumento. Lo decide al compilar, no al ejecutar,
+y sigue esta prioridad:
+1. coincidencia **exacta** sin convertir nada,
+2. si no hay, con *autoboxing* (`int` → `Integer`),
+3. si no hay, varargs.
+
+**Ejemplo comprobado (otros métodos):**
+```java
+static void m(int x)    { System.out.println("int"); }
+static void m(Object x) { System.out.println("Object"); }
+
+m(1);                  // imprime "int"     → 1 es un int primitivo: coincidencia exacta, gana sin boxing
+m(Integer.valueOf(1)); // imprime "Object"  → es un Integer (un objeto): no encaja en int sin unboxing
+```
+Y con tu lista: `[10, 20, 30].remove(Integer.valueOf(1))` devuelve `false` y la lista no cambia,
+porque no hay ningún elemento con **valor** 1.
+
+**Responde con esto:** en `t.remove(1)` sobre `[10, 20, 30]`, ¿qué versión eligió el compilador? ¿Por qué
+desapareció el `20` y no el `1` (que no existe) ni el `10`?
+
+**Profesionalmente, el bug clásico:**
+```java
+List<Integer> productIds = ...;
+int id = 3;
+productIds.remove(id);   // 💥 elimina la POSICIÓN 3, no el producto 3
+```
+Pasa en código real y no lanza error: simplemente borra otra cosa (o lanza `IndexOutOfBounds` si la lista es corta).
+
+---
+
+#### ✅ Revisión de tu respuesta al CRÍTICO 1 (ConcurrentModificationException)
+
+- **A:** "se eliminó el 2... la siguiente vez que el iterador intentó avanzar notó la modificación" ✅.
+  Correcto: el `4` nunca llegó a evaluarse, porque la excepción saltó en la vuelta siguiente al `2`.
+- **B:** "en `for (Integer num : numbers)`, porque el iterador detectó la anomalía" ✅.
+  Precisión: salta dentro del `next()` **oculto** que el for-each llama en esa línea. No salta en `remove`.
+
+**Dato extra (comprobado), y peor que la excepción:**
+```java
+List<Integer> p = new ArrayList<>(List.of(1, 2, 3, 4));
+for (Integer x : p) if (x == 3) p.remove(x);
+System.out.println(p);   // [1, 2, 4]  ← SIN excepción, y el 4 nunca se recorrió
+```
+Si eliminas el **penúltimo** elemento, `hasNext()` compara la posición con el nuevo `size()`, devuelve `false`
+y el bucle termina en silencio. Que no haya excepción **no** significa que esté bien. Por eso la regla es
+siempre `Iterator.remove()` o `removeIf`.
+
+---
+
+#### 🟠 IMPORTANTE 3 — Cero predicciones
+
+Toda la tarea se ejecutó sin una sola línea `// espero:`. Con predicciones, el CRÍTICO 1 lo hubieras visto tú:
+"espero: 10 líneas, de 1 a 10" → "real: 9 líneas".
+
+#### 🟠 IMPORTANTE 4 — `Integer sum` en vez de `int` (segunda vez)
+
+**Teoría:** `Integer` es un **objeto** inmutable. `sum = sum + num` hace por debajo
+`sum = Integer.valueOf(sum.intValue() + num.intValue())`: desempaqueta, suma y crea un objeto nuevo en cada vuelta.
+Además, los objetos `Integer` traen dos riesgos que `int` no tiene:
+```java
+Integer a = 1000, b = 1000;
+a == b;        // false  ← compara referencias (comprobado)
+Integer c = 100, d = 100;
+c == d;        // true   ← Java reutiliza los Integer de -128 a 127 (caché). Funciona "a veces" = bug escondido
+Integer n = null;
+int x = n + 1; // 💥 NullPointerException
+```
+**Regla:** usa `Integer` donde la API lo exige (`List<Integer>`). Para calcular, usa `int`.
+
+#### 🟠 IMPORTANTE 5 — `ArrayList<Integer> t1 = ...` (segunda vez)
+
+Declara con la **interfaz**: `List<Integer> t1`. Repasa la sección 1.1 de esta lección. Es la misma idea que
+en Spring hace posible la inyección de dependencias: el código depende del contrato, no de la clase concreta.
+
+#### ☐ Checklist para rehacer la Tarea 2
+- [ ] Paso 2: condición correcta y formato `posición X → valor Y` (predice cuántas líneas salen)
+- [ ] Paso 3: `int sum`
+- [ ] Paso 4: `List<Integer> t1`
+- [ ] `// espero:` en **todos** los `println`, y `// real: ... porque ...` donde falle
+- [ ] P2.2 respondida (sección `critico:2-->`)
+- [ ] *Opcional:* reproducir el caso del penúltimo elemento y explicarlo con tus palabras
 
 ---
 
@@ -310,6 +558,182 @@ javac -d out/cli $(find src -name '*.java') && java -cp out/cli practical.lists.
 
 **Criterios:** `BigDecimal` usado correctamente (`compareTo`, `add` asignado, constructor con String),
 métodos con una sola responsabilidad, la lista original no se modifica en el paso 6.
+
+
+> ## 🔍 REVISIÓN TAREA 3 — 2026-10-02 · **6/10** · 🔁 rehacer
+> Historial: v1 5/10 → **v2 6/10**. Revisado ejecutando `ProductListLab`.
+
+**✅ Ya está bien:**
+- `toString()` con el formato pedido.
+- Numeración desde 1 con un contador.
+- `compareTo(...) > 0`.
+- El `500` sacado del bucle.
+- El paso 8 imprime `calculateShippingCost()`.
+- El total con `BigDecimal` está perfecto desde la v1.
+
+| Paso | | Comentario |
+|------|---|------------|
+| previo | ✅ | `getId()` + `toString()` |
+| 1–4 | ✅ | |
+| 5 | 🟡 | funciona, pero imprime el producto entero. Se pedía el **nombre** |
+| 6 | 🟡 | falta imprimir **cuántos** hay |
+| 7 | ❌ | el ternario está **invertido** (ver CRÍTICO 1). Sigue lanzando excepción con lista vacía (ver IMPORTANTE 5) |
+| 8 | ✅ | |
+| P3.1 | ❌ | no entendiste la pregunta (ver IMPORTANTE 3) |
+| P3.2 | ❌ | respuesta incorrecta (ver CRÍTICO 2) |
+| P3.3 | 🟡 | sabes que existe algo de Java 16, pero no explicas **por qué** hace falta el cast (ver IMPORTANTE 4) |
+| P3.4 | 🟡 | buen comienzo, falta el problema principal (ver IMPORTANTE 6) |
+
+---
+
+#### ❌ CRÍTICO 1 — El ternario del paso 7 dice lo contrario de la verdad
+
+**Qué pasa, en tu salida real:**
+```
+7-------------
+no existe!     ← buscaste "netflix", que SÍ existe
+null           ← buscaste "nadaaa", que NO existe
+```
+
+**Teoría:** `condición ? valorSiTrue : valorSiFalse`. Léelo en voz alta:
+`find == null ? find : "no existe!"` dice "si `find` es null, imprime `find` (o sea `null`); si no, imprime
+`"no existe!"`". Está al revés.
+
+**Ejemplo (otros datos):**
+```java
+String nickname = null;
+String shown = (nickname == null) ? "anónimo" : nickname;  // si es null → "anónimo"; si no → el nickname
+```
+
+**La lección de fondo:** la salida estaba mal a la vista y pasó desapercibida, porque no había predicciones.
+Además, este bug es **exactamente** el problema de P3.4: devolver `null` obliga a cada llamador a acordarse de
+comprobarlo, y a comprobarlo **bien**. Aquí la comprobación se hizo mal.
+
+---
+
+#### ❌ CRÍTICO 2 — P3.2: por qué `new BigDecimal("0.1")` y no `new BigDecimal(0.1)`
+
+**Qué pasa:** respondiste que "el constructor solo recibe String" y que "un int podría desbordar". Ninguna de
+las dos cosas es cierta. `BigDecimal` tiene constructores con `String`, `int`, `long` **y** `double`, y la
+pregunta trata de `double`, no de `int`. No hiciste la prueba que pedía el enunciado.
+
+**Teoría:** `double` es **punto flotante binario**. Igual que `1/3` no se puede escribir exacto en decimal
+(`0.3333...`), `0.1` no se puede representar exacto en binario. El `double` guarda el número binario **más
+cercano**, que no es `0.1`.
+- `new BigDecimal(0.1)` copia **exactamente** ese valor binario impreciso.
+- `new BigDecimal("0.1")` guarda **exactamente** lo que escribiste.
+
+**Ejemplo comprobado:**
+```java
+new BigDecimal(0.1)       // 0.1000000000000000055511151231257827021181583404541015625
+new BigDecimal("0.1")     // 0.1
+BigDecimal.valueOf(0.1)   // 0.1   (pasa por Double.toString, por eso sale bien)
+0.1 + 0.2                 // 0.30000000000000004   (double)
+new BigDecimal("0.1").add(new BigDecimal("0.2"))   // 0.3
+```
+
+**Profesionalmente:** el dinero **nunca** va en `double`. En Java se usa `BigDecimal` creado desde `String` o
+desde la base de datos: una columna `DECIMAL(10,2)` se mapea a `BigDecimal` en JPA. Es el mismo problema de
+`float` en PHP (`0.1 + 0.2 != 0.3`). Por eso el cast `decimal` de Laravel devuelve un **string**.
+
+**Qué hacer:** imprime los dos (`new BigDecimal(0.1)` y `new BigDecimal("0.1")`), pega la salida en un comentario
+y responde de nuevo con tus palabras.
+
+---
+
+#### 🟠 IMPORTANTE 3 — P3.1: qué pasa si llamas a `add` sin asignar
+
+**Qué pasa:** respondiste "¿de dónde sacaste eso de `total.add(p.getPrice())`?". La pregunta es hipotética:
+¿qué pasaría si alguien escribe la línea **sin** el `total =` delante?
+
+**Teoría:** `BigDecimal` es **inmutable**: ningún método cambia el objeto. `add` **devuelve un objeto nuevo** con
+el resultado. Si no lo guardas, se pierde.
+
+**Ejemplo comprobado:**
+```java
+BigDecimal total = BigDecimal.ZERO;
+total.add(new BigDecimal("5"));        // calcula 5... y lo tira
+System.out.println(total);             // 0
+
+String s = "hola";
+s.toUpperCase();                       // misma idea: String también es inmutable
+System.out.println(s);                 // hola
+```
+**Puente PHP:** es como `CarbonImmutable`: `$date->addDays(1)` sin asignar no cambia `$date`.
+
+**Qué hacer:** responde P3.1 en una línea con tus palabras: ¿por qué `total.add(...)` sin asignar no suma nada?
+
+---
+
+#### 🟠 IMPORTANTE 4 — P3.3: por qué hace falta el cast después del `instanceof`
+
+**Teoría:** el compilador solo conoce el **tipo declarado** de la variable, y `product` está declarado como `Product`.
+`instanceof` es una comprobación **en tiempo de ejecución**. Antes de Java 16, el compilador no "recordaba" que
+dentro del `if` ya habías comprobado el tipo, así que había que convencerlo con un cast.
+
+Desde Java 16 existe ***pattern matching for instanceof***: el `instanceof` comprueba el tipo **y además** declara
+una variable ya convertida.
+
+**Ejemplo comprobado (otros tipos):**
+```java
+Object o = "hola";
+
+// antes de Java 16
+if (o instanceof String) {
+    String s = (String) o;
+    System.out.println(s.length());
+}
+
+// Java 16+
+if (o instanceof String s) {        // comprueba y declara 's' ya como String
+    System.out.println(s.length()); // 4
+}
+```
+
+**Qué hacer:** reescribe `onlyShippable` con *pattern matching* y responde P3.3 nombrando la característica y
+explicando por qué el cast hacía falta.
+
+---
+
+#### 🟠 IMPORTANTE 5 — `findByName` sigue lanzando excepción con la lista vacía (segunda vez)
+
+Buscar en una lista vacía **no es un error**: el resultado normal es "no encontrado". Es igual que un
+`SELECT ... WHERE name = ?` sobre una tabla vacía, que devuelve 0 filas y no un error.
+**Las excepciones son para situaciones inválidas, no para resultados posibles.** Además, el bucle ya cubre el
+caso: con la lista vacía no entra y llega al `return null`. Por tanto el `if` sobra entero.
+(Y si algún día lo necesitas: `list.isEmpty()`, no `size() <= 0`.)
+
+#### 🟠 IMPORTANTE 6 — P3.4: el problema real de devolver `null`
+
+Tu respuesta ("el que llama no tiene información completa") va bien encaminada. Los tres problemas concretos:
+1. **La firma miente por omisión.** `Product findByName(...)` no dice "puede no existir", así que quien llama
+   se olvida de comprobarlo.
+2. **El error explota lejos.** `findByName(...).getName()` lanza `NullPointerException` en otra línea, quizá en
+   otra clase, lejos de donde nació el `null`.
+3. **Comprobarlo bien también cuesta:** tu CRÍTICO 1 lo demuestra.
+
+**Puente Laravel:** `first()` devuelve `null`; `firstOrFail()` lanza. En Java, `Optional<Product>` (semana 5) hace
+que la ausencia esté **en el tipo**, y el compilador te obliga a decidir qué hacer.
+
+---
+
+#### 🟡 MEJORABLE
+
+- **Campo `asdf`:** `BigDecimal asdf = new BigDecimal("123");` al final de la clase no se usa. Bórralo.
+- **Nombres que confunden con tipos de Java:**
+  - `iterador` no es un `Iterator`: es la posición. Mejor `position` o `number`.
+  - `comparator` es el nombre de una interfaz de Java que verás en la semana 4. Mejor `minPrice` o `threshold`.
+- **Otros nombres:** `mostCost` → `mostExpensive`, `sumtotal` → `total`, `find` / `dontFind` → `netflix` / `missing`.
+- **Espacio después del número:** `1. Laptop` en vez de `1.Laptop`.
+
+#### ☐ Checklist para rehacer la Tarea 3
+- [ ] Paso 5: imprimir solo el nombre
+- [ ] Paso 6: imprimir cuántos hay
+- [ ] Paso 7: ternario corregido y sin excepción para la lista vacía
+- [ ] `onlyShippable` con *pattern matching*
+- [ ] Borrar `asdf` y renombrar `iterador` y `comparator`
+- [ ] P3.1, P3.2 (con la salida de la prueba), P3.3 y P3.4 respondidas de nuevo
+- [ ] `// espero:` en cada `println`
 
 ---
 
@@ -361,6 +785,154 @@ Hoy `Main` tiene el comentario `//detalle por producto.` y no se puede implement
 **Restricción:** **no** intentes todavía evitar items duplicados (`addItem(laptop, 3)` +
 `addItem(laptop, 2)`). Eso requiere `equals`, y es la siguiente lección.
 
+
+> ## 🔍 REVISIÓN TAREA 4 — 2026-10-02 · **7/10** · 🔁 rehacer (le falta poco)
+> Historial: v1 5/10 → **v2 7/10**. Revisado ejecutando `Main` (sigue imprimiendo `3846` ✅).
+
+**✅ Ya está bien:**
+- Validaciones de `OrderItem`: el producto no puede ser `null` y el mensaje de cantidad dice la verdad. Fallan donde está el error (*fail fast*).
+- `ArrayList` con diamond `<>` e `isEmpty()`.
+- El detalle usa `getSubTotalPrice()` (DRY) y termina con la línea `Total`.
+- El paso 12 demuestra `UnsupportedOperationException`. La encapsulación ya está **comprobada**.
+
+| Paso | | Comentario |
+|------|---|------------|
+| 1–5 | ✅ | |
+| 6 | 🟡 | la justificación no es técnica (ver IMPORTANTE 2) |
+| 7–10 | ✅ | |
+| 11 | ✅ | columnas sin alinear: opcional (ver MEJORABLE) |
+| 12 | ✅ | `catch (Exception e)` demasiado amplio (ver IMPORTANTE 4) |
+| 13 | ❌ | sin hacer (ver IMPORTANTE 3) |
+| P4.1 | ✅ | |
+| P4.2 | ❌ | sin rehacer, y falta la mini-tarea (ver CRÍTICO 1) |
+| P4.3 | 🟡 | falta el ejemplo con números |
+
+---
+
+#### ❌ CRÍTICO 1 — `final`: protege la **variable**, no el **objeto**
+
+**Qué pasa:** tu respuesta sigue siendo "impide hacer modificaciones una vez que el atributo fue modificado".
+Pero tu propio `removeItem` hace `orderItems.remove(index)` sobre un campo `final` y compila sin problema.
+
+**Teoría:** una variable de objeto guarda una **referencia** (una flecha) hacia un objeto en memoria.
+```
+ orderItems  ──────►  [ ArrayList: item1, item2, item3 ]
+ (variable)            (objeto)
+
+ final bloquea la FLECHA:  no puede apuntar a otro objeto.
+ final NO bloquea la CAJA: el objeto se puede modificar (add, remove, clear...).
+```
+
+**Ejemplo comprobado:**
+```java
+final List<String> x = new ArrayList<>();
+x.add("a");               // ✅ compila: modifica el objeto
+x.remove(0);              // ✅ compila: modifica el objeto
+x = new ArrayList<>();    // ❌ NO compila: cannot assign a value to final variable x
+```
+
+**Cada protección cubre una cosa distinta:**
+
+| Herramienta | Qué impide |
+|-------------|------------|
+| `private` | que otra clase **acceda** al campo |
+| `final` | que el campo se **reasigne** a otra lista (incluso desde la misma clase) |
+| `List.copyOf` en el getter | que quien recibe la lista **modifique** sus elementos |
+
+**Relación con Spring:** `private final ProductRepository repository;` con inyección por constructor es el
+estándar. El `final` garantiza que la dependencia no se cambie después de construir el objeto.
+
+**Qué hacer:** prueba las 4 líneas del ejemplo en un archivo aparte, con tus predicciones, y vuelve a responder
+P4.2: ¿qué impide exactamente `final`?
+
+---
+
+#### 🟠 IMPORTANTE 2 — Justificar `List.copyOf` vs `Collections.unmodifiableList`
+
+**Qué pasa:** escribiste "es al que entiendo mejor, además no sé cómo usar el otro". Es honesto, pero no es una
+razón técnica. En un code review real te pedirían el **por qué**.
+
+**Teoría: vista vs copia.** Las dos impiden modificar desde fuera, pero se comportan distinto cuando la lista
+**original** cambia.
+
+**Ejemplo comprobado:**
+```java
+List<String> src  = new ArrayList<>(List.of("a"));
+List<String> view = Collections.unmodifiableList(src);  // VISTA: una ventana de solo lectura a src
+List<String> copy = List.copyOf(src);                   // COPIA: una foto de src en este momento
+
+src.add("b");
+System.out.println(view);   // [a, b]  ← la vista ve el cambio
+System.out.println(copy);   // [a]     ← la copia no
+```
+
+| | `unmodifiableList` (vista) | `List.copyOf` (copia) |
+|---|---|---|
+| Coste al llamar | casi nada | copia todos los elementos, O(n) |
+| Si el `Order` cambia después | quien la recibió **ve** el cambio | no lo ve: es una foto |
+| `null` dentro | lo permite | lanza `NullPointerException` |
+
+Ninguna está mal aquí. Elige una y escribe el **por qué** en términos de esta tabla.
+
+---
+
+#### 🟠 IMPORTANTE 3 — Paso 13 sin hacer
+
+**Qué pasa:**
+```java
+try {
+    order.getItems();      // no hace nada: el resultado se descarta (la misma idea que P3.1)
+    order.removeItem(99);  // devuelve false... y nadie lo mira
+} catch (Exception e) { ... }   // nunca entra: removeItem no lanza excepciones, por diseño
+```
+
+**Teoría:** diseñaste `removeItem` para **devolver** `boolean` en lugar de lanzar. Entonces la información está
+en el valor de retorno, y el `try/catch` sobra. Un método puede avisar de un fallo de dos formas: lanzando o
+devolviendo. Quien lo llama tiene que usar la forma que el método eligió.
+
+**Qué hacer:**
+1. Eliminar un item **válido**, imprimir el `boolean` y el total nuevo (con predicción).
+2. Intentar el índice `99`, imprimir el `boolean` (predicción: ¿`true` o `false`?).
+3. Imprimir el total otra vez: ¿cambió?
+
+---
+
+#### 🟠 IMPORTANTE 4 — `catch (Exception e)` es demasiado amplio
+
+**Teoría:** captura **solo** la excepción que esperas. `catch (Exception e)` también atrapa cualquier bug, por ejemplo
+un `NullPointerException`, y lo imprime como si fuera "lo esperado".
+```java
+try {
+    order.getItems().add(item);
+} catch (Exception e) {                     // si fallara por un NPE, imprimirías "NullPointerException"
+    System.out.println(e.getClass()...);    // y la demostración "parecería" funcionar
+}
+```
+Con `catch (UnsupportedOperationException e)`, cualquier otro error **no** se esconde: explota y lo ves.
+**Profesionalmente:** en Spring, los `@ExceptionHandler` se registran por **tipo** de excepción, por esta misma razón.
+
+---
+
+#### 🟡 MEJORABLE
+
+- **P4.3:** da el ejemplo con números. Si agregas la misma laptop x3 y después x2, ¿qué devuelven `getItemCount()` y `getTotalUnits()`?
+- **`removeItem`:** `index >= orderItems.size()` se lee más directo que `index > orderItems.size() - 1`.
+- **Columnas (opcional):** `printf` con ancho fijo. Comprobado, con otros datos:
+  ```java
+  System.out.printf("%-12s x%-3d %8s%n", "Teclado", 2, "80");
+  // Teclado      x2         80
+  // %-12s = texto alineado a la izquierda en 12 columnas · %8s = alineado a la derecha en 8 · %n = salto de línea
+  ```
+- **Nombres:** `ordI` → `extraItem`.
+- **Imports sin usar:** `ShippingStragy` en `Main`.
+
+#### ☐ Checklist para rehacer la Tarea 4
+- [ ] Mini-tarea de `final` + P4.2 de nuevo
+- [ ] Comentario en `getItems()` con la justificación técnica
+- [ ] Paso 13 completo (remove válido, remove 99, totales, predicciones)
+- [ ] `catch (UnsupportedOperationException e)` en el paso 12
+- [ ] P4.3 con números
+
 ---
 
 ### Tarea 5 — El puente a `equals` (avanzado, corta)
@@ -381,6 +953,65 @@ Hoy `Main` tiene el comentario `//detalle por producto.` y no se puede implement
 **No lo arregles.** Esta tarea solo sirve para ver el problema. La solución es la lección siguiente
 (`equals()` / `hashCode()`).
 
+
+> ## 🔍 REVISIÓN TAREA 5 — 2026-10-02 · **7/10** · 🟡 casi
+> Historial: v1 3/10 → **v2 7/10**. Revisado ejecutando `ContainsLab`: `false`, `-1`, `true`.
+
+**✅ Ya está bien:** el experimento ahora es válido (solo el primer laptop en la lista) y las **tres predicciones
+acertaron**, una por línea. P5.3 correcta. Gran mejora.
+
+| | | Comentario |
+|---|---|---|
+| pasos 1–5 | ✅ | |
+| P5.1 | 🟡 | describe el resultado, pero no lo explica (ver IMPORTANTE 1) |
+| P5.2 | 🟡 | sin cambios: falta nombrar el método y decir qué compara (ver IMPORTANTE 2) |
+| P5.3 | ✅ | |
+
+---
+
+#### 🟠 IMPORTANTE 1 — P5.1: "no existe en la lista"... ¿pero por qué, si tiene los mismos datos?
+
+**Qué pasa:** "no existe dentro de la lista, por eso `contains` no lo encuentra" repite el resultado con otras
+palabras. La pregunta es **por qué**: el segundo laptop tiene el mismo id, nombre, precio y peso.
+
+**Teoría:** cada `new` crea un objeto **distinto** en memoria (en el *heap*), con su propia dirección:
+```
+ firstLaptop  ──►  [Laptop id=1 "Laptop" 3452.4]   @dirección A   ← este está en la lista
+ secondLaptop ──►  [Laptop id=1 "Laptop" 3452.4]   @dirección B   ← mismo contenido, OTRO objeto
+```
+`contains` recorre la lista y pregunta, para cada elemento, si "es igual" al que buscas llamando a **un método**.
+Lo que ese método considera "igual" decide el resultado.
+
+#### 🟠 IMPORTANTE 2 — P5.2: nombra el método y di qué compara
+
+**Teoría:**
+- `contains`, `indexOf` y `remove(Object)` llaman a **`equals(Object)`** (tabla 1.3 de esta lección).
+- `equals` está declarado en **`java.lang.Object`**. Toda clase hereda de `Object` aunque no escribas `extends`.
+- `Product` **no** sobrescribe `equals`, así que usa la versión heredada de `Object`, que hace
+  `return this == obj;`. Es decir, compara **referencias** (¿es la misma dirección?), no el contenido.
+
+**Ejemplo comprobado, la contraprueba:**
+```java
+List<String> l = new ArrayList<>(List.of("Ana"));
+l.contains(new String("Ana"));   // true ← dos objetos distintos, ¡pero da true!
+```
+¿Por qué con `String` funciona? Porque `String` **sí** sobrescribe `equals` para comparar los caracteres.
+`Product`, todavía no.
+
+**Qué hacer:** responde P5.1 y P5.2 con tus palabras usando: `equals`, `Object`, referencia.
+Y una pregunta más: **¿qué tendría que tener `Product` para que `contains(secondLaptop)` dé `true`?**
+No lo implementes: es la lección siguiente.
+
+#### 🟡 MEJORABLE
+- Borra la línea vieja `// espero true,true`: ya no corresponde.
+- Import sin usar: `java.lang.ref.PhantomReference`.
+- `String[] args` en vez de `String args[]`.
+
+#### ☐ Checklist para cerrar la Tarea 5
+- [ ] P5.1 y P5.2 con `equals` / `Object` / referencia
+- [ ] Responder: ¿qué necesita `Product` para que `contains` dé `true`?
+- [ ] Limpiar el comentario viejo y el import
+
 ---
 
 ## 4. Qué entregar
@@ -395,264 +1026,26 @@ Hoy `Main` tiene el comentario `//detalle por producto.` y no se puede implement
 
 Cada uno con predicciones (`// espero:`) y respuestas a las preguntas en comentarios.
 
-**Siguiente lección:** `equals()` / `hashCode()` + `HashSet` (ya diseñada en `docs/progress.md`).
+**Siguiente lección:** `equals()` / `hashCode()` + `HashSet` → [Lección 02](02-equals-hashcode-set.md).
 
 ---
 
-## 5. Code review — entrega del 2026-10-01
+## 5. Estado de las revisiones
 
-> Revisado compilando y ejecutando cada clase (commit `6c756e5`).
-> Leyenda por paso: ✅ correcto · 🟡 incompleto o mejorable · ❌ falta o incorrecto.
-> Clasificación: **CRÍTICO** · **IMPORTANTE** · **MEJORABLE** · **NO RELEVANTE AHORA**.
+> Cada tarea tiene su revisión **debajo de su enunciado** (bloque 🔍 REVISIÓN), con teoría, ejemplos y checklist.
+> Esta sección es solo el resumen.
 
-### Resumen
+| Tarea | Historial | Estado (2026-10-02) | Lo que falta, en una línea |
+|-------|-----------|---------------------|----------------------------|
+| 1. `ListBasics` | 6 → 7 → **7** | 🟡 casi | `porque` de las predicciones falladas (pasos 7–10) y P1.3 |
+| 2. `ListIteration` | 5 → **6** | 🔁 rehacer | *off-by-one* del paso 2, P2.2 (sobrecarga), predicciones |
+| 3. `ProductListLab` | 5 → **6** | 🔁 rehacer | ternario invertido, P3.1–P3.4 (sobre todo `BigDecimal(double)`) |
+| 4. `Order` | 5 → **7** | 🔁 rehacer | P4.2 (`final`), paso 13, justificar `copyOf` |
+| 5. `ContainsLab` | 3 → **7** | 🟡 casi | P5.1 y P5.2 con `equals` / `Object` / referencia |
 
-| Tarea | Nota | Estado | Motivo principal |
-|-------|------|--------|------------------|
-| 1. `ListBasics` | 6/10 | 🔁 rehacer | faltan pasos 2 y 8, paso 6 en otro orden/posición, sin predicciones |
-| 2. `ListIteration` | 5/10 | 🔁 rehacer | P2.1 y P2.2 sin entender el concepto, falta el for con índice |
-| 3. `ProductListLab` | 5/10 | 🔁 rehacer | numeración no hecha, ninguna pregunta respondida, `compareTo >= 1` |
-| 4. `Order` | 5/10 | 🔁 rehacer | encapsulación no demostrada (paso 12), validaciones de `OrderItem` sin hacer |
-| 5. `ContainsLab` | 3/10 | 🔁 rehacer | el experimento quedó invalidado: agregaste los dos laptops |
+**Lo que se repite en todas:** las predicciones. Donde las escribiste (Tarea 5), todo salió bien. Donde no
+(Tareas 2 y 3), hay bugs visibles en la salida que pasaron desapercibidos: el `10` que falta y el
+"no existe!" de un producto que sí existe.
 
-**Veredicto: todavía no pasamos a `equals/hashCode`.** La lógica que sí escribiste está bien en
-general (`BigDecimal.add` asignado, `Iterator`, `removeIf`, `List.copyOf`, `instanceof`). Lo que falla
-es (a) pasos del enunciado que faltan, (b) **ninguna** predicción `// espero:` en ninguna tarea y
-(c) tres conceptos mal entendidos: `ConcurrentModificationException`, sobrecarga de `remove` y `final`.
-La semana 1 termina el 04 oct: vas a tiempo si lo rehaces antes.
-
-**Lo que se repite en todas las tareas (CRÍTICO para el método, no para el código):**
-- **Sin predicciones.** Es la regla número 1 de la lección. Sin `// espero:` antes de ejecutar,
-  el código "funciona" pero no sabes si lo entendiste. La Tarea 5 lo demuestra: el resultado coincidió
-  con lo que pensabas, pero por la razón equivocada.
-- **Saltarse sub-requisitos** ("imprime la lista", "imprime cuántos hay", "imprime `calculateShippingCost()`").
-  En un ticket real, eso es un PR rechazado. Lee el enunciado paso por paso antes de entregar.
-
----
-
-### Tarea 1 — `ListBasics` · 6/10 · 🔁 rehacer
-
-| Paso | | Comentario |
-|------|---|------------|
-| 1 | ✅ | `List<String> names = new ArrayList<>()` correcto |
-| 2 | ❌ | falta `isEmpty()` y `size()` con la lista vacía |
-| 3–5 | ✅ | `size() - 1` bien usado |
-| 6 | ❌ | insertaste en la posición **1** (no 2) y **después** del `set`: el enunciado va en orden 6 → 7 |
-| 7 | 🟡 | no imprimiste la lista después del `set`. La variable se llama `newName` pero guarda el valor **anterior** |
-| 8 | ❌ | faltan `contains("Ana")` e `indexOf("Ana")` |
-| 9 | ✅ | bien observado: solo borra la primera coincidencia |
-| 10 | 🟡 | imprimiste el elemento devuelto, pero no la lista |
-| 11–12 | ✅ | |
-| P1.1–P1.3 | ✅ | las tres respuestas son correctas |
-
-- **IMPORTANTE** — `newName` miente: `set` devuelve el elemento **reemplazado**. Un nombre como
-  `replaced` o `previous` evita un bug cuando alguien lee el código. Los nombres son documentación.
-- **MEJORABLE** — usaste `"ana"` y `"luis"` en minúscula. El enunciado decía `"Ana"`. Con `List<String>`
-  da igual, pero `"Ana".equals("ana")` es `false`: en el paso 8 te hubiera dado un resultado distinto.
-
-**Para rehacer:** agrega los pasos 2 y 8, corrige el 6 (posición 2, antes del `set`), imprime la lista en
-los pasos 7 y 10, renombra `newName` y escribe `// espero:` en **cada** `println`.
-
----
-
-### Tarea 2 — `ListIteration` · 5/10 · 🔁 rehacer
-
-| Paso | | Comentario |
-|------|---|------------|
-| 1 | ✅ | |
-| 2 | ❌ | usaste for-each. Se pedía **for con índice** y el formato `posición X → valor Y` |
-| 3 | 🟡 | `Integer sum` en vez de `int`: cada `+=` hace unboxing y boxing (ver abajo) |
-| 4 | 🟡 | `ArrayList<Integer> t1 = ...`: declaraste con la implementación (error común #1 de la lección) |
-| 5 | 🟡 | `e.getMessage()` imprime `null` (esta excepción no tiene mensaje). Se pedía el **nombre**: `e.getClass().getSimpleName()` |
-| 6–7 | ✅ | `Iterator` y `removeIf` correctos |
-| 8 | 🟡 | otra vez `getMessage()` → `null`. Imprime algo que te diga qué pasó |
-| P2.1 | ❌ | ver CRÍTICO 1 |
-| P2.2 | ❌ | ver CRÍTICO 2 |
-| P2.3 | ✅ | correcto. Matiz: `List.of` además **no acepta `null`** |
-
-**CRÍTICO 1 — Por qué falla el for-each (P2.1)**
-Tu respuesta ("el while asegura que existe el siguiente") no es la causa: el for-each **también** llama a
-`hasNext()`. El concepto que falta:
-- El for-each es azúcar sintáctico: el compilador lo convierte en un `Iterator` **oculto**.
-- Ese iterator recuerda cuántas modificaciones tenía la lista cuando empezó (`modCount`).
-- En cada `next()` compara. Si la lista cambió **sin pasar por él**, lanza `ConcurrentModificationException`.
-- `it.remove()` modifica la lista **a través del iterator**, así que el iterator actualiza su cuenta.
-
-**Mini-tarea:** tu salida del paso 5 fue `[1, 3, 4, 5, 6, 7, 8, 9, 10]`. Explica con tus palabras:
-(a) por qué se eliminó el `2` pero no el `4` y (b) en qué línea exacta se lanzó la excepción: ¿en el `remove` o en otra?
-
-**CRÍTICO 2 — `remove(1)` (P2.2)**
-Tu respuesta ("funcionó como debería, ¿no hice bien el procedimiento?") muestra que no viste la trampa.
-Tu código está bien: lo que falta es **explicar** el resultado. Pista: `List` tiene **dos** métodos
-`remove`, uno con `int` y otro con `Object`. Esto se llama **sobrecarga** (*overloading*).
-- Con `t.remove(1)`, ¿cuál elige el compilador y por qué? (Piensa: `1` es un `int` primitivo).
-- ¿Qué valor desapareció de `[10, 20, 30]` y por qué ese?
-- ¿Qué devolvería `t.remove(Integer.valueOf(1))` sobre `[10, 20, 30]`? Predice **antes** de probarlo.
-
-- **MEJORABLE** — `Integer sum = 0; sum += num;`: cada suma desempaqueta, suma y vuelve a crear un `Integer`.
-  Para acumular usa el primitivo `int`. La regla: wrapper (`Integer`) cuando la API lo exige (`List<Integer>`),
-  primitivo para cálculos.
-
-**Para rehacer:** paso 2 con índice, `int sum`, declarar `List<Integer>` en el paso 4, imprimir el nombre de la
-excepción, predicciones, y volver a responder P2.1 y P2.2 (incluidas las mini-tareas).
-
----
-
-### Tarea 3 — `ProductListLab` · 5/10 · 🔁 rehacer
-
-| Paso | | Comentario |
-|------|---|------------|
-| previo | 🟡 | `getId()` ✅. `toString()` imprime `Product{id=1name=Laptop  price=3452.4}`: faltan `, ` y las comillas del formato pedido |
-| 1–2 | ✅ | 6 tipos distintos, `BigDecimal` con String |
-| 3 | ❌ | imprimiste la letra `"N."` literal. Se pedía `1. Laptop - 3452.4`, `2. ...` (con contador o índice) |
-| 4 | ✅ | `BigDecimal.ZERO` + `total = total.add(...)`: perfecto |
-| 5 | 🟡 | funciona, pero con `compareTo(...) >= 1` (ver IMPORTANTE). Se pedía imprimir el **nombre** |
-| 6 | 🟡 | no imprimiste **cuántos** hay. `new BigDecimal("500")` se crea en cada vuelta del bucle |
-| 7 | 🟡 | lanzar excepción con lista vacía es un error de diseño (ver IMPORTANTE) |
-| 8 | 🟡 | método correcto, pero no recorriste el resultado imprimiendo `calculateShippingCost()` |
-| P3.1–P3.4 | ❌ | **ninguna** respondida |
-
-- **IMPORTANTE** — `compareTo(...) >= 1`: hoy funciona porque `BigDecimal.compareTo` devuelve -1, 0 o 1.
-  Pero el contrato de `compareTo` **solo garantiza el signo**: `"b".compareTo("z")` devuelve `-24`.
-  La forma correcta es `> 0`, `< 0` o `== 0`. Este hábito te lo cobra la semana 4 (`Comparable`).
-- **IMPORTANTE** — `findByName` lanza `IllegalArgumentException` si la lista está vacía. Buscar en una
-  lista vacía no es un error: el resultado simplemente es "no encontrado", igual que buscar en una tabla vacía
-  con `WHERE name = ?` en SQL. Las excepciones son para situaciones inválidas, no para resultados normales.
-  Además: `list.size() <= 0` se escribe `list.isEmpty()`, porque `size()` nunca es negativo.
-- **MEJORABLE** — nombres: `mostCost` → `mostExpensive`. `sumtotal` → `total` (camelCase). `find` / `dontFind`
-  describen la acción, no el contenido: prueba con `netflix` / `missing`.
-- **MEJORABLE** — saca `new BigDecimal("500")` del bucle a una variable (o una constante `static final`).
-
-**Para rehacer:** pasos 3, 5, 6 y 8 completos; `> 0`; `findByName` sin excepción; formato del `toString()`;
-y las 4 preguntas. P3.2 y P3.3 piden **probar** algo: incluye el código y la salida en comentarios.
-
----
-
-### Tarea 4 — `Order` / `OrderItem` / `Main` · 5/10 · 🔁 rehacer
-
-| Paso | | Comentario |
-|------|---|------------|
-| 1 | ✅ | getters |
-| 2 | ❌ | `OrderItem` sigue aceptando `product == null` |
-| 3 | ❌ | el mensaje sigue diciendo "cannot be negative" |
-| 4 | 🟡 | `final` ✅. Diamond ❌: sigue `new ArrayList<OrderItem>()` |
-| 5 | ✅ | `BigDecimal.ZERO` |
-| 6 | 🟡 | `List.copyOf` ✅, pero falta el **comentario justificando** por qué esa y no `unmodifiableList` |
-| 7–8 | ✅ | `getItemCount` / `getTotalUnits` correctos y con una sola responsabilidad |
-| 9 | ✅ | funciona. Mejorable: `index >= orderItems.size()` se lee mejor que `index > size() - 1` |
-| 10 | ❌ | falta `isEmpty()` |
-| 11 | 🟡 | el detalle se imprime, pero recalculas el subtotal en `Main` y falta la línea `TOTAL` |
-| 12 | ❌ | `order.getItems();` sin `.add(...)` no prueba nada. No hay excepción porque no intentaste modificar |
-| 13 | ❌ | no eliminaste ningún item válido, ignoraste el `boolean` de `removeItem(99)` y no reimprimiste el total |
-| P4.1 | ✅ | correcta |
-| P4.2 | ❌ | ver CRÍTICO |
-| P4.3 | 🟡 | correcta en abstracto. Pide el ejemplo concreto: misma laptop x3 y x2 → ¿`getItemCount()`? ¿`getTotalUnits()`? |
-
-- **CRÍTICO — Paso 12, la demostración es el objetivo de la tarea.** Escribiste `getItems()` bien, pero el
-  criterio era **demostrar** que desde fuera no se puede romper el pedido. Sin el `add` dentro del `try`,
-  no lo comprobaste. Además, el `try/catch` alrededor de `removeItem(99)` no tiene sentido: `removeItem`
-  **nunca** lanza (por diseño devuelve `false`). Lo que debes hacer es **usar** ese `boolean`.
-- **CRÍTICO — `final` (P4.2).** "Impide modificaciones una vez que el atributo fue modificado" es ambiguo, y
-  tu propio `removeItem` modifica la lista sin problema. El concepto: `final` protege la **variable** (la
-  referencia), no el **objeto** al que apunta.
-  **Mini-tarea:** en un archivo aparte, predice cuál de estas líneas **no compila** y luego compruébalo:
-  `final List<String> x = new ArrayList<>();` → `x.add("a");` → `x.remove(0);` → `x = new ArrayList<>();`
-  Después vuelve a responder P4.2: ¿`final` + `List.copyOf` protegen lo mismo o cosas distintas?
-- **IMPORTANTE — Lógica duplicada en `Main`.** `item.getProduct().getPrice().multiply(new BigDecimal(item.getQuantity()+""))`
-  repite lo que ya hace `OrderItem.getSubTotalPrice()`. Si mañana el subtotal aplica un descuento, `Main`
-  imprimirá un número distinto al total. Usa el método que ya existe (DRY). Además, `new BigDecimal(int + "")`
-  es un truco: para `int` existe `BigDecimal.valueOf(...)`, que tú mismo usaste en `OrderItem`.
-- **IMPORTANTE — Validaciones de `OrderItem` (pasos 2 y 3).** Un `OrderItem` con `product == null` revienta
-  más tarde en `getSubTotalPrice()` con `NullPointerException`, lejos del origen del error. Validar en el
-  constructor hace que falle **donde está el error** (*fail fast*).
-- **NO RELEVANTE AHORA** — el import `Interfaces.ShippingStragy` sin usar y los comentarios viejos en `Main`.
-
-**Para rehacer:** pasos 2, 3, 4 (diamond), 6 (comentario), 10, 11 (usar `getSubTotalPrice` + línea `TOTAL`),
-12 y 13. Vuelve a responder P4.2 con la mini-tarea y completa P4.3 con números.
-
----
-
-### Tarea 5 — `ContainsLab` · 3/10 · 🔁 rehacer
-
-- **CRÍTICO — El experimento quedó invalidado.** El paso 1 dice que agregues **solo** el primer laptop.
-  Tú agregaste los dos (`list.add(secondLaptop)`), así que `contains(secondLaptop)` da `true` simplemente
-  porque **ese mismo objeto** está en la lista. El `true` coincidió con tu predicción, pero por la razón
-  equivocada. Por eso existen las predicciones: si hubieras seguido el paso 1, la salida te habría sorprendido.
-- **IMPORTANTE** — la predicción `// espero true,true` no corresponde a las tres líneas: `indexOf` devuelve un
-  `int`, no un `boolean`. Escribe una predicción por cada `println`.
-- **P5.1** ❌ "quizás tenga algo que ver" no explica nada. Rehaz el experimento y responde con lo que veas.
-- **P5.2** 🟡 vas bien encaminado ("lo usa de Object"). Precisa: ¿qué **método** exacto? ¿De qué clase lo
-  hereda `Product`? ¿Qué compara esa versión por defecto? (Pista: la tabla 1.3 de esta lección lo dice).
-- **P5.3** ✅ correcta: se agregan dos líneas, no se detecta el duplicado.
-- **MEJORABLE** — el import `java.lang.ref.PhantomReference` está sin usar (seguramente lo agregó el autocompletado).
-
-**Para rehacer:** solo el primer laptop en la lista, una predicción por línea, y P5.1 y P5.2 de nuevo.
-
----
-
-### Otros
-
-- **MEJORABLE** — `src/practical/lists/Main.java` está vacío. Bórralo o úsalo. Un archivo sin propósito
-  confunde a quien lee el proyecto (YAGNI).
-- **MEJORABLE** — `String args[]` funciona, pero en Java se escribe `String[] args`: el `[]` es parte del tipo.
-
-### Cómo entregar la corrección
-
-1. Rehaz cada tarea **sobre el mismo archivo**. No borres las respuestas anteriores que estaban mal:
-   agrega `// corrección:` debajo, para que se vea qué aprendiste.
-2. Pide "revisa tarea N" de a una. Las tareas 1, 2 y 5 son cortas: empieza por ahí.
-3. Cuando las 5 tengan ✅, cerramos la semana 1 y pasamos a `equals()` / `hashCode()` + `HashSet`.
-
----
-
-### Revisión 2 — Tarea 1 `ListBasics` · 7/10 · 🟡 casi (corregir pasos 7–10)
-
-> Revisado el 2026-10-01 ejecutando la clase.
-
-**Mejoró:** paso 2 agregado ✅, paso 6 en la posición 2 y antes del `set` ✅, y ahora hay predicciones
-en casi todas las líneas ✅. Las predicciones ya están dando fruto: revelaron el error más importante de esta entrega.
-
-| Paso | | Comentario |
-|------|---|------------|
-| 1–6 | ✅ | |
-| 7 | 🟡 | ya no guardas ni imprimes lo que **devuelve** `set` (en la versión anterior sí lo hacías). La predicción falló y no tiene `porque` |
-| 8 | 🟡 | `isEmpty()` en lugar de `contains("ana")`: sigue faltando `contains`. `indexOf` falló (esperabas 1, salió 5) y no tiene `porque` |
-| 9 | 🟡 | imprime `true` (lo que devuelve `remove`), pero tu predicción era la lista. Falta imprimir la lista |
-| 10 | 🟡 | mismo caso: imprime `luis` (lo que devuelve), tu predicción era la lista. Falta imprimir la lista |
-| 11–12 | ✅ | |
-| P1.1, P1.2 | ✅ | |
-| P1.3 | 🟡 | la regla es correcta, pero ver IMPORTANTE 3 |
-
-**CRÍTICO — `set` vs `add` (paso 7).**
-Tu predicción tenía **7** elementos: `["sofia","ana","luis",...]`. Es decir, esperabas que `set(0, ...)`
-**insertara**. Pero en P1.2 escribiste que `set` **reemplaza**. La teoría la sabes, pero al predecir la
-olvidaste. Justamente ese es el error que las predicciones están para atrapar.
-Esto también explica el paso 8: `indexOf("ana")` dio `5` y no `1`, porque la `"ana"` de la posición 0 ya no existe.
-Escribe el `// real: ... porque ...` de los pasos 7 y 8 con tus palabras.
-
-**IMPORTANTE 1 — Valor de retorno vs efecto sobre la lista.**
-En los pasos 9 y 10 predijiste **cómo queda la lista**, pero imprimiste **lo que devuelve el método**.
-Son dos cosas distintas, y casi todos los métodos de `List` tienen ambas:
-
-| Método | Efecto sobre la lista | Devuelve |
-|--------|-----------------------|----------|
-| `set(i, e)` | reemplaza | el elemento **anterior** |
-| `remove(Object)` | elimina la primera coincidencia | `boolean`: ¿encontró algo? |
-| `remove(int)` | elimina esa posición | el elemento eliminado |
-
-Para los pasos 7, 9 y 10: guarda lo que devuelve en una variable, imprímela con su predicción y **después**
-imprime la lista con su propia predicción.
-
-**IMPORTANTE 2 — Falta `contains` en el paso 8.**
-
-**IMPORTANTE 3 — P1.3, mira tu propia salida.** Después del paso 7, ¿cuántas `"ana"` quedan en la lista?
-Cuenta en la salida real del paso 7. Responde de nuevo: en **este** programa, ¿por qué se eliminó solo una?
-(Tu regla de "solo borra la primera coincidencia" sigue siendo correcta en general. El problema es el
-orden de los pasos del enunciado: no te permite verla aquí, y no es culpa tuya.)
-*Opcional:* para comprobar la regla de verdad, agrega `"ana"` dos veces más antes del paso 9 y observa.
-
-**MEJORABLE** — los nombres siguen en minúscula (`"ana"` en vez de `"Ana"`). No cuenta como error mientras seas
-consistente: `contains("Ana")` daría `false`.
-
-**Para cerrar la tarea:** solo los pasos 7–10 (variables con el valor de retorno, `contains`, imprimir la lista,
-`porque` en cada predicción fallida) y P1.3 de nuevo. Es corto.
+**Cómo entregar:** corrige sobre el mismo archivo y marca lo nuevo con `// corrección:`. Pide
+"revisa tarea N" de a una. Cuando las 5 estén en ✅, pasamos a `equals()` / `hashCode()` + `HashSet`.

@@ -1,67 +1,60 @@
 # Progreso — Java Learning Lab
 
-> Plan completo (26 semanas, 28 sep 2026 → 28 mar 2027): `docs/roadmap.md` · **Semana actual: 1**
+> Plan completo (26 semanas, 28 sep 2026 → 28 mar 2027): `docs/roadmap.md` · **Semana actual: 2**
 
 ## ▶ TAREA EN CURSO (retomar aquí)
 
-**Estado:** entregada el 2026-10-01 → **code review hecho, las 5 tareas en 🔁 rehacer.**
-Detalle por paso al final de `docs/lessons/01-list-arraylist.md` (sección 5).
+**Tema:** `equals()` / `hashCode()` + `Set` (semana 2). Lección completa en `docs/lessons/02-equals-hashcode-set.md`.
+**Estado:** asignada el 2026-10-02, **no empezada**. Se avanzó a pedido del alumno con deuda de la lección 01 (ver abajo).
 
-**Tema:** `List` / `ArrayList` — lección completa en `docs/lessons/01-list-arraylist.md`
+| Tarea | Archivo | Estado |
+|-------|---------|--------|
+| 0. Calentamiento `Set<String>` | `src/practical/sets/SetBasics.java` | pendiente |
+| 1. Ronda 1: sin `equals` | `src/practical/sets/EqualsHashCodeLab.java` | pendiente |
+| 2. Ronda 2: solo `equals` | `Product.java` + `EqualsHashCodeLab` | pendiente |
+| 3. Ronda 3: `hashCode` + `id` final + `isValidValue` | `Product.java` + `EqualsHashCodeLab` | pendiente |
+| 4. `getClass` vs `instanceof` | `src/practical/sets/EqualityTypeLab.java` | pendiente |
+| 5. `HashSet` / `LinkedHashSet` / `TreeSet` | `src/practical/sets/SetOrderLab.java` | pendiente |
+| 6. `Order.getDistinctProducts()` | `Order.java` + `Main.java` | pendiente |
 
-| Tarea | Archivo | Nota | Estado |
-|-------|---------|------|--------|
-| 1. Operaciones básicas | `src/practical/lists/ListBasics.java` | 7/10 | 🟡 casi: corregir pasos 7–10 y P1.3 |
-| 2. Recorrer y eliminar (trampas) | `src/practical/lists/ListIteration.java` | 5/10 | 🔁 rehacer |
-| 3. `List<Product>` + BigDecimal | `src/practical/lists/ProductListLab.java` + `Product` | 5/10 | 🔁 rehacer |
-| 4. Aplicarlo a `Order` (encapsulación) | `Order`, `OrderItem`, `Main` | 5/10 | 🔁 rehacer |
-| 5. Puente a `equals` | `src/practical/lists/ContainsLab.java` | 3/10 | 🔁 rehacer |
+El alumno pidió tareas muy detalladas, paso a paso (dice que le cuesta entender rápido): mantener ese nivel de detalle.
 
-**Conceptos a reforzar:** valor de retorno vs efecto (`set`/`remove`), `ConcurrentModificationException` (iterator oculto del for-each),
-sobrecarga `remove(int)` vs `remove(Object)`, `final` (referencia vs objeto), contrato de `compareTo` (solo el signo).
+### Deuda de la lección 01 (no bloquea; parte se practica en la lección 02)
 
-Siguiente paso: rehacer (empezar por 1, 2 y 5) y pedir "revisa tarea N".
+| Tarea L01 | Estado | Pendiente |
+|-----------|--------|-----------|
+| 1. `ListBasics` | 🟡 7/10 | `porque` de predicciones falladas (pasos 7–10), P1.3 |
+| 2. `ListIteration` | 🔁 6/10 | *off-by-one* paso 2, P2.2 (sobrecarga `remove`), predicciones |
+| 3. `ProductListLab` | 🔁 6/10 | ternario invertido, P3.1–P3.4 (`BigDecimal(double)`, inmutabilidad) |
+| 4. `Order` | 🔁 7/10 | P4.2 (`final`), paso 13, justificar `copyOf` |
+| 5. `ContainsLab` | 🟡 7/10 | P5.1/P5.2 → se cubren en la Tarea 1 de la lección 02 |
 
----
-
-## ⏭ SIGUIENTE TAREA (ya diseñada, no empezar hasta cerrar List)
-
-**Tema:** `equals()` / `hashCode()` + `HashSet`
-
-**Motivación desde el código:** `order.addItem(laptop, 3); order.addItem(laptop, 2);` crea dos
-`OrderItem`, y dos `Product` con el mismo id hoy son "distintos" para Java.
-
-**Parte A — Predecir y observar.** Crear `src/practical/EqualsHashCodeLab.java`:
-1. Dos `Laptop` con el mismo id y mismos datos, y un tercero con otro id.
-2. Imprimir `a == b`, `a.equals(b)`, `a.hashCode() == b.hashCode()`.
-3. Meter los tres en un `HashSet<Product>` e imprimir `size()`.
-4. Crear un cuarto `Laptop` con el mismo id que `a` y probar `set.contains(cuarto)`.
-5. **Antes de ejecutar**, escribir en comentarios qué se espera en cada línea.
-
-**Parte B — Solo `equals`.** Sobrescribir únicamente `equals()` en `Product` (basado en `id`).
-Ejecutar de nuevo y anotar qué cambió y qué **no**.
-
-**Parte C — `hashCode`.** Agregar `hashCode()`, ejecutar y comparar los tres resultados.
-
-**Parte D —** Corregir `isValidValue` en `Product` (usa `floatValue()`; no valida `null`).
-
-**Preguntas (responder en comentarios):**
-1. ¿Por qué en la Parte B el `HashSet` se comportó así?
-2. ¿Un `PhysicalProduct` id 1 debería ser `equals` a un `Laptop` id 1?
-   `getClass() != o.getClass()` vs `instanceof`: ¿cuál y por qué? (pensar en simetría)
-3. ¿Qué debería pasar con el campo `id` para que `hashCode` no se rompa? (pista: `final`)
-
-**Restricciones:** escribir `equals`/`hashCode` a mano (sin generar con IntelliJ, sin Lombok;
-`java.util.Objects` permitido en `hashCode`). **No** tocar `Order` todavía (será la siguiente tarea, con `Map`).
-
-**Criterios:** contrato de `equals` (incluido `null`), `hashCode` coherente con `equals`,
-decisión `getClass`/`instanceof` justificada, predicciones vs resultados reales.
-
-**Entregar:** `src/practical/EqualsHashCodeLab.java` + `src/Models/Product.java` modificado.
-
-**Después:** `Order` sin items duplicados → `Map<Product, OrderItem>` / `LinkedHashMap`.
+Detalle en los bloques 🔍 REVISIÓN de `docs/lessons/01-list-arraylist.md`.
 
 ---
+
+## 2026-10-02 — Paso a la lección 02 (con deuda)
+
+* El alumno pide avanzar sin cerrar la lección 01. Se respeta; la deuda queda registrada arriba y los
+  conceptos (`final`, `BigDecimal.compareTo`, valor de retorno vs efecto, `equals` de `Object`) se reutilizan
+  en las tareas de la lección 02.
+* Creada `docs/lessons/02-equals-hashcode-set.md` (reemplaza el diseño breve de `EqualsHashCodeLab` que estaba aquí).
+
+## 2026-10-02 — 2.ª revisión lección 01
+
+### Mejoró
+* experimento de `ContainsLab` corregido, predicciones correctas (3 → 7)
+* `OrderItem` valida `null` y cantidad (*fail fast*); detalle con `getSubTotalPrice` (DRY); encapsulación demostrada
+* explicó correctamente la `ConcurrentModificationException` (iterator oculto, salta en `next()`)
+* `compareTo > 0`, contador para numerar, constante fuera del bucle
+
+### Errores detectados
+* predijo que `set` inserta y devuelve el valor nuevo → cascada de predicciones falladas sin reconciliar
+* *off-by-one*: `for (i < size() - 1)` no imprime el último
+* ternario invertido en `findByName` (imprime "no existe!" para un producto que existe) sin notarlo
+* P3.2: cree que `BigDecimal` solo acepta `String` (no conoce el problema de `double` binario)
+* P2.2 (sobrecarga) y P4.2 (`final`) sin responder de nuevo; paso 13 de la Tarea 4 sin hacer
+* repite `Integer sum` y `ArrayList<Integer>` como tipo declarado
 
 ## 2026-10-01 — Code review lección 01 (`List`/`ArrayList`)
 

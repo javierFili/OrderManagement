@@ -16,15 +16,14 @@ public class ContainsLab {
         Product firstLaptop = new Laptop(new BigInteger("1"), "Laptop", new BigDecimal("3452.4"), new BigDecimal("32"));
         Product secondLaptop = new Laptop(new BigInteger("1"), "Laptop", new BigDecimal("3452.4"), new BigDecimal("32"));
         list.add(firstLaptop);
-        list.add(secondLaptop);
-        System.out.println(list.contains(secondLaptop));
-        System.out.println(list.indexOf(secondLaptop));
-        System.out.println(list.contains(firstLaptop));
+        System.out.println(list.contains(secondLaptop));//espero: false
+        System.out.println(list.indexOf(secondLaptop));//espero: -1
+        System.out.println(list.contains(firstLaptop));//espero:true
         // espero true,true
     }
 }
 /**
- * 1: quizas tenga algo que ver el contais, ya que son objetos "complejos" asi que no se que criterio este tomando para esto.
+ * 1: bueno por que en realidad no existe dentro de la lista, por lo tanto el contains no lo esta encontrando.
  * 2: yo pienso que el contains lo esta usando el Object
  * 3: en realidad slo se agrega, no tenemos forma de verificar duplicados.
  */

@@ -41,8 +41,8 @@ tareas de los bloques siguientes, no con lecciones aparte.
 
 | Sem | Inicio | Tema | Conceptos | Entregable / aplicación | Estado |
 |-----|--------|------|-----------|-------------------------|--------|
-| 1 | 28 sep | `List` / `ArrayList` | interfaz vs implementación, generics básicos, recorridos, trampas, encapsulación de colecciones | [Lección 01](lessons/01-list-arraylist.md) · `Order` con detalle por producto | ▶ |
-| 2 | 05 oct | `equals` / `hashCode` + `Set` | contrato, `getClass` vs `instanceof`, `HashSet`, `LinkedHashSet`, `TreeSet` | `EqualsHashCodeLab` (ya diseñado en `progress.md`) | ⬜ |
+| 1 | 28 sep | `List` / `ArrayList` | interfaz vs implementación, generics básicos, recorridos, trampas, encapsulación de colecciones | [Lección 01](lessons/01-list-arraylist.md) · `Order` con detalle por producto | ✅ con deuda (ver `progress.md`) |
+| 2 | 05 oct | `equals` / `hashCode` + `Set` | contrato, `getClass` vs `instanceof`, `HashSet`, `LinkedHashSet`, `TreeSet` | [Lección 02](lessons/02-equals-hashcode-set.md) · `Order.getDistinctProducts()` | ▶ |
 | 3 | 12 oct | `Map` | `HashMap`, `LinkedHashMap`, `TreeMap`, `getOrDefault`, `merge`, recorrer entradas | `Order` sin items duplicados (`Map<Product, OrderItem>`) | ⬜ |
 | 4 | 19 oct | Ordenar | `Comparable`, `Comparator`, `comparing().thenComparing()`, `List.sort` | catálogo ordenado por precio, nombre y tipo | ⬜ |
 | 5 | 26 oct | Java moderno | `record`, enums con comportamiento, `Optional`, inmutabilidad, `var`, `switch` moderno | `findByName` devuelve `Optional`; `OrderStatus` como enum con reglas | ⬜ |

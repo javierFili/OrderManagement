@@ -8,9 +8,12 @@ public class OrderItem {
     private int quantity;
 
     public OrderItem(Product product, int quantity) {
+        if(product==null){
+            throw  new IllegalArgumentException("No puede ser un producto nullo");
+        }
         this.product = product;
         if (quantity <= 0) {
-            throw new IllegalArgumentException("Quantity cannot be negative");
+            throw new IllegalArgumentException("Tiene que existe un cantidad de productos mayor a 0");
         }
         this.quantity = quantity;
     }
