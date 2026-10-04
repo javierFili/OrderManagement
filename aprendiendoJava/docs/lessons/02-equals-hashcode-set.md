@@ -413,6 +413,133 @@ javac -d out/cli $(find src -name '*.java') && /usr/lib/jvm/java-21-openjdk-amd6
 - [ ] el mensaje de error del paso 8 copiado
 - [ ] 3 preguntas respondidas
 
+
+> ## 🔍 REVISIÓN TAREA 0 — 2026-10-04 · **9/10** · ✅ pasa a Tarea 1
+> Historial: v1 8/10 → **v2 9/10**. Revisado ejecutando `SetBasics`.
+
+**✅ Ya está bien:** los 10 pasos están, compila y corre. Acertaste **todas** las predicciones de valores
+(`true`/`false`/`size`), incluido lo que devuelven `add` y `remove`, que era la deuda de la lección 01.
+Y lo más importante: cuando el orden del paso 5 no coincidió, **escribiste `real` y `porque`** en vez de seguir.
+Eso es justo el hábito que faltaba. P0.1 y P0.3 correctas.
+
+**Tus predicciones contra la salida real:**
+
+| Paso | Línea | Tu predicción | Salida real | |
+|------|-------|---------------|-------------|---|
+| 2 | `isEmpty()` / `size()` | `true` / `0` | `true` / `0` | ✅ |
+| 3–4 | `add("Ana")` ×2 y `size()` | `true`, `false`, `1` | `true`, `false`, `1` | ✅ |
+| 5 | `size()` | `4` | `4` | ✅ |
+| 5 | `names` | `[Ana, Luis, Marta, ana]` | `[Marta, Ana, ana, Luis]` | ❌ con `porque` |
+| 6 | `contains("Ana")` / `("ANA")` | `true` / `false` | `true` / `false` | ✅ |
+| 7 | `remove("Luis")` / `("Pedro")` | `true` / `false` | `true` / `false` | ✅ |
+| 7 | `names` | `[Marta, Ana, ana]` | `[Marta, Ana, ana]` | ✅ (usaste la salida del paso 5 👍) |
+| 9 | for-each | "cada nombre en su línea" | `Marta` / `Ana` / `ana` | ⚠️ vago |
+| 10 | `catch` | "no sé" | `UnsupportedOperationException` | ⚠️ con `porque` |
+
+---
+
+#### 🟠 IMPORTANTE 1 — ¿Por qué `[Marta, Ana, ana, Luis]`? (tu pregunta del paso 5)
+
+Tienes razón en las dos cosas que notaste: **no hay orden lógico** y **siempre sale igual**. No es casualidad.
+
+**Teoría:** un `HashSet` es por dentro un arreglo de "cajones" (*buckets*), 16 al empezar. Para guardar un
+elemento:
+1. Llama a `hashCode()` del String. Es un número calculado a partir de sus letras (siempre el mismo para el mismo texto).
+2. Lo convierte en un número de cajón entre 0 y 15.
+3. Lo pone en ese cajón. Si ya hay alguien, lo pone **detrás** en el mismo cajón.
+
+Al imprimir, recorre los cajones **del 0 al 15**. Con tus datos (comprobado):
+```
+"Marta".hashCode() = 74114091  → cajón 1
+"Ana".hashCode()   = 65972     → cajón 5
+"ana".hashCode()   = 96724     → cajón 5   ← mismo cajón (colisión), entra detrás de "Ana"
+"Luis".hashCode()  = 2379923   → cajón 7
+
+cajón:  0    1       2  3  4    5            6    7     ... 15
+             [Marta]           [Ana → ana]        [Luis]
+imprime:     Marta,             Ana, ana,          Luis
+```
+Por eso el orden es estable (mismos textos → mismos cajones) pero no "lógico" (depende de un número que
+no ves). **No lo memorices:** si el set crece, Java pasa a 32 cajones y el orden puede cambiar.
+Si necesitas orden: `LinkedHashSet` (orden de inserción) o `TreeSet` (orden alfabético) — §1.7.
+
+Fíjate también en que **el paso 5 pedía** escribir `// espero: no sé el orden, pero estos elementos: ...`.
+Era una trampa a propósito: la predicción correcta era *no predecir el orden*.
+
+**Profesionalmente:** un test que compara `set.toString()` con `"[Ana, Luis, ...]"` es un test frágil.
+Se compara con `contains` o con `equals` contra otro `Set`.
+
+---
+
+#### 🟠 IMPORTANTE 2 — El mensaje del paso 8 está incompleto
+
+Copiaste `cannot find symbol, variable names of type java.util.set<...>`. Te falta **la línea que importa**:
+```
+error: cannot find symbol
+        names.get(0);
+             ^
+  symbol:   method get(int)                       ← QUÉ no encontró
+  location: variable names of type Set<String>    ← DÓNDE lo buscó
+```
+Léelo como una frase: "no encontré el **método `get(int)`** en el tipo **`Set<String>`**". El compilador mira
+el tipo de la **izquierda** (`Set`), no el objeto real (`HashSet`). Es lo mismo que viste con polimorfismo:
+la variable decide qué métodos puedes llamar.
+
+**Profesionalmente:** `symbol` + `location` es lo primero que buscas en cualquier error de compilación
+de Spring Boot. Acostúmbrate a copiarlas completas.
+
+---
+
+#### 🟡 MENOR 3 — P0.2 y el paso 10: dar la razón concreta
+
+- **P0.2:** "implementa una interfaz diferente" es circular (es como decir "no tiene `get` porque no lo tiene").
+  Tu segunda frase sí es la respuesta: **no hay posición estable**. Acabas de verlo: si `get(0)` existiera hoy
+  daría `"Marta"`, y tras agregar elementos podría dar otro. Un método así sería una trampa.
+- **Paso 10:** tu `porque` explica *qué es* la excepción, pero no *por qué saltó*. Razón: `Set.of(...)` crea un
+  set **inmutable**. Es el mismo caso que `List.of` y `List.copyOf` de la lección 01 (Tarea 4).
+- **P0.3:** correcta. Para la Tarea 1 conecta esto: `"Ana".equals("ana")` es `false` y sus `hashCode` también
+  son distintos (65972 vs 96724). El set usa **esos dos métodos** para decidir si "ya está".
+
+---
+
+#### 🟡 MENOR 4 — Formato
+
+- Si aciertas, la plantilla pide `// espero: true ✅`. No marcaste ninguna, así que no se sabe si comprobaste.
+- Paso 9: con la salida del paso 7 ya podías predecir exactamente `Marta`, `Ana`, `ana`.
+- Paso 7: el enunciado pedía guardar también el de `"Pedro"` en un `boolean` (`removedPedro`).
+- Los comentarios dicen `//tarea1`, `//tarea2`… pero son **pasos**. Y los separadores `"8---"` / `"9---"`
+  están desfasados (el for-each es el paso 9 y `Set.of` el 10).
+- `String args[]` funciona, pero en Java se escribe `String[] args` (el tipo es "arreglo de String").
+
+---
+
+**Para llegar a 10/10:**
+- [ ] paso 5: `// espero: no sé el orden, pero estos elementos: Ana, Luis, Marta, ana` (y deja tu `porque`)
+- [x] paso 8: copiar el error completo, con `symbol` y `location`
+- [x] P0.2: quitar lo circular, quedarte con "no hay posición estable" + tu ejemplo
+- [x] paso 10: `porque` = `Set.of` es inmutable
+- [ ] `✅` en las predicciones acertadas, predicción concreta en el paso 9
+
+---
+
+#### 🔁 v2 — 2026-10-04 · **9/10** · ✅ puedes pasar a la Tarea 1
+
+**Corregido:**
+- ✅ Paso 10: "es un objeto inmutable". Esa es la razón concreta.
+- ✅ P0.2: ya no es circular. "No hay índice posicional" es la respuesta.
+- ✅ Paso 8: ahora aparece `symbol: method get(int)`, que es lo que importa.
+- ✅ Marcas `✅` en las predicciones acertadas.
+
+**Sigue pendiente (no bloquea la Tarea 1):**
+- ❌ **Paso 5:** el `espero` sigue siendo `[Ana,Luis,Marta,ana]`. Es el único punto de concepto que queda.
+  La predicción correcta en un `HashSet` es **no predecir el orden**:
+  `// espero: no sé el orden, pero estos elementos: Ana, Luis, Marta, ana`. Deja tu `salio` y tu `porque`.
+  Con la explicación de los cajones de arriba, ya puedes cambiar el "la verdad no sé" por la razón real.
+- 🟡 Paso 8: pusiste ✅ en `// names.get(0);`. Ahí no hay predicción. Era un error esperado, no un acierto.
+  Al mensaje le falta `location: variable names of type Set<String>`, que es la otra mitad.
+- 🟡 Paso 9: `espero cada nombre en su línea ✅` sigue siendo vago. Podías escribir `Marta`, `Ana`, `ana`.
+- 🟡 Sin tocar: `removedPedro`, los comentarios `//tarea1`… (son pasos), los separadores `8---`/`9---` y `String args[]`.
+
 ---
 
 ### Tarea 1 — Ronda 1: `Product` **sin** `equals` ni `hashCode` (fácil · 40 min)
@@ -457,6 +584,123 @@ real. Las columnas 2 y 3 las llenarás en las Tareas 2 y 3, **sin cambiar el có
 - **P1.2** ¿Por qué `equals` también da `false`? ¿Qué método de qué clase se está ejecutando y qué compara?
   (Es la deuda de la lección 01, Tarea 5.)
 - **P1.3** ¿Por qué el set acepta a `laptopB` si "es el mismo producto"?
+
+
+> ## 🔍 REVISIÓN TAREA 1 — 2026-10-04 · **8/10** · 🟡 casi → pasa a Tarea 2
+> Historial: v1 6/10 → **v2 8/10**. Revisado ejecutando `EqualsHashCodeLab`. `Product.java` sin tocar ✅.
+
+**✅ Ya está bien:** pasos 1–4, 6 y 8. Las 3 laptops están bien creadas y declaradas como `Product`.
+Predijiste bien `==` y `hashCode`. Cuando fallaste (`equals`, `contains(D)`) **escribiste el `real` y te
+detuviste**. P1.1 y P1.3 van por buen camino.
+
+**Tus predicciones contra la salida real:**
+
+| Paso | Línea | Tu predicción | Salida real | |
+|------|-------|---------------|-------------|---|
+| 2 | `A == B` | `false` | `false` | ✅ |
+| 3 | `A.equals(B)` | `true` | `false` | ❌ con `porque` |
+| 4 | `A.hashCode() == B.hashCode()` | `false` | `false` | ✅ |
+| 5 | `list.contains(B)` | — | **no existe en el código** | ❌ |
+| 6 | `set.add(A/B/C)` | `true`, `true`, `true` | `true`, `true`, `true` | ✅ |
+| 7 | `set.size()` | — | **no existe en el código** (imprimiste `set`) | ❌ |
+| 8 | `set.contains(D)` | `true` | `false` | ❌ `porque` confuso |
+
+---
+
+#### ❌ CRÍTICO 1 — Faltan los pasos 5 y 7… pero la tabla los tiene llenos
+
+**Qué pasa:** en el código no está la `List` del paso 5 ni el `set.size()` del paso 7. Aun así, la tabla dice
+`list.contains(B) → false` y `set.size() → 3`. Esos dos valores **no salieron de ejecutar nada**: los dedujiste.
+Puede que acertaras, pero la tabla es para registrar **lo que pasó**, no lo que creemos que pasó.
+
+**Por qué importa justo aquí:** las Tareas 2 y 3 vuelven a ejecutar **esta misma clase sin cambiarla** y comparan
+las columnas. Y `list.contains(B)` es **la fila más importante** de la lección: en la Ronda 2 es la que cambia
+mientras el set **no** cambia. Si la línea no está en el código, la Ronda 2 no te lo va a mostrar.
+
+**Profesionalmente:** un reporte de pruebas con resultados "deducidos" es el clásico "en mi máquina funciona".
+Si no lo ejecutaste, se escribe `no ejecutado`.
+
+**Qué hacer:** agrega los pasos 5 (`List<Product> list`, solo `laptopA`, imprimir `list.contains(laptopB)`) y
+7 (`set.size()`), con su `espero`. Puedes dejar el `println(set)` como extra.
+
+---
+
+#### 🟠 IMPORTANTE 2 — P1.2: falta decir **qué método de qué clase** (deuda de la lección 01)
+
+**Qué pasa:** respondiste "equals al final hace un `this == o` pero con pasos extras". La mitad es correcta.
+Pero la pregunta pide tres cosas y no nombras ninguna:
+1. **¿Qué clase?** `Object`. Ni `Laptop` ni `Product` escriben `equals`, así que Java sube por la herencia
+   `Laptop → Product → Object` y usa el primero que encuentra.
+2. **¿Qué método?** `Object.equals(Object obj)`.
+3. **¿Qué compara?** La **referencia** (identidad), exactamente igual que `==`.
+
+Y **no** tiene "pasos extras". Es literalmente `return (this == obj);` (mira §1.1). Por eso `A.equals(B)` y
+`A == B` dan lo mismo en la Ronda 1.
+
+**Truco para comprobarlo tú:** en IntelliJ, Ctrl+clic sobre `equals` en `laptopA.equals(laptopB)`. Te lleva a
+`Object.java`. Eso responde "qué clase" sin adivinar.
+
+---
+
+#### 🟠 IMPORTANTE 3 — Paso 8: el `porque` de `contains(D)` mezcla dos cosas
+
+**Qué pasa:** escribiste "usa internamente un `this == o`… pero por contenido". Es contradictorio: `==` es
+justo lo **contrario** de comparar por contenido. Además le falta la etiqueta `porque:`.
+
+**Lo que realmente pasa (§1.3)** cuando haces `set.contains(laptopD)`:
+```
+1) cajón = laptopD.hashCode()   → hashCode de Object: un número distinto para cada objeto
+                                  → va a un cajón donde NO está laptopA
+2) en ese cajón no hay nadie igual → false
+   (ni siquiera llega a llamar a equals con laptopA)
+```
+Es decir, `HashSet` falla **dos veces**: el cajón es incorrecto (`hashCode`) y, aunque acertara el cajón,
+`equals` compararía referencias. Arreglar solo uno no basta. Eso es lo que vas a ver en las Rondas 2 y 3.
+
+---
+
+#### 🟡 MENOR 4 — Detalles
+
+- **"Siempre es mejor sobreescribir `equals`"** (paso 3): no siempre. Solo cuando dos objetos distintos pueden
+  representar **lo mismo** (un producto con el mismo `id`). Un `Order` en proceso o una conexión a base de datos
+  quizás sí deban compararse por identidad. Esa decisión es §1.4.
+- **`println(set)` marcado ✅:** tu predicción tenía `id="1"`, `laptop` en minúscula y "orden diferente". La salida
+  real fue `id=1`, `'Laptop'` y justo en orden A, B, C. La idea (3 productos, dos repetidos) era correcta, pero
+  no exacta. Que saliera en orden **es casualidad**: el `hashCode` de `Object` cambia en cada ejecución.
+- **P1.1:** correcta. El "creo!!" sobra: §1.1 lo dice así. `==` en objetos compara **referencias**, es decir
+  si las dos variables apuntan al mismo objeto.
+- `String args[]` → `String[] args` (igual que en la Tarea 0).
+
+---
+
+**Para llegar a 10/10:**
+- [x] agregar el paso 5 (`list.contains(laptopB)`) y el paso 7 (`set.size()`) con `espero`, ejecutar y
+      llenar la tabla **con la salida real**
+- [ ] P1.2: "`Object.equals`, porque ni `Laptop` ni `Product` lo sobreescriben; compara referencias"
+- [ ] paso 8: `porque` con cajones (`hashCode` de `Object`), sin "`this == o` por contenido"
+- [ ] matizar el "siempre es mejor sobreescribir"
+
+---
+
+#### 🔁 v2 — 2026-10-04 · **8/10** · 🟡 casi → puedes pasar a la Tarea 2
+
+**Corregido:**
+- ✅ **Paso 5 agregado** con predicción (`false` ✅). Ahora la tabla sale de la ejecución real, y la Ronda 2
+  sí te va a mostrar el cambio en `list.contains(B)`.
+- ✅ **`set.size()` agregado** (`3`, acertado).
+- ✅ **`porque` del paso 3:** "se hereda de `Object` y `Object` solo hace `this == o`". Esa es la respuesta.
+- ✅ Separadores `"N--------Paso"`: ahora la salida se lee fácil.
+
+**Sigue pendiente:**
+- 🟠 **P1.2 sin cambiar:** abajo sigue diciendo "con pasos extras". La respuesta buena ya la escribiste en el
+  paso 3. Llévala a P1.2: "`Object.equals`, porque ni `Laptop` ni `Product` lo sobreescriben; compara referencias".
+- 🟠 **`porque` del paso 8:** ahora nombra `Object` (bien), pero solo explica la mitad (`equals`). Falta la otra:
+  el `hashCode` de `Object` manda a `laptopD` a **otro cajón**. No lo arregles todavía: la **P2.2 de la Tarea 2**
+  te pide justo eso, y vas a verlo con tus propios ojos. Vuelve aquí después.
+- 🟡 `set.size()` quedó bajo `"8--------Paso"` y después de crear `laptopD`. Va en el paso 7.
+- 🟡 Import sin usar: `javax.annotation.processing.SupportedSourceVersion` (seguro lo metió el autocompletado
+  del IDE). Bórralo.
+- 🟡 Sigue "siempre es mejor sobreescribir" y `String args[]`.
 
 ---
 

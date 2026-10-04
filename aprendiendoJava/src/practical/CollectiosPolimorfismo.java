@@ -10,23 +10,19 @@ import Models.products.PhysicalProduct;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CollectiosPolimorfismo {
     public static void main(String args[]){
-        PhysicalProduct laptop = new Laptop(new BigInteger("324"),"Laptop",new BigDecimal("2534.4"),new BigDecimal("5345.3"));
-        PhysicalProduct physicalBook = new PhysicalBook(new BigInteger("325"),"Physical Book",new BigDecimal("2734.4"),new BigDecimal("5345.3"));
-        // muebles
-        PhysicalProduct furniture = new Furnuture(new BigInteger("326"),"Furniture",new BigDecimal("2394.4"),new BigDecimal("5345.3"));
-        List<Shippable> listProducts = new ArrayList<>();
-        listProducts.add(laptop);
-        listProducts.add(physicalBook);
-        listProducts.add(furniture);
-
-        for(Shippable product:listProducts){
-            System.out.println(product.calculateShippingCost());
-        }
-        // el objeto esta aceptando las diferentes clases debido a que estamos usando clases que implementan esa interfaz, por lo tanto cumplen con el contrato
-        // ademas heredan comportamiento de alguna manera, de esa forma esque se puede usar el polimorfismo.
+        Set<String> tags = new HashSet<>();
+        System.out.println(tags.add("java"));      // true  → lo agregó
+        System.out.println(tags.add("spring"));    // true
+        System.out.println(tags.add("java"));      // false → ya estaba, no hizo nada
+        System.out.println(tags.size());           // 2
+        System.out.println(tags.contains("JAVA")); // false → mayúsculas distintas
+        System.out.println(tags.remove("php"));    // false → no estaba
+        System.out.println(tags);
     }
 }
