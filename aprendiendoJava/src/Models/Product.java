@@ -48,4 +48,18 @@ public class Product {
         return "Product{id=" + id + ", name='" + name + "' , price= " + price + "}";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o instanceof Product) {
+            if (((Product) o).getId() == null || this.id == null) {
+                return false;
+            }
+            return ((Product) o).getId().equals(this.id);
+        }
+        return false;
+    }
+
 }

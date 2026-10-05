@@ -5,13 +5,13 @@
 ## ▶ TAREA EN CURSO (retomar aquí)
 
 **Tema:** `equals()` / `hashCode()` + `Set` (semana 2). Lección completa en `docs/lessons/02-equals-hashcode-set.md`.
-**Estado:** asignada el 2026-10-02, **no empezada**. Se avanzó a pedido del alumno con deuda de la lección 01 (ver abajo).
+**Estado:** asignada el 2026-10-02; en curso (T0 9/10, T1 8/10, T2 8/10) → **siguiente: Tarea 3**. Se avanzó a pedido del alumno con deuda de la lección 01 (ver abajo).
 
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
-| 0. Calentamiento `Set<String>` | `src/practical/sets/SetBasics.java` | pendiente |
-| 1. Ronda 1: sin `equals` | `src/practical/sets/EqualsHashCodeLab.java` | pendiente |
-| 2. Ronda 2: solo `equals` | `Product.java` + `EqualsHashCodeLab` | pendiente |
+| 0. Calentamiento `Set<String>` | `src/practical/sets/SetBasics.java` | ✅ 9/10 |
+| 1. Ronda 1: sin `equals` | `src/practical/sets/EqualsHashCodeLab.java` | 🟡 8/10 (P1.2, paso 8) |
+| 2. Ronda 2: solo `equals` | `Product.java` + `EqualsHashCodeLab` | ✅ v3 8/10 (deuda: P2.3 sobrecarga, P2.1, borrar println espía) |
 | 3. Ronda 3: `hashCode` + `id` final + `isValidValue` | `Product.java` + `EqualsHashCodeLab` | pendiente |
 | 4. `getClass` vs `instanceof` | `src/practical/sets/EqualityTypeLab.java` | pendiente |
 | 5. `HashSet` / `LinkedHashSet` / `TreeSet` | `src/practical/sets/SetOrderLab.java` | pendiente |
@@ -32,6 +32,23 @@ El alumno pidió tareas muy detalladas, paso a paso (dice que le cuesta entender
 Detalle en los bloques 🔍 REVISIÓN de `docs/lessons/01-list-arraylist.md`.
 
 ---
+
+## 2026-10-05 — Revisión Tarea 2 (lección 02)
+
+### Bien hecho
+* `equals(Object)` con `@Override`, `instanceof`, compara solo `id` con `.equals`; sin `hashCode`
+* columna 2 de la tabla coincide con la ejecución real; 3 de 4 pruebas rápidas
+
+### Errores detectados
+* P2.2: describe el mecanismo del `HashSet` pero no explica por qué acepta a B (hashCode de `Object` → otro cajón);
+  confunde `List.contains` (recorre con `equals`) con `HashSet.contains`
+* P2.3: no distingue sobrescribir / sobrecarga (misma deuda que `remove(int)` vs `remove(Object)`)
+* receta sin `this == o`; variable `res` inútil; `getId().equals` lanza NPE si el otro id es `null`
+* columna 2 sin `espero`; falta la prueba reflexiva
+* v2: quitó `res`, `equals` ya es seguro con `null`; pero sin `this == o` → `N.equals(N)` false (reflexiva rota).
+  Dijo no entender P2.2 → se explicó (hotel/pasaporte) + mini-experimento `HashSpyLab` (println dentro de `equals`)
+* v3 (8/10): `this == o` agregado, prueba reflexiva, `HashSpyLab` hecho; **P2.2 correcta** (hashCode distintos →
+  equals nunca se evalúa). Pendiente: P2.3 (sobrecarga, 3 revisiones sin cambio → retomar en Tarea 3), quitar println espía
 
 ## 2026-10-02 — Paso a la lección 02 (con deuda)
 

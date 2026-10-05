@@ -734,6 +734,296 @@ Es decir, `HashSet` falla **dos veces**: el cajón es incorrecto (`hashCode`) y,
   analogía de los **cajones** de §1.3. Lee §1.3 **después** de ejecutar, para que tu predicción sea honesta.
 - **P2.3** ¿Por qué el parámetro de `equals` es `Object` y no `Product`?
 
+
+> ## 🔍 REVISIÓN TAREA 2 — 2026-10-05 · **7/10** · 🟡 casi → corrige 2 cosas antes de la Tarea 3
+> Historial: **v1 7/10**. Revisado compilando y ejecutando `EqualsHashCodeLab` con tu `Product.java`.
+
+**✅ Ya está bien:** `@Override` + firma `equals(Object o)` exacta. Usaste `instanceof` y comparas **solo** el `id`
+con `.equals` (no con `==`). **No** agregaste `hashCode` ✅. No cambiaste el código del experimento ✅.
+La columna 2 de la tabla **coincide con la salida real** (la ejecuté: `true` en `A.equals(B)` y `list.contains(B)`,
+todo el set igual que en la Ronda 1). Las 3 pruebas rápidas que hiciste dan lo que predijiste.
+
+**Por paso:**
+
+| Paso | Qué pedía | Estado |
+|------|-----------|--------|
+| 1 | `@Override` + `equals(Object o)` | ✅ |
+| 2 | receta de **5 pasos** con `instanceof` | 🟡 falta el paso 1 (`this == o`); sobra `res` |
+| 3 | comparar solo `id`, sin `==` | ✅ (ver 🟡 4: `null`) |
+| 4 | sin `hashCode` | ✅ |
+| 5 | columna 2 como `espero → real` | 🟡 solo escribiste el `real` |
+| Pruebas | 4 líneas, la 1.ª es `equals(laptopA)` (reflexiva) | 🟡 3 de 4: hiciste `equals(laptopB)` |
+| P2.1 | qué filas cambiaron y cuáles **no** | 🟡 falta "cuáles no" y por qué |
+| P2.2 | por qué el set acepta a B (cajones) | ❌ **la pregunta clave**, no responde el "por qué" |
+| P2.3 | por qué `Object` y no `Product` | 🟡 falta la palabra clave: **sobrescribir** vs **sobrecargar** |
+
+---
+
+#### ❌ CRÍTICO 1 — P2.2: describes cómo funciona el set, pero no **por qué falla**
+
+**Qué pasa:** tu respuesta explica el mecanismo general ("busca el cajón por el hashCode, luego itera con
+`equals`"). Esa descripción está **bien**. Pero la pregunta es: si `A.equals(B)` ya es `true`, ¿por qué el set
+**igual** acepta a `laptopB`? Tu respuesta no lo dice. Además mezclas dos cosas: "el contains solo es una iteración
+de `equals` sobre cada objeto del set". Eso es `List.contains`, **no** `HashSet.contains`.
+
+**Teoría (§1.3):** la respuesta está en **tu propia tabla**, fila 3: `A.hashCode() == B.hashCode()` → `false`.
+Tú **no** escribiste `hashCode`, así que se usa el de `Object`, que da un número distinto a cada objeto (`new`).
+```
+ set.add(laptopB):
+   1) cajón = laptopB.hashCode()   → hashCode de Object → un cajón DISTINTO al de laptopA
+   2) en ese cajón no hay nadie    → nunca se llama a equals(laptopA)
+   3) add devuelve true            → B entra como "nuevo"
+```
+Tu `equals` está bien escrito… pero el `HashSet` **ni siquiera llega a usarlo**.
+
+| | `List.contains(B)` | `HashSet.add(B)` / `contains(D)` |
+|---|---|---|
+| ¿Usa `hashCode`? | **no** | **sí**, primero |
+| ¿Usa `equals`? | sí, con cada elemento | sí, pero **solo dentro del cajón** |
+| Ronda 2 | `true` ✅ (solo necesita `equals`) | falla (el cajón es incorrecto) |
+
+**Ejemplo con otros datos:** en una biblioteca, el libro "Cien años de soledad" está en el estante **G**
+(García Márquez). Si buscas en el estante **M** porque calculaste mal la letra, no lo encuentras, **aunque**
+sepas reconocer el libro perfectamente al verlo. Reconocerlo = `equals`. Elegir el estante = `hashCode`.
+
+**Qué hacer:** reescribe P2.2 en 2–3 líneas. Debe nombrar: (1) el `hashCode` de `Object`, (2) que A y B caen en
+**cajones distintos** (fila 3 de tu tabla), (3) que por eso `equals` **nunca se llama**.
+Después vuelve al `porque` del **paso 8 de la Tarea 1** y complétalo con la misma idea (estaba pendiente).
+
+---
+
+#### 🟠 IMPORTANTE 2 — P2.3: falta la idea de **sobrecarga**
+
+**Qué pasa:** "se puede comparar con cualquier objeto" es cierto, pero no es la razón principal.
+
+**Teoría (§1.2, error común):**
+- `equals(Object o)` **sobrescribe** (*override*) el método de `Object`. Es el que llaman `List`, `HashSet`, `Map`.
+- `equals(Product o)` sería **otro método** con otro parámetro: una **sobrecarga** (*overload*). `List` y `HashSet`
+  llaman a `equals(Object)`, así que tu método nunca se usaría.
+
+Lo comprobé con una clase de prueba que tiene `equals(Q o)`:
+```
+q1.equals(q2)                 → true    (llama a TU equals(Q), porque q2 es Q)
+List.of(q1).contains(q2)      → false   (List llama a equals(Object) → el de Object → ==)
+```
+Es la misma trampa que `remove(int)` vs `remove(Object)` de la lección 01 (deuda P2.2): mismo nombre,
+distinto parámetro → métodos distintos. Y `@Override` es lo que te protege: con `equals(Product)` el compilador
+da error.
+
+**Qué hacer:** reescribe P2.3 usando las palabras **sobrescribir**, **sobrecarga** y **`@Override`**.
+
+---
+
+#### 🟡 MENOR 3 — La receta de 5 pasos, incompleta
+
+**Qué pasa:**
+```
+receta (§1.2)                 tu código
+1. this == o → true            ❌ falta
+2. o == null → false           ✅ lo cubre instanceof
+3. ¿tipo correcto?             ✅ instanceof Product
+4. convertir                   ✅ (Product) o
+5. comparar campos             ✅ id
+```
+Sin el paso 1 el resultado sigue siendo correcto: es un atajo de rendimiento. Pero la tarea pedía la receta
+completa, y es lo que verás en cualquier `equals` profesional.
+
+**Sobra `boolean res = false`:** nunca cambia de valor. Es igual a `return false;` directo. Una variable que
+siempre vale lo mismo obliga al lector a buscar dónde cambia… y no cambia.
+
+**Mejorable (opcional): *pattern matching*** (lección 01, Tarea 3, P3.3). Con `o instanceof Product other`
+te ahorras el cast y queda `other.getId()` o `other.id`.
+
+---
+
+#### 🟡 MENOR 4 — ¿Y si el `id` es `null`?
+
+Tu constructor **acepta** `id = null`. Lo comprobé con una copia de tu `equals`:
+```
+productoConIdNull.equals(laptopA)  → false                    (1.equals(null) → false)
+laptopA.equals(productoConIdNull)  → NullPointerException 💥  (null.equals(...))
+```
+Rompe la regla "**nunca** lanza excepción" y también la **simétrica** (una dirección da `false`, la otra explota).
+Por eso §1.2 recomienda `Objects.equals(campo, otro.campo)`, que nunca lanza NPE.
+No es urgente: en la Tarea 3 el `id` será `final`, y lo correcto será **validarlo en el constructor** (como
+el precio). Pero cambia a `Objects.equals` ahora: es una línea.
+
+---
+
+#### 🟡 MENOR 5 — Detalles
+
+- **Paso 5:** la columna 2 debía ser `espero → real` (por ejemplo `true → true`). Solo está el `real`. Así no sé
+  si predijiste bien `set.add(B) → true` (la fila sorpresa). Escribe en P2.1 cuál fila **no** esperabas.
+- **Prueba reflexiva:** la primera prueba debía ser `laptopA.equals(laptopA)`. Hiciste `laptopA.equals(laptopB)`,
+  que ya estaba en el paso 3. Agrega la reflexiva.
+- **P2.1:** está bien lo que cambió (`equals` y `list.contains`). Falta la otra mitad: "**no** cambiaron las filas
+  del set (`add(B)`, `size`, `contains(D)`) ni la de `hashCode`". Esa segunda mitad es la que lleva a P2.2.
+- **Pendientes de la Tarea 1 que siguen igual:** P1.2 sigue sin decir **`Object.equals`**; import
+  `SupportedSourceVersion` sin usar; `String args[]`; `set.size()` bajo el paso 8.
+
+---
+
+**Conceptos que necesitas para cerrar la tarea** (repasa en este orden):
+
+| # | Concepto | Dónde | Te sirve para |
+|---|----------|-------|---------------|
+| 1 | `List.contains` usa **solo** `equals`; `HashSet` usa **primero** `hashCode` y luego `equals` | §1.3, último párrafo + "¿Y `List`?" | P2.1, P2.2 |
+| 2 | El `hashCode` de `Object`: distinto para cada `new` | §1.3 + fila 3 de tu tabla | P2.2, paso 8 de la Tarea 1 |
+| 3 | Regla de oro: `equals` true → mismo `hashCode` | §1.3 | P2.2 (y P3.1 de la Tarea 3) |
+| 4 | Sobrescribir (*override*) vs sobrecargar (*overload*) | §1.2 error común; lección 01 P2.2 | P2.3 |
+| 5 | Receta de 5 pasos y `Objects.equals` (seguro con `null`) | §1.2 | Menor 3 y 4 |
+
+**Para llegar a 10/10:**
+- [ ] P2.2 reescrita: `hashCode` de `Object` → cajones distintos → `equals` nunca se llama
+- [ ] completar el `porque` del paso 8 de la Tarea 1 con la misma idea
+- [ ] P2.3 con **sobrescribir / sobrecarga / `@Override`**
+- [ ] P2.1 con la mitad "qué **no** cambió"
+- [ ] `equals`: agregar `if (this == o) return true;`, quitar `res`, usar `Objects.equals`
+- [ ] agregar la prueba `laptopA.equals(laptopA)` con su `espero`
+- [ ] (opcional) *pattern matching* `o instanceof Product other`
+
+---
+
+#### 🔁 v2 — 2026-10-05 · **7/10** · 🟡 el código mejoró; falta entender P2.2 (te lo explico abajo)
+
+**Corregido:**
+- ✅ Quitaste `res`: ahora es `return false;` directo.
+- ✅ `equals` ya **no lanza `NullPointerException`** si algún `id` es `null`. Revisar los dos lados a mano
+  (`o.getId() == null || this.id == null`) es una alternativa válida a `Objects.equals`.
+
+**Sigue pendiente (sin cambios):** P2.1 (qué **no** cambió), P2.3 (sobrescribir/sobrecarga), prueba reflexiva
+`laptopA.equals(laptopA)`, `espero` en la columna 2, paso 8 de la Tarea 1, import sin usar, `String args[]`.
+
+---
+
+#### 🟠 NUEVO — Sin `this == o`, un producto con `id` `null` **no es igual a sí mismo**
+
+En la v1 te dije que el paso 1 de la receta era "solo un atajo de rendimiento". **Con tu código nuevo ya no es
+solo eso.** Lo comprobé con una copia de tu `Product` y un `Laptop` con `id` `null`:
+```
+N.equals(N)              → false   ❌ rompe la regla reflexiva ("yo soy igual a mí mismo")
+lista con N: contains(N) → false   ❌ la lista no encuentra un objeto que SÍ tiene dentro
+lista con N: remove(N)   → false   ❌ y tampoco lo puede borrar (size sigue en 1)
+```
+**Por qué:** tu `if (... this.id == null) return false;` se ejecuta **antes** de preguntar si es el mismo objeto.
+**Qué hacer:** pon `if (this == o) return true;` como **primera** línea. Con eso `N.equals(N)` da `true`.
+(Así ves por qué la receta tiene ese orden: el paso 1 también protege la regla reflexiva.)
+
+---
+
+#### 📖 P2.2 explicado — "¿por qué el set acepta a `laptopB`?"
+
+Pediste la explicación. Primero, lo que **ya entiendes bien**. Tu descripción del mecanismo es correcta:
+> "busca por el hashCode → encuentra el cajón → dentro del cajón compara con `equals`"
+
+Lo que falta es **aplicarlo a A y B con sus números reales**. Lo ejecuté y salió esto (tus números pueden ser otros):
+```
+A.hashCode() = 1550089733
+B.hashCode() =  865113938      ← distintos (es la fila 3 de tu tabla: false)
+```
+
+**La pieza que falta:** `hashCode()` y `equals()` son **dos métodos separados**. Cuando escribiste `equals`,
+`hashCode` **no se enteró**. Sigue siendo el de `Object`, que **no mira el `id` ni ningún dato**: da un número
+propio para cada objeto creado con `new`.
+
+**Paso a paso, con números:**
+```
+set.add(laptopA)
+   1) cajón = A.hashCode() = 1550089733
+   2) cajón 1550089733 vacío            → guarda A ahí → true
+
+set.add(laptopB)
+   1) cajón = B.hashCode() = 865113938   ← ¡OTRO cajón!
+   2) cajón 865113938 vacío             → no hay nadie con quien comparar
+                                         → tu equals NO se llama
+   3) guarda B ahí                      → true
+```
+El set **nunca pone a A y B frente a frente**. Tu `equals` diría "son iguales", pero nadie le pregunta.
+
+**Y la `List`, ¿por qué sí funciona?** Porque `List.contains` **no tiene cajones**: compara con `equals` contra
+**todos** los elementos, uno por uno. Lo comprobé poniendo un `println` dentro de tu `equals`:
+```
+list.contains(B)   →  ">> equals llamado..."  aparece 1 vez   → true
+set.add(B)         →  no aparece NADA                          → true (lo agrega)
+```
+
+**Ejemplo con otros datos (un hotel):**
+- La recepcionista asigna la habitación según el **número de pasaporte** (eso es `hashCode`).
+- Para saber si un huésped "ya está", entra a **esa** habitación y mira a la cara (eso es `equals`).
+- Ana llega dos veces, con **dos pasaportes distintos**. La recepcionista la manda a la habitación 12 y después a
+  la 40. En la 40 no hay nadie, así que la registra otra vez. Reconocería a Ana al verla, pero **nunca entra a
+  la 12**.
+- Arreglo: que la habitación dependa de algo que **no cambia entre las dos Anas** (su DNI = el `id`). Eso es
+  la **Tarea 3**: `hashCode` con el mismo campo que `equals`.
+
+**Mini-experimento para verlo tú (15 min):**
+1. En `Product.equals`, como **primera** línea, agrega temporalmente:
+   `System.out.println("   >> equals llamado con " + o);`
+2. Crea `src/practical/sets/HashSpyLab.java` (paquete `practical.sets`, con `main`). Así no tocas
+   `EqualsHashCodeLab`.
+3. Crea dos `Laptop` con id `7`, nombre `"Mouse"`, precio `"20"`, peso `"1"`. Llámalos `m1` y `m2`.
+4. Imprime `m1.hashCode()` y `m2.hashCode()` (los dos números). Antes escribe `// espero: iguales / distintos`.
+5. Crea una `List<Product>`, agrega `m1` e imprime `contains(m2)`. Antes escribe
+   `// espero: ¿aparece ">> equals llamado"? sí/no`.
+6. Crea un `HashSet<Product>`, agrega `m1` e imprime `add(m2)`. Haz la misma predicción del `>>`.
+7. **Borra el `println` de `Product.equals`** cuando termines.
+8. Reescribe P2.2 en 3 líneas. Usa: **`hashCode` de `Object`**, **cajones distintos**, **`equals` nunca se llama**.
+
+**Corrección mía:** en la revisión de la Tarea 1 escribí que el `hashCode` de `Object` "cambia en cada ejecución".
+**No siempre**: en mi máquina salió el mismo número dos veces seguidas. Lo importante es otra cosa: **no depende
+de los datos**. Dos `new` con el mismo `id` dan números distintos.
+
+---
+
+**Para llegar a 10/10 (actualizado):**
+- [ ] `if (this == o) return true;` como primera línea de `equals` (protege la regla reflexiva)
+- [ ] mini-experimento `HashSpyLab` → P2.2 reescrita con tus palabras
+- [ ] completar el `porque` del paso 8 de la Tarea 1 con la misma idea
+- [ ] P2.3 con **sobrescribir / sobrecarga / `@Override`**
+- [ ] P2.1 con la mitad "qué **no** cambió"
+- [ ] prueba `laptopA.equals(laptopA)` con su `espero`
+
+---
+
+#### 🔁 v3 — 2026-10-05 · **8/10** · ✅ entendiste P2.2 → puedes pasar a la Tarea 3
+
+Revisado ejecutando `HashSpyLab`, `EqualsHashCodeLab` y `Main` (sigue dando `3846` ✅).
+
+**Corregido:**
+- ✅ **`if (this == o) return true;` como primera línea.** Ahora un producto con `id` `null` sí es igual a sí mismo.
+- ✅ **Prueba reflexiva** `laptopA.equals(laptopA)` → `true`, predicha bien.
+- ✅ **Mini-experimento `HashSpyLab` hecho.** La salida real lo demuestra:
+  ```
+  1550089733 / 865113938        ← hashCode distintos (predijiste bien)
+  >> equals llamado con ...     ← sale en list.contains(m2)
+  true
+  true                          ← set.add(m2): SIN ">> equals llamado" antes
+  ```
+- ✅ **P2.2 ahora es correcta.** "`list.contains` usa `equals`… A y B tienen hashCode diferentes, entonces nunca
+  se encuentran o evalúan". Esa es la idea. Solo un matiz: "el set **no usa** el `equals`" → mejor "**no llega a**
+  usar el `equals`". El set **sí** usa `equals`, pero solo dentro del mismo cajón. En la Tarea 3 lo vas a ver:
+  cuando A y B compartan cajón, aparecerá el `>> equals llamado` en `set.add(B)`.
+
+**Bonus que te regaló la ejecución:** el paso 7 ahora imprimió `[id=2, id=1, id=1]`. En la Tarea 1 salió
+`[id=1, id=1, id=2]`. Mismo código, otro orden. Es la prueba de que **`HashSet` no garantiza orden** (§1.7, Tarea 5).
+
+---
+
+**Antes de empezar la Tarea 3 (obligatorio):**
+- [ ] 🟠 **borra el `println(" >> equals llamado...")` de `Product.equals`** (paso 7 del mini-experimento). Si lo
+      dejas, ensucia la salida de `Main` y de todas las clases que comparen productos.
+      *(Truco opcional: déjalo hasta haber ejecutado la columna 3 de la Tarea 3. Ahí verás el `>>` aparecer en
+      `set.add(B)`. Después lo borras.)*
+
+**Deuda que pasa a la Tarea 3 (no bloquea):**
+- [ ] 🟠 **P2.3 sin cambios en 3 revisiones.** Te falta la idea de **sobrecarga**. Responde esta pregunta concreta:
+      "si escribo `public boolean equals(Product o)` **sin** `@Override`, ¿qué método llama `list.contains`, el mío
+      o el de `Object`?, ¿por qué?". Pista: lección 01, `remove(int)` vs `remove(Object)`.
+- [ ] 🟡 P2.1: agrega "no cambiaron las filas del set ni la de `hashCode`".
+- [ ] 🟡 `HashSpyLab`: faltan los `real` / ✅, y la predicción del paso 6 debía decir si aparece el `>>` (no solo `true`).
+- [ ] 🟡 paso 8 de la Tarea 1: copia ahí tu nueva idea de P2.2 (hashCode distintos → nunca se evalúan).
+- [ ] 🟡 import `SupportedSourceVersion` sin usar · `String args[]` → `String[] args` (ahora también en `HashSpyLab`).
+
 ---
 
 ### Tarea 3 — Ronda 3: `hashCode` + `id` final + corregir el precio (medio · 40 min)
