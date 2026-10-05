@@ -5,14 +5,14 @@
 ## ▶ TAREA EN CURSO (retomar aquí)
 
 **Tema:** `equals()` / `hashCode()` + `Set` (semana 2). Lección completa en `docs/lessons/02-equals-hashcode-set.md`.
-**Estado:** asignada el 2026-10-02; en curso (T0 9/10, T1 8/10, T2 8/10) → **siguiente: Tarea 3**. Se avanzó a pedido del alumno con deuda de la lección 01 (ver abajo).
+**Estado:** asignada el 2026-10-02; en curso (T0 9/10, T1 8/10, T2 8/10, T3 v3 8/10) → **siguiente: terminar 3.C (colisión con ids 31 y 4294967296) + P3.4**, luego Tarea 4. Se avanzó a pedido del alumno con deuda de la lección 01 (ver abajo).
 
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
 | 0. Calentamiento `Set<String>` | `src/practical/sets/SetBasics.java` | ✅ 9/10 |
 | 1. Ronda 1: sin `equals` | `src/practical/sets/EqualsHashCodeLab.java` | 🟡 8/10 (P1.2, paso 8) |
 | 2. Ronda 2: solo `equals` | `Product.java` + `EqualsHashCodeLab` | ✅ v3 8/10 (deuda: P2.3 sobrecarga, P2.1, borrar println espía) |
-| 3. Ronda 3: `hashCode` + `id` final + `isValidValue` | `Product.java` + `EqualsHashCodeLab` | pendiente |
+| 3. Ronda 3: `hashCode` + `id` final + `isValidValue` | `Product.java` + `EqualsHashCodeLab` | 🟡 v3 8/10 (falta 3.C colisión + P3.4) |
 | 4. `getClass` vs `instanceof` | `src/practical/sets/EqualityTypeLab.java` | pendiente |
 | 5. `HashSet` / `LinkedHashSet` / `TreeSet` | `src/practical/sets/SetOrderLab.java` | pendiente |
 | 6. `Order.getDistinctProducts()` | `Order.java` + `Main.java` | pendiente |
@@ -32,6 +32,25 @@ El alumno pidió tareas muy detalladas, paso a paso (dice que le cuesta entender
 Detalle en los bloques 🔍 REVISIÓN de `docs/lessons/01-list-arraylist.md`.
 
 ---
+
+## 2026-10-05 — Revisión Tarea 3 (lección 02)
+
+### Bien hecho
+* `hashCode` solo con `id` → Ronda 3 funciona (`set.add(B)` false, size 2); `id` final; println espía borrado
+* columna 3 con predicciones; P3.3 (id mutable → objeto perdido en el cajón viejo) bien encaminada
+
+### Errores detectados
+* marcó `set.contains(D) → false ✅` cuando la salida real es `true` (repite el CRÍTICO de la Tarea 1)
+* `isValidValue` con `> 0` (rechaza precio 0, cambia la regla) y sin chequeo de `null` (NPE); paso 6 sin hacer
+* `hashCode` con `id.intValue()` → NPE con id null (inconsistente con su `equals`)
+* P3.1: cree que `add` usa hashCode y `contains` usa equals; P3.4: no conoce la colisión
+* P3.2 sin razón técnica (`BigDecimal` 2.0 vs 2.00); P2.3 (sobrecarga) sigue abierta
+* v2 (7/10): `null` en `isValidValue` ✅, paso 6 ✅, fila contains(D) corregida ✅. **Nuevo error de concepto:** cree que
+  `==` entre `int` compara posiciones de memoria (anotó `hashCode == hashCode` como false; real true).
+  Sigue `> 0`. El alumno preguntó si es lento → se propusieron **mini-tareas de ~10 min, una por vez, con experimentos** (aplicado en v2; el alumno aún no lo confirmó).
+* v3 (8/10): hizo las 5 mini-tareas. ✅ `==` int vs objeto predicho bien, `>= 0`, `Objects.hash`, regla de oro escrita.
+  Falta: `add(p2)`/`size` de la colisión y P3.4; volvió a leer mal una línea de la salida (`size` por `hashCode`).
+  No entendía por qué `intValue()` de 4294967297 da 1 → se explicó (32 bits, cuentakilómetros).
 
 ## 2026-10-05 — Revisión Tarea 2 (lección 02)
 

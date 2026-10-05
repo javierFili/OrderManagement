@@ -1054,6 +1054,340 @@ Revisado ejecutando `HashSpyLab`, `EqualsHashCodeLab` y `Main` (sigue dando `384
   `setId()` y alguien cambiara el id de un producto que ya está dentro de un `HashSet`?
 - **P3.4** ¿Por qué la regla dice "si son `equals` → mismo `hashCode`" y no al revés?
 
+
+> ## 🔍 REVISIÓN TAREA 3 — 2026-10-05 · **6/10** · 🔁 rehacer pasos 4 y 6 + P3.1/P3.4
+> Historial: **v1 6/10**. Revisado ejecutando `EqualsHashCodeLab`, `Main` (`3846` ✅), `ProductListLab` (✅ sin
+> errores) y una clase de prueba mía con casos límite (precio `0`, precio `null`, `id` `null`, `id` gigante).
+
+**✅ Ya está bien:** `hashCode` con `@Override`, basado **solo** en `id` (el mismo campo que `equals`) → la
+Ronda 3 funciona: `A.hashCode() == B.hashCode()` → `true`, `set.add(B)` → `false`, `size` → `2`. `id` es `final`
+y todo sigue compilando. Borraste el `println` espía ✅. La columna 3 ahora tiene `espero` ✅. P3.3 va bien encaminada.
+
+**Por paso:**
+
+| Paso | Qué pedía | Estado |
+|------|-----------|--------|
+| 1 | `hashCode` con los mismos campos que `equals` | 🟡 funciona, pero explota con `id` `null` (🟠 3) |
+| 2 | columna 3 `espero → real` | ❌ una fila dice lo contrario de la salida real (❌ 1) |
+| 3 | `id` `final` + anotar qué deja de compilar | 🟡 hecho; falta la nota ("no se rompió nada porque…") |
+| 4 | `isValidValue`: `null` → `false` y `compareTo` | ❌ `null` sigue explotando y cambiaste la regla (❌ 2) |
+| 5 | `Main` y `ProductListLab` siguen funcionando | ✅ (lo ejecuté yo; no dejaste constancia) |
+| 6 | `try/catch` con precio `null` | ❌ no está en el código |
+| P3.1 | regla de oro + qué se rompe | 🟡 la regla no está escrita; "buscar = equals, agregar = hashCode" es falso |
+| P3.2 | 2 razones: dominio + técnica | 🟡 dominio ✅, falta la técnica (`2.0` vs `2.00`) |
+| P3.3 | por qué `id` `final` (ejemplo `Coupon`) | ✅ la idea; un matiz |
+| P3.4 | por qué no al revés | ❌ no responde (🟠 4) |
+
+---
+
+#### ❌ CRÍTICO 1 — `set.contains(D)`: la tabla dice `false ✅`, la salida real es `true`
+
+**Qué pasa:** en la columna 3 escribiste `espero:false ✅`. Ejecuté tu clase sin cambiar nada y el paso 8 imprime:
+```
+8--------Paso
+2
+true      ← set.contains(laptopD)
+```
+Marcaste ✅ algo que **no pasó**. Es el mismo problema de la Tarea 1 (CRÍTICO 1): llenar la tabla con lo que
+creemos y no con la salida.
+
+**Y es la fila más importante de la Ronda 3.** `laptopD` es un objeto **nuevo** que nunca agregaste al set, y aun
+así el set dice que lo tiene. ¿Por qué? Mismo `id` → mismo `hashCode` → **mismo cajón** que `laptopA` → dentro del
+cajón `equals` da `true`. Es la prueba de que por fin `HashSet` "entiende" que es el mismo producto.
+
+**Qué hacer:**
+1. Corrige la fila: `espero: false → real: true ❌`.
+2. Escribe el `porque` (2 líneas, con cajones).
+3. Regla para todas las tablas: **mira la salida del terminal fila por fila** antes de poner ✅.
+
+---
+
+#### ❌ CRÍTICO 2 — `isValidValue`: el `null` sigue explotando y ahora un precio `0` es inválido
+
+**Qué pasa:** escribiste `price.compareTo(BigDecimal.ZERO) > 0`. Lo comprobé:
+```
+new Laptop(..., new BigDecimal("0"), ...)  → IllegalArgumentException: Price cannot be negative   ❌
+new Laptop(..., null, ...)                 → NullPointerException                                ❌
+```
+1. **`> 0` cambia la regla del negocio.** La original era `>= 0` ("no negativo"). Ahora un producto **gratis**
+   (precio `0`) se rechaza, y el mensaje miente: `0` **no** es negativo. Al migrar código **no se cambia el
+   comportamiento** sin querer. Eso es justo lo que el paso 5 intenta detectar.
+2. **El `null` no se maneja.** El paso 4 pedía: si `price` es `null` → `false`, para que el constructor lance **tu**
+   `IllegalArgumentException`. Hoy `compareTo` se ejecuta sobre `null` y salta un `NullPointerException`.
+
+**Teoría:** el orden importa. Primero preguntas "¿es `null`?" y después llamas métodos. Si llamas un método sobre
+`null`, explota antes de llegar a la comparación. Es la misma idea que tu `equals` (revisas `null` antes de
+`.equals`).
+
+**Ejemplo con otros datos** (una edad que no puede ser negativa, pero sí `0`):
+```java
+private boolean isValidAge(Integer age) {
+    if (age == null) {          // 1) primero null
+        return false;
+    }
+    return age >= 0;            // 2) después la regla: 0 es válido (un recién nacido)
+}
+```
+**Qué hacer:** aplica esas dos ideas a `price` (con `compareTo`). Después haz el **paso 6**: `try/catch` con precio
+`null` e imprime `e.getMessage()`, con su `espero`. Agrega también una línea con precio `"0"`: `espero: se crea`.
+
+> Bonus: el mensaje `"Price cannot be negative"` ya no cubre el caso `null`. Puedes cambiarlo por algo como
+> `"Price must be zero or positive"`. Opcional.
+
+---
+
+#### 🟠 IMPORTANTE 3 — `hashCode` con `id.intValue()`: explota con `id` `null`
+
+**Qué pasa:** tu `equals` tolera `id` `null` (devuelve `false`), pero tu `hashCode` no. Lo comprobé:
+```
+set.add(productoConIdNull)  → NullPointerException: Cannot invoke "BigInteger.intValue()" because "this.id" is null
+```
+Además, `intValue()` se queda solo con una parte del número (los últimos 32 bits). Es **legal**, porque mismo
+`id` → mismo `intValue`. Pero no es lo habitual.
+
+**Lo profesional (§1.3):** `Objects.hash(id)`, que tolera `null` y es lo que verás en todo código Java (y lo que
+genera IntelliJ). `Objects.hashCode(id)` o `id.hashCode()` también sirven.
+**Qué hacer:** cámbialo a `Objects.hash(id)` y ejecuta de nuevo la columna 3 (debe dar lo mismo).
+
+> La solución de fondo llega cuando el constructor **valide** que `id` no sea `null`, igual que el precio.
+> No es obligatorio ahora.
+
+---
+
+#### 🟠 IMPORTANTE 4 — P3.1 y P3.4: falta la regla y la idea de **colisión**
+
+**P3.1, qué pasa:** "para buscar usamos `equals`, pero para agregar usamos `hashCode`". **Falso:** `add` **y**
+`contains` hacen lo mismo: 1) `hashCode` → cajón, 2) `equals` dentro del cajón. Lo viste en `HashSpyLab`.
+Además, la pregunta pide la **regla de oro** escrita y no está. Es una frase de §1.3: "si `a.equals(b)`…".
+Y "bugs ocultos, inconsistencias" es vago. Di **cuál** bug: lo tienes en tu tabla, columna 2 (`set.add(B)` → `true`).
+
+**P3.4, qué pasa:** "si hacemos `equals` por id es porque su hashCode también es igual". Eso repite la regla en la
+dirección **permitida**. La pregunta es por qué **no** vale al revés: ¿dos objetos con el **mismo** `hashCode`
+tienen que ser `equals`? → **No.** Se llama **colisión** (§1.3, "Pérez" y "Paz").
+
+**Ejemplo con TU código** (lo ejecuté): como usas `intValue()`, que solo guarda los últimos 32 bits:
+```
+p1: id = 1               → hashCode = 1
+p2: id = 4294967297      → hashCode = 1        ← ¡mismo cajón!
+p1.equals(p2)            → false               ← pero NO son el mismo producto
+set con p1, add(p2)      → true, size = 2      ← equals los distingue dentro del cajón ✅
+```
+Pista para tu respuesta: hay **infinitos** `id` posibles (`BigInteger`) y solo ~4 mil millones de valores `int`.
+
+**Qué hacer:** reescribe P3.1 (regla con tus palabras + bug concreto de tu columna 2) y P3.4 (colisión, con este
+ejemplo o con uno propio).
+
+---
+
+#### 🟡 MENOR 5 — P3.2 y P3.3
+
+- **P3.2:** la razón de **dominio** está bien: el `id` identifica al producto aunque cambie su precio (entidad).
+  Falta la **técnica**: ¿qué da `new BigDecimal("2.0").equals(new BigDecimal("2.00"))`? (§1.4). Con eso explica
+  por qué meter `price` en `equals` sería peligroso. "Usar bien el `equals` del `BigInteger`" es otra cosa.
+- **P3.3:** la idea es correcta: si el `id` cambia, cambia el `hashCode`, el objeto queda en el cajón viejo y se
+  "pierde". Dos matices:
+  - `final` **no** garantiza que el id sea **único**. Solo impide **reasignarlo** (otro producto puede tener el
+    mismo id). Única = responsabilidad de la base de datos.
+  - "mediante la sobreescritura": el `hashCode` cambiaría porque **se calcula a partir del `id`**, no por la
+    sobreescritura en sí.
+  - Deuda de la lección 01: `final` protege la **variable**, no el objeto. ¿Por qué aquí basta con `final`? Porque
+    `BigInteger` es **inmutable**: no tiene métodos que cambien su valor. Agrégalo en una línea.
+- **Paso 3:** anota "no se rompió nada porque no hay `setId` ni otra asignación a `id` fuera del constructor".
+
+---
+
+**Conceptos que necesitas repasar para cerrar la tarea:**
+
+| # | Concepto | Dónde | Te sirve para |
+|---|----------|-------|---------------|
+| 1 | Validar `null` **antes** de llamar métodos | lección 01 (`isValidValue`) + tu propio `equals` | paso 4, paso 6 |
+| 2 | `compareTo` solo garantiza el signo; `>= 0` vs `> 0` | lección 01, Tarea 3 | paso 4 |
+| 3 | `add` y `contains` usan **los dos**: `hashCode` y después `equals` | §1.3 + tu `HashSpyLab` | P3.1, CRÍTICO 1 |
+| 4 | Colisión: mismo `hashCode` ≠ `equals` | §1.3 ("Pérez" y "Paz") | P3.4 |
+| 5 | `BigDecimal.equals` compara escala (`2.0` ≠ `2.00`) | §1.4 | P3.2 |
+| 6 | `final` + objeto inmutable | §1.4 + lección 01 P4.2 | P3.3 |
+
+**Para llegar a 10/10:**
+- [ ] corregir la fila `set.contains(D)` (`real: true ❌`) + `porque` con cajones
+- [ ] `isValidValue`: `null` → `false` primero; `0` válido (`>= 0` con `compareTo`)
+- [ ] paso 6: `try/catch` con precio `null` + línea con precio `"0"`, ambas con `espero`
+- [ ] `hashCode` → `Objects.hash(id)` y volver a ejecutar
+- [ ] P3.1: regla de oro escrita + bug concreto; quitar "agregar = hashCode"
+- [ ] P3.4: colisión
+- [ ] P3.2: razón técnica `2.0` vs `2.00` · P3.3: matices · paso 3: nota
+- [ ] (deuda T2) P3.3/P2.3: sobrecarga sigue abierta
+
+---
+
+#### 🔁 v2 — 2026-10-05 · **7/10** · 🟡 avanzaste; quedan 5 mini-tareas cortas
+
+Revisado ejecutando `EqualsHashCodeLab`, `Main` (`3846` ✅) y mis casos límite.
+
+**Corregido:**
+- ✅ **`isValidValue` revisa `null` primero.** Ahora `new Laptop(..., null, ...)` lanza **tu**
+  `IllegalArgumentException` y no un `NullPointerException`. Lo comprobé.
+- ✅ **Paso 6 hecho:** el `try/catch` imprime `Price cannot be negative`.
+- ✅ **Fila `set.contains(D)` corregida** con `real: true` y un `porque` correcto: "el hashCode es 1, igual al de A
+  y B". Para que esté completo, agrega la segunda mitad: "…y dentro de ese cajón `equals` da `true`".
+- ✅ Separadores con el nombre del paso: la salida se lee mucho mejor.
+
+---
+
+#### ❌ NUEVO — Fila `A.hashCode() == B.hashCode()`: anotaste `real: false`, pero la salida es `true`
+
+Tu propio programa imprime:
+```
+4--------Paso: laptopA.hashCode() == laptopB.hashCode()
+true
+hash: 1 1        ← la línea que agregaste: los dos valen 1
+```
+Y la explicación que escribiste ("`==` compara posiciones en la RAM, habría que usar `equals` para los int") es un
+**concepto equivocado**:
+
+| Lo que comparas | Qué hace `==` | Ejemplo (comprobado) |
+|-----------------|---------------|----------------------|
+| **primitivos** (`int`, `long`, `boolean`, `double`) | compara el **valor** | `int x = 1; int y = 1;` → `x == y` es `true` |
+| **objetos** (`String`, `BigInteger`, `Product`...) | compara la **referencia** (¿mismo objeto?) | `laptopA == laptopB` → `false` |
+
+`hashCode()` devuelve un **`int`** (primitivo; mira la firma: `public int hashCode()`). Entonces
+`1 == 1` → `true`. Un primitivo **no tiene** posición propia que comparar ni métodos: `int` no tiene `.equals`.
+Lo de "posiciones en memoria" vale **solo para objetos**. Es la tabla de §1.2 ("cómo comparar cada tipo de campo").
+
+---
+
+### 🧩 Mini-tareas para cerrar la Tarea 3 (una por vez, ~10 min cada una)
+
+Hazlas **en orden**. Después de cada una puedes pedirme "revisa mini-tarea N".
+
+**Mini-tarea 3.A — `==` con primitivos vs objetos** (archivo `HashSpyLab`)
+1. Al final del `main`, escribe `int x = 500;` e `int y = 500;`. Imprime `x == y`, con su `// espero:` antes.
+2. Crea `BigInteger bx = new BigInteger("500");` y `by` igual. Imprime `bx == by` y después `bx.equals(by)`,
+   cada uno con su `// espero:`.
+3. Ejecuta y llena `real`. Si fallas, escribe el `porque` usando las palabras **primitivo** y **objeto**.
+4. Corrige la fila `A.hashCode() == B.hashCode()` de la tabla: `real: true ✅` y una línea de por qué.
+
+**Mini-tarea 3.B — un precio `0` es válido**
+1. Cambia `> 0` por la comparación correcta para "**no negativo**" (`0` vale, `-1` no).
+2. En `EqualsHashCodeLab`, después del `try/catch`, crea un `Laptop` con precio `"0"` e imprímelo.
+   Antes escribe `// espero: se crea sin excepción`.
+3. Al `try/catch` del `null` agrégale su `// espero:`.
+4. Ejecuta `Main`: debe seguir dando `3846`.
+
+**Mini-tarea 3.C — ver una colisión (para P3.4)** (archivo `HashSpyLab`, **antes** de cambiar `hashCode`)
+1. Crea `p1`: `Laptop` con id `"1"`, nombre `"Cable"`, precio `"5"`, peso `"1"`.
+2. Crea `p2`: igual, pero con id `"4294967297"` y nombre `"Cable XL"`.
+3. Imprime `p1.hashCode()`, `p2.hashCode()` y `p1.equals(p2)`. Escribe un `espero` para cada uno.
+4. Agrega `p1` a un `HashSet`, imprime `add(p2)` y `size()` (con `espero`).
+5. Reescribe **P3.4** en 2 líneas. Usa la palabra **colisión** y tu resultado del paso 3.
+
+**Mini-tarea 3.D — `hashCode` profesional**
+1. Cambia `this.id.intValue()` por `Objects.hash(id)` (necesitas `import java.util.Objects;`).
+2. Ejecuta `EqualsHashCodeLab`: la columna 3 debe dar **lo mismo**. Compruébalo fila por fila con el terminal.
+3. En `HashSpyLab`, crea un `Laptop` con id `null` y agrégalo a un `HashSet`. `espero:` → ¿excepción o no?
+   (Con `intValue()` daba `NullPointerException`.)
+
+**Mini-tarea 3.E — las respuestas que faltan**
+1. En `HashSpyLab` imprime `new BigDecimal("2.0").equals(new BigDecimal("2.00"))`, con `espero`.
+2. **P3.2:** agrega la razón técnica usando ese resultado: ¿qué pasaría si `equals` comparara también `price`?
+3. **P3.1:** escribe la regla empezando así: "Si `a.equals(b)` es `true`, entonces…". Después nombra el bug
+   concreto que viste en tu columna 2 (`set.add(B)`). Borra "para buscar usamos equals, para agregar hashCode".
+4. **Paso 3:** una línea: "al poner `id` `final` no se rompió nada porque…".
+
+---
+
+#### 🔁 v3 — 2026-10-05 · **8/10** · 🟡 casi: falta terminar la colisión (3.C)
+
+Revisado ejecutando `HashSpyLab`, `EqualsHashCodeLab` (la columna 3 da lo mismo con `Objects.hash` ✅) y `Main` (`3846` ✅).
+
+| Mini | Estado | Lo bueno | Lo que falta |
+|------|--------|----------|--------------|
+| 3.A | ✅ | `x == y` → `true` y `bx == by` → `false`, **predichos bien**. Fila `hashCode` corregida | `bx.equals(by)` (paso 2); la línea de por qué en la fila |
+| 3.B | ✅ | `>= 0` ✅; un precio `0` ya se crea; `Main` sigue en `3846` | `espero` del `try/catch`; tu duda (abajo) |
+| 3.C | 🟡 | viste `p2.hashCode()` → `1` y **escribiste que no sabías por qué** (bien, eso es honesto) | pasos 4–5: `add(p2)` + `size()` y **P3.4** |
+| 3.D | ✅ | `Objects.hash(id)` ✅; con `id` `null` ya no explota | leíste mal la salida (abajo) |
+| 3.E | 🟡 | **P3.1: la regla está bien escrita** ✅; `2.0` vs `2.00` ejecutado | P3.2 y paso 3 a medias |
+
+---
+
+#### 📖 Tu pregunta de 3.C — "¿por qué `4294967297` da hashCode `1`?"
+
+(Con el `hashCode` viejo, `id.intValue()`.) Un `int` solo tiene **32 casillas binarias** (bits). `4294967297` necesita
+**33**:
+```
+4294967297 en binario =  1 00000000000000000000000000000001   ← 33 bits
+                         ↑ no cabe
+intValue() se queda con los últimos 32  →  00000000000000000000000000000001  = 1
+```
+**Ejemplo de la vida real:** el cuentakilómetros de un auto con 6 dígitos. A los `1 000 001` km marca `000001`:
+el dígito de adelante "se cae". Un auto con 1 km y otro con 1 000 001 km **muestran lo mismo**, pero no son el
+mismo auto. Eso es una **colisión**: mismo `hashCode`, distinto `equals`.
+
+**Ahora tu `hashCode` es `Objects.hash(id)`**, y esos dos ids ya no chocan (salen `32` y `63`; lo ejecuté).
+Pero las colisiones **siguen existiendo**, solo que con otros números. Busqué una con tu código actual:
+```
+id 31          → hashCode 62
+id 4294967296  → hashCode 62     ← colisión
+equals         → false
+set: add(p1), add(p2) → true, size 2
+```
+
+**Qué hacer (10 min):**
+1. En `HashSpyLab`, cambia los ids de `p1` y `p2` a `"31"` y `"4294967296"`.
+2. Corrige los `espero` de los `hashCode` (antes de ejecutar).
+3. Agrega `listHash.add(p2)` y después `listHash.size()`, cada uno con su `espero`. **Este es el paso clave que faltó.**
+4. Reescribe **P3.4** en 2 líneas con la palabra **colisión**: ¿dos `hashCode` iguales significan que son `equals`?
+   ¿Qué hace el set en ese caso?
+
+---
+
+#### 🟡 Tu duda de 3.B — "¿debería aceptar precio 0?"
+
+**Sí.** La regla de `Product` es "el precio **no puede ser negativo**" (es lo que dice tu mensaje de error). `0`
+no es negativo. Ejemplos reales: un e-book de regalo en una promoción, o un producto de muestra.
+Si el negocio quisiera prohibir el `0`, la regla sería otra ("debe ser positivo") y el mensaje también.
+**Lo importante:** la regla la decide el **dominio**, y el código y el mensaje de error deben decir **lo mismo**.
+Cambia tu comentario a `// espero: se crea ✅`.
+
+---
+
+#### 🟡 3.D — leíste la línea equivocada de la salida
+
+Anotaste `real: 1` para `p3.hashCode()`. La salida real es:
+```
+1     ← listHash.size()   (la línea de antes)
+31    ← p3.hashCode()     ← este es el tuyo
+```
+Es el mismo hábito de siempre. Con el **separador** que usas en `EqualsHashCodeLab` (`"N--------Paso: ..."`)
+esto no pasa. Ponlo también en `HashSpyLab`.
+
+**Y el porque:** "el `null` sigue siendo un tipo válido" no es exacto. `null` **no es un objeto**: no tiene métodos.
+`id.intValue()` explotaba porque **llamaba un método sobre `null`**. `Objects.hash` **pregunta antes** si es `null`
+y, en ese caso, usa `0` en vez de llamar al método. Es la misma idea que tu `isValidValue`: primero `null`, después
+el método.
+
+---
+
+#### 🟡 3.E — dos respuestas a medias
+
+- **P3.1 ✅ la regla.** Solo un ajuste en el bug: "el `hashCode` no fue sobreescrito" es la **causa**. El **bug** es
+  lo que se vio: "`set.add(B)` devolvió `true` y el set quedó con 2 productos de `id` 1 (columna 2)". Además,
+  borra la P3.1 vieja de `EqualsHashCodeLab` ("buscar = equals, agregar = hashCode"): sigue ahí y es falsa.
+- **P3.2:** la parte "el precio se puede modificar, no es seguro para comparar" **es muy buena**: es la idea de
+  P3.3 (si el campo cambia, el objeto se pierde en el cajón viejo). Falta conectar tu resultado `false`: "el mismo
+  producto con precio `2.0` y `2.00` sería **dos productos distintos** para el set".
+- **Paso 3:** explicaste qué hace `final` (correcto), pero la pregunta es **por qué no se rompió nada**. Respuesta
+  corta: porque **ningún código asignaba `id`** fuera del constructor (no existe `setId`). Si existiera, **ese**
+  método dejaría de compilar.
+
+---
+
+**Para cerrar la Tarea 3:**
+- [ ] **3.C con los ids `31` y `4294967296`: `add(p2)` + `size()` + P3.4 (lo más importante)**
+- [ ] 3.A: `bx.equals(by)` con `espero`
+- [ ] 3.B: `espero` del `try/catch`; cambiar "se rompe" por "se crea"
+- [ ] 3.D: separadores en `HashSpyLab`; corregir `real: 31` y el porque
+- [ ] 3.E: bug concreto en P3.1, borrar la P3.1 vieja, conectar `2.0`/`2.00` en P3.2, paso 3
+
 ---
 
 ### Tarea 4 — `getClass()` vs `instanceof` (medio-avanzado · 30 min)

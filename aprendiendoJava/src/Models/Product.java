@@ -4,9 +4,10 @@ import Interfaces.ShippingStragy;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Objects;
 
 public class Product {
-    private BigInteger id;
+    private final BigInteger id;
     private String name;
     private BigDecimal price;
 
@@ -36,7 +37,10 @@ public class Product {
     }
 
     private boolean isValidValue(BigDecimal price) {
-        return price.floatValue() >= 0;
+        if (price == null) {
+            return false;
+        }
+        return price.compareTo(BigDecimal.ZERO) >= 0;
     }
 
     public BigInteger getId() {
@@ -60,6 +64,11 @@ public class Product {
             return ((Product) o).getId().equals(this.id);
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
 }
