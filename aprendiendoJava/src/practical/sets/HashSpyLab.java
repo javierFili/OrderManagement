@@ -41,12 +41,12 @@ public class HashSpyLab {
         /**
          * mini tarea 3
          */
-        Product p1 = new Laptop(new BigInteger("1"), "Cable",new BigDecimal("5"), new BigDecimal("1"));
-        Product p2 = new Laptop(new BigInteger("4294967297"), "Cable XL",new BigDecimal("0"), new BigDecimal("2"));
+        Product p1 = new Laptop(new BigInteger("31"), "Cable",new BigDecimal("5"), new BigDecimal("1"));
+        Product p2 = new Laptop(new BigInteger("4294967296"), "Cable XL",new BigDecimal("0"), new BigDecimal("2"));
         System.out.println(p1.hashCode());
-        // espero: 1
+        // espero: 31
         System.out.println(p2.hashCode());
-        // espero: 4294967297 // real: 1? por que? realmente no se por que!!!
+        // espero: 4294967296 // real: 1? por que? realmente no se por que!!!
         System.out.println(p1.equals(p2));
         //eespero: false
 

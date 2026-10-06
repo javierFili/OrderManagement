@@ -5,15 +5,15 @@
 ## ▶ TAREA EN CURSO (retomar aquí)
 
 **Tema:** `equals()` / `hashCode()` + `Set` (semana 2). Lección completa en `docs/lessons/02-equals-hashcode-set.md`.
-**Estado:** asignada el 2026-10-02; en curso (T0 9/10, T1 8/10, T2 8/10, T3 v3 8/10) → **siguiente: terminar 3.C (colisión con ids 31 y 4294967296) + P3.4**, luego Tarea 4. Se avanzó a pedido del alumno con deuda de la lección 01 (ver abajo).
+**Estado:** asignada el 2026-10-02; en curso (T0 9/10, T1 8/10, T2 8/10, T3 v3 8/10 saltada, T4 v2 7/10) → **siguiente: mini-tareas 4.A (ronda getClass real) y 4.B (P4.1/P4.2)**, luego Tarea 5. Se avanzó a pedido del alumno con deuda de la lección 01 (ver abajo).
 
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
 | 0. Calentamiento `Set<String>` | `src/practical/sets/SetBasics.java` | ✅ 9/10 |
 | 1. Ronda 1: sin `equals` | `src/practical/sets/EqualsHashCodeLab.java` | 🟡 8/10 (P1.2, paso 8) |
 | 2. Ronda 2: solo `equals` | `Product.java` + `EqualsHashCodeLab` | ✅ v3 8/10 (deuda: P2.3 sobrecarga, P2.1, borrar println espía) |
-| 3. Ronda 3: `hashCode` + `id` final + `isValidValue` | `Product.java` + `EqualsHashCodeLab` | 🟡 v3 8/10 (falta 3.C colisión + P3.4) |
-| 4. `getClass` vs `instanceof` | `src/practical/sets/EqualityTypeLab.java` | pendiente |
+| 3. Ronda 3: `hashCode` + `id` final + `isValidValue` | `Product.java` + `EqualsHashCodeLab` | ⏭ v3 8/10 saltada por el alumno (deuda: colisión 3.C + P3.4 → reaparece en T5/T6) |
+| 4. `getClass` vs `instanceof` | `src/practical/sets/EqualityTypeLab.java` | 🟡 v2 7/10 (mini-tareas 4.A ronda getClass, 4.B P4.1/P4.2) |
 | 5. `HashSet` / `LinkedHashSet` / `TreeSet` | `src/practical/sets/SetOrderLab.java` | pendiente |
 | 6. `Order.getDistinctProducts()` | `Order.java` + `Main.java` | pendiente |
 
@@ -33,6 +33,24 @@ Detalle en los bloques 🔍 REVISIÓN de `docs/lessons/01-list-arraylist.md`.
 
 ---
 
+## 2026-10-06 — Revisión Tarea 4 (lección 02)
+
+* El alumno salta la Tarea 3 ("muchas veces no termino de entender tus tareas"). Deuda: colisión (mismo hashCode,
+  distinto equals) + P3.4 → hacerla reaparecer en Tarea 5/6. Revisiones más cortas y sin ambigüedad.
+
+### Bien hecho
+* pasos 1–4 exactos con `espero` ✅; decisión `instanceof` con `equals` solo en `Product` (sin subclases que lo sobrescriban)
+* P4.1: intuye bien que la simetría se rompe si una subclase sobrescribe `equals`; P4.2: id autoincremental = un solo producto
+
+### Errores detectados
+* tabla: `set.size()` con `getClass` anotado como `false` (es un `int`; real `2`) → posiblemente no ejecutó la ronda
+* P4.2: no conecta el dominio con la decisión; justifica con "menos código / lo entiendo mejor"; no entendió "versión"
+  (pregunta mal redactada por el mentor)
+* cree que `getClass` devuelve el nombre de la clase (devuelve el objeto `Class` exacto)
+* v2 (7/10): casilla `size` getClass ahora `1` (real `2`) → no ejecutó la ronda (la tarea no decía cómo) → mini-tarea 4.A con la línea exacta.
+  **Concepto nuevo:** cree que "simétrico" = "da true" (dijo que getClass no es simétrico con false/false). P4.2 mejoró
+  (getClass rompería comparar subclases) pero sigue "menos código" → 4.B con frases para completar.
+
 ## 2026-10-05 — Revisión Tarea 3 (lección 02)
 
 ### Bien hecho
@@ -47,7 +65,7 @@ Detalle en los bloques 🔍 REVISIÓN de `docs/lessons/01-list-arraylist.md`.
 * P3.2 sin razón técnica (`BigDecimal` 2.0 vs 2.00); P2.3 (sobrecarga) sigue abierta
 * v2 (7/10): `null` en `isValidValue` ✅, paso 6 ✅, fila contains(D) corregida ✅. **Nuevo error de concepto:** cree que
   `==` entre `int` compara posiciones de memoria (anotó `hashCode == hashCode` como false; real true).
-  Sigue `> 0`. El alumno preguntó si es lento → se propusieron **mini-tareas de ~10 min, una por vez, con experimentos** (aplicado en v2; el alumno aún no lo confirmó).
+  Sigue `> 0`. El alumno preguntó si es lento → se propusieron **mini-tareas de ~10 min, una por vez, con experimentos** (aplicado en v2; el alumno hizo las 5 mini-tareas → formato adoptado).
 * v3 (8/10): hizo las 5 mini-tareas. ✅ `==` int vs objeto predicho bien, `>= 0`, `Objects.hash`, regla de oro escrita.
   Falta: `add(p2)`/`size` de la colisión y P3.4; volvió a leer mal una línea de la salida (`size` por `hashCode`).
   No entendía por qué `intValue()` de 4294967297 da 1 → se explicó (32 bits, cuentakilómetros).

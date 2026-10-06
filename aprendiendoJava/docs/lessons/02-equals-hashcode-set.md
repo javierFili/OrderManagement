@@ -1422,6 +1422,115 @@ Anota los resultados en esta tabla (en comentarios):
 
 ---
 
+#### 🔍 REVISIÓN TAREA 4
+
+| Versión | Fecha | Nota | Estado |
+|---------|-------|------|--------|
+| v1 | 2026-10-06 | **7/10** | 🟡 casi: una casilla de la tabla y dos respuestas |
+
+Revisado **ejecutando las dos versiones** (copié `Product` a una carpeta temporal y le puse `getClass`; tu `Product` no se tocó):
+```
+instanceof:  true  true  1
+getClass:    false false 2
+```
+
+| Paso | Estado | Comentario |
+|------|--------|------------|
+| 1–2 | ✅ | datos exactos (id 5, "Monitor", 300, 4); variables declaradas como `Product` |
+| 3 | ✅ | las dos direcciones, con `espero` y ✅ |
+| 4 | ✅ | `size()` → `1`, predicho bien |
+| 5 | 🟡 | la casilla `set.size()` de `getClass` dice `false` → **real `2`** |
+| 6 | ✅ | te quedaste con `instanceof` y `equals` está **solo en `Product`** (lo busqué: ninguna subclase lo sobrescribe) |
+| P4.1 | 🟡 | tu segunda idea es la correcta, pero falta decirla completa |
+| P4.2 | 🟡 | la respuesta "no puede existir otro con id 5" ✅; falta unirla con la decisión |
+
+---
+
+**🟡 IMPORTANTE — `set.size()` no puede ser `false`**
+- **Qué pasa:** `size()` devuelve un `int` (cuántos hay), nunca `true`/`false`. Con `getClass` el resultado es `2`.
+- **Teoría:** con `getClass`, `physical.equals(laptop)` es `false` → para el set son **dos productos distintos** → guarda los dos.
+- **Ejemplo (otros datos):** un `Set` con un `Furnuture` id 9 y un `PhysicalBook` id 9 → con `getClass` → `size` `2`; con `instanceof` → `1`.
+- **Qué hacer:** corrige la casilla a `2`. Si no ejecutaste la ronda `getClass` (paso 5), hazlo: 5 minutos, y vuelve a poner `instanceof`.
+
+**🟡 IMPORTANTE — P4.1: ¿cuándo se rompe la simetría?**
+Tu frase "cuando se sobrescriba `equals` en un hijo de `Product`" **es la respuesta**. Solo falta el "cómo":
+```
+Product  usa instanceof Product   →  physical.equals(laptop)  → true   (un Laptop ES un Product)
+Laptop   usa instanceof Laptop    →  laptop.equals(physical)  → false  (un PhysicalProduct NO ES un Laptop)
+                                     → a = b pero b ≠ a  → simetría rota
+```
+**Qué hacer:** reescribe P4.1 en 2 líneas:
+1. "En mi código las dos versiones son simétricas porque…" (pista: ¿cuántas clases tienen `equals`?)
+2. "Se rompería si `Laptop`… y entonces `laptop.equals(physical)` daría…"
+
+**🟡 IMPORTANTE — P4.2: unir el dominio con la decisión**
+Perdón, la pregunta estaba confusa. "Versión" = **`instanceof` o `getClass`**, no el id.
+Tu respuesta del dominio está **bien**: en una tabla `products` con id autoincremental, el id 5 es **un solo producto**.
+La conexión que falta:
+- Si el id 5 es un solo producto, un `Laptop` id 5 y un `PhysicalProduct` id 5 **son el mismo producto** → `equals` debe dar `true` → eso lo hace **`instanceof`**.
+- `getClass` diría "distintos" → el set guardaría el **mismo** producto dos veces (tu `2` del paso 5).
+
+**Qué hacer:** reescribe P4.2 empezando así: "Elegí `instanceof` porque en la tabla `products` el id…".
+Borra "es menos código / lo entiendo mejor": no es una razón de diseño (si el dominio pidiera `getClass`, usarías `getClass` aunque fuera más largo).
+
+**MEJORABLE — una precisión sobre `getClass`**
+Escribiste "`getClass` te da el nombre de la clase". Devuelve la **clase exacta** del objeto en ejecución (un objeto `Class`, no un `String`).
+`laptop.getClass()` es `Laptop`, aunque la variable sea `Product`. Por eso `Laptop` ≠ `PhysicalProduct`.
+
+**NO RELEVANTE AHORA:** el `Product.java` aparece modificado solo porque se borró el salto de línea final. No es un error.
+
+---
+
+**Checklist para cerrar la Tarea 4 (~10 min):**
+- [ ] casilla `set.size()` de `getClass` → `2` (ejecutando la ronda si no lo hiciste)
+- [ ] P4.1 en 2 líneas (por qué es simétrico hoy + cuándo se rompería)
+- [ ] P4.2 empezando con "Elegí `instanceof` porque en la tabla `products` el id…"
+
+---
+
+#### 🔁 v2 — 2026-10-06 · **7/10** · 🟡 falta ver la ronda `getClass` con tus propios ojos
+
+| Punto | v1 | v2 | Estado |
+|-------|----|----|--------|
+| casilla `set.size()` getClass | `false` | `1` | ❌ real **`2`** (lo ejecuté de nuevo) |
+| P4.1 | idea correcta, incompleta | "getClass **no** es simétrica" | ❌ concepto nuevo a corregir (abajo) |
+| P4.2 | sin conexión | "con `getClass` se rompería comparar objetos heredados" | 🟡 mejor; falta la palabra **id** |
+
+**❌ CRÍTICO — qué significa "simétrico"**
+- **Qué pasa:** escribiste que `getClass` no es simétrico porque da `false`. Pero simétrico **no** significa "da `true`".
+- **Teoría:** simétrico = **las dos direcciones dan lo mismo**. `a.equals(b)` y `b.equals(a)` deben ser **iguales entre sí**.
+- **Ejemplo (otros datos):**
+  ```
+  ana.equals(beto)  → false     beto.equals(ana) → false    → iguales → ✅ simétrico
+  ana.equals(beto)  → true      beto.equals(ana) → true     → iguales → ✅ simétrico
+  ana.equals(beto)  → true      beto.equals(ana) → false    → distintos → ❌ simetría rota
+  ```
+- **En tu tabla:** columna `instanceof` = `true` / `true`; columna `getClass` = `false` / `false`. Mira cada columna con el ejemplo.
+
+**🟡 IMPORTANTE — el `size` de `getClass` no se ejecutó**
+Dos veces escribiste un valor que no es el real (`false`, después `1`). Eso me dice que la ronda no se ejecutó. Seguramente la tarea no explicó **cómo** hacer el cambio. Aquí va exacto:
+
+### 🧩 Mini-tarea 4.A — la ronda `getClass` (~10 min)
+1. En `Product.equals`, busca esta línea: `if (o instanceof Product) {`
+2. Cópiala en un comentario encima, para no perderla: `// if (o instanceof Product) {`
+3. Reemplaza la línea original por: `if (o != null && getClass() == o.getClass()) {`
+4. Antes de ejecutar, en `EqualityTypeLab` agrega debajo de cada `// espero` una línea `// espero getClass: ___` y llénala.
+5. Ejecuta `EqualityTypeLab`. Copia los 3 números/valores del terminal a la columna `getClass` de la tabla.
+6. **Vuelve a dejar** `if (o instanceof Product) {` (borra la línea `getClass`) y ejecuta otra vez: debe dar `true true 1`.
+
+### 🧩 Mini-tarea 4.B — reescribir las dos respuestas (~5 min)
+- **P4.1** (2 líneas, usa tu tabla):
+  "Las dos versiones son simétricas porque en `instanceof` las dos direcciones dan ___ y en `getClass` dan ___.
+  Se rompería si `Laptop` tuviera su propio `equals`, porque `laptop.equals(physical)` daría ___."
+- **P4.2** (completa): "Elegí `instanceof` porque en la tabla `products` el id 5 es ___ producto. Con `getClass`,
+  el set guardaría ___ productos con id 5." Y borra la línea "es menos código y lo entiendo mejor".
+
+**Checklist v3:**
+- [ ] 4.A: columna `getClass` copiada del terminal + `instanceof` restaurado
+- [ ] 4.B: P4.1 y P4.2 con las frases completadas
+
+---
+
 ### Tarea 5 — `HashSet` vs `LinkedHashSet` vs `TreeSet` (medio · 30 min)
 
 **Objetivo:** elegir la implementación según el **orden** que necesitas.
