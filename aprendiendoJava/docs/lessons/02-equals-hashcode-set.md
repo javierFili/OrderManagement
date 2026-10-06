@@ -1559,6 +1559,72 @@ Dos veces escribiste un valor que no es el real (`false`, después `1`). Eso me 
 
 ---
 
+#### 🔍 REVISIÓN TAREA 5
+
+| Versión | Fecha | Nota | Estado |
+|---------|-------|------|--------|
+| v1 | 2026-10-06 | **7/10** | 🟡 casi: un concepto clave + paso 4 + P5.3 |
+
+Revisado ejecutando `SetOrderLab`:
+```
+[beto, Carla, Ana, Diego, Andrés]   5      ← HashSet
+[Ana, Andrés, Carla, Diego, beto]   5      ← TreeSet
+[Carla, beto, Andrés, Diego, Ana]   5      ← LinkedHashSet
+[40, 10, 30, 20]
+ClassCastException
+```
+
+| Paso | Estado | Comentario |
+|------|--------|------------|
+| 1–2 | ✅ | datos exactos; las tres variables declaradas como `Set<String>` |
+| 3 | 🟡 | `HashSet` ✅ (5 elementos, "orden impredecible"). `TreeSet` y `LinkedHashSet`: esperabas **7** con repetidos (abajo). **Muy bien** que escribiste el `real` y el `porque` de cada fallo |
+| 4 | 🟡 | el resultado `[40, 10, 30, 20]` ✅ y elegiste bien `LinkedHashSet`, pero el paso pedía una **`List<Integer>`** |
+| 5 | 🟡 | el `ClassCastException` salió ✅; la predicción no dijo **dónde** falla, y "sobrescribir esos métodos" no es exacto |
+| P5.1 | ✅ | mayúsculas antes que minúsculas |
+| P5.2 | ✅ | `Comparable` / `Comparator` |
+| P5.3 | ❌ | elegiste `LinkedHashSet`; la respuesta es `HashSet` (abajo) |
+
+---
+
+**❌ CRÍTICO — los tres `Set` quitan duplicados**
+- **Qué pasa:** para `HashSet` predijiste 5 (sin repetidos), pero para `TreeSet` y `LinkedHashSet` predijiste 7 (con repetidos).
+- **Teoría:** "no duplicados" es la regla de **la interfaz `Set`**. Las tres implementaciones la cumplen. **Solo cambian el orden** (§1.7):
+  ```
+  HashSet        → sin repetidos · orden: ninguno
+  LinkedHashSet  → sin repetidos · orden: como llegaron
+  TreeSet        → sin repetidos · orden: ordenados
+  ```
+- **En PHP** no existe `Set`; lo más parecido es `array_unique($arr)`, que siempre quita repetidos. Aquí es igual: si se llama `...Set`, no hay repetidos.
+- **Qué hacer:** nada que cambiar en el código. Tu `porque` ya lo dice. Solo recuerda la frase: **"todo `Set` = sin repetidos; la implementación elige el orden"**.
+
+**🟡 IMPORTANTE — paso 4: el resultado tenía que ser una `List`**
+- **Qué pasa:** creaste `Set<Integer> deDuplicates`. El paso pedía una `List<Integer>` sin repetidos, en una sola línea.
+- **Por qué importa:** con una `List` puedes hacer `get(0)` (posición), y muchos métodos de un backend devuelven `List`. Un `Set` no tiene `get(int)`.
+- **Ejemplo (otros datos):** `List<String> tags = new ArrayList<>(miSetDeTags);` → copia el `Set` dentro de una `List` nueva, en el mismo orden.
+- **Qué hacer:** cambia esa línea para que la variable sea `List<Integer>`. Usa la pista del paso 4: un constructor **dentro** de otro. Después imprime `get(0)` con `// espero:`.
+
+**❌ IMPORTANTE — P5.3: el `Set` por defecto es `HashSet`**
+- **Qué pasa:** dijiste `LinkedHashSet` "porque es el más básico". Es al revés: el más básico es `HashSet`.
+- **Teoría:** `LinkedHashSet` = `HashSet` **+ una lista extra** que recuerda el orden de llegada. Esa lista usa más memoria y un poco más de trabajo en cada `add`. Si nadie pidió un orden, es un costo que no sirve para nada.
+- **Ejemplo:** es como pedir envío con seguimiento cuando no te importa saber dónde va el paquete: funciona, pero pagas de más.
+- **Qué hacer:** reescribe P5.3: "Por defecto uso `___` porque `LinkedHashSet` agrega ___ y `TreeSet` necesita ___."
+
+**MEJORABLE — paso 5: dónde falla y qué falta**
+- Comprobado: `new TreeSet<>()` se crea **sin error**; falla en el **`add`**, porque ahí `TreeSet` tiene que comparar.
+- No se trata de "sobrescribir los métodos de `TreeSet`". Lo que falta es que **`Product` sepa compararse**: que **implemente** la interfaz `Comparable`, o pasarle un `Comparator` al `TreeSet`. Es la semana 4. Hoy basta con observarlo.
+- Cambia tu comentario a: `// real: ClassCastException en el add, porque Product no implementa Comparable`.
+
+**NO RELEVANTE AHORA:** faltan los separadores `"N----Paso: ..."`. Aquí no confundiste ninguna línea, pero en la Tarea 6 sí ponlos.
+
+---
+
+**Checklist para cerrar la Tarea 5 (~10 min):**
+- [ ] paso 4: la variable es `List<Integer>`, en una línea, + `get(0)` con `espero`
+- [ ] P5.3 reescrita con la frase para completar
+- [ ] comentario del paso 5: "en el `add`, porque `Product` no implementa `Comparable`"
+
+---
+
 ### Tarea 6 — Aplicación: productos distintos de un pedido (avanzado · 50 min)
 
 **Objetivo:** usar un `Set` en el dominio real, con encapsulación.

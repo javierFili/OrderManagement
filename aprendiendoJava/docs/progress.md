@@ -5,16 +5,16 @@
 ## ▶ TAREA EN CURSO (retomar aquí)
 
 **Tema:** `equals()` / `hashCode()` + `Set` (semana 2). Lección completa en `docs/lessons/02-equals-hashcode-set.md`.
-**Estado:** asignada el 2026-10-02; en curso (T0 9/10, T1 8/10, T2 8/10, T3 v3 8/10 saltada, T4 v2 7/10) → **siguiente: mini-tareas 4.A (ronda getClass real) y 4.B (P4.1/P4.2)**, luego Tarea 5. Se avanzó a pedido del alumno con deuda de la lección 01 (ver abajo).
+**Estado:** asignada el 2026-10-02; en curso (T0 9/10, T1 8/10, T2 8/10, T3 v3 8/10 saltada, T4 v2 7/10, T5 v1 7/10) → **siguiente: checklist T5 (~10 min), mini-tareas 4.A/4.B pendientes**, luego Tarea 6. Se avanzó a pedido del alumno con deuda de la lección 01 (ver abajo).
 
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
 | 0. Calentamiento `Set<String>` | `src/practical/sets/SetBasics.java` | ✅ 9/10 |
 | 1. Ronda 1: sin `equals` | `src/practical/sets/EqualsHashCodeLab.java` | 🟡 8/10 (P1.2, paso 8) |
 | 2. Ronda 2: solo `equals` | `Product.java` + `EqualsHashCodeLab` | ✅ v3 8/10 (deuda: P2.3 sobrecarga, P2.1, borrar println espía) |
-| 3. Ronda 3: `hashCode` + `id` final + `isValidValue` | `Product.java` + `EqualsHashCodeLab` | ⏭ v3 8/10 saltada por el alumno (deuda: colisión 3.C + P3.4 → reaparece en T5/T6) |
+| 3. Ronda 3: `hashCode` + `id` final + `isValidValue` | `Product.java` + `EqualsHashCodeLab` | ⏭ v3 8/10 saltada por el alumno (deuda: colisión 3.C + P3.4 → reaparece en T6) |
 | 4. `getClass` vs `instanceof` | `src/practical/sets/EqualityTypeLab.java` | 🟡 v2 7/10 (mini-tareas 4.A ronda getClass, 4.B P4.1/P4.2) |
-| 5. `HashSet` / `LinkedHashSet` / `TreeSet` | `src/practical/sets/SetOrderLab.java` | pendiente |
+| 5. `HashSet` / `LinkedHashSet` / `TreeSet` | `src/practical/sets/SetOrderLab.java` | 🟡 v1 7/10 (paso 4 `List`, P5.3, comentario paso 5) |
 | 6. `Order.getDistinctProducts()` | `Order.java` + `Main.java` | pendiente |
 
 El alumno pidió tareas muy detalladas, paso a paso (dice que le cuesta entender rápido): mantener ese nivel de detalle.
@@ -32,6 +32,20 @@ El alumno pidió tareas muy detalladas, paso a paso (dice que le cuesta entender
 Detalle en los bloques 🔍 REVISIÓN de `docs/lessons/01-list-arraylist.md`.
 
 ---
+
+## 2026-10-06 — Revisión Tarea 5 (lección 02)
+
+* Avanzó sin hacer 4.A/4.B (siguen pendientes: ronda `getClass` real, concepto de simetría).
+
+### Bien hecho
+* `HashSet` predicho bien (5, orden impredecible); `real` + `porque` escritos en cada fallo; P5.1 y P5.2 correctas
+* eligió `LinkedHashSet` para quitar duplicados conservando el orden; vio el `ClassCastException`
+
+### Errores detectados
+* **concepto:** creyó que solo `HashSet` quita duplicados (predijo 7 para `TreeSet`/`LinkedHashSet`)
+* paso 4: dejó un `Set<Integer>` en vez de la `List<Integer>` pedida
+* P5.3: `LinkedHashSet` por defecto "porque es el más básico" (es `HashSet`)
+* paso 5: no predijo dónde falla; dice "sobrescribir métodos del TreeSet" en vez de "Product implementa Comparable"
 
 ## 2026-10-06 — Revisión Tarea 4 (lección 02)
 
