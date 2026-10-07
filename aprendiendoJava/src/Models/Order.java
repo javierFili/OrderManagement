@@ -2,8 +2,7 @@ package Models;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Order {
     private BigInteger id;
@@ -57,5 +56,18 @@ public class Order {
     public boolean isEmpty(){
         return orderItems.isEmpty();
     }
+
+    public Set<Product> getDistinctProduct(){
+        Set<Product> products = new LinkedHashSet<>();
+        for (OrderItem item:orderItems){
+            products.add(item.getProduct());
+        }
+        //return Collections.unmodifiableSet(products);
+        return Set.copyOf(products);
+    }
+    /**
+     * 1: bueno estoy sacando todos los productos en un for-each, almacenando dentro de un linkedHashSet ya que almacena en el orden de insercion ademas que solo esta insertando solo productos distintos.
+     * 2: La forma de devolverlo prefiero devolver el copyof, para que el que lo recive pueda modificarlo sin modificar lo que esta en mi Order, solo lo que le di.
+     */
 
 }

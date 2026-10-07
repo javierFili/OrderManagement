@@ -7,49 +7,68 @@ import Models.products.RenewableProduct;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Set;
 
 public class Main {
     public static void main(String[] args) {
         Customer customer = new Customer(new BigInteger("1"), "John Doe", "javierfiligrana@gmail.com");
-        Product laptop = new PhysicalProduct(new BigInteger("1"), "Laptop", new BigDecimal("1000"),new BigDecimal("43"));
-        Product mouse = new PhysicalProduct(new BigInteger("2"), "Mouse", new BigDecimal("50"),new BigDecimal("54"));
-//        Product keyboard = new PhysicalProduct(new BigInteger("3"), "Keyboard", new BigDecimal("80"),new BigDecimal("62"));
+        Product laptop = new PhysicalProduct(new BigInteger("1"), "Laptop", new BigDecimal("1000"), new BigDecimal("43"));
+        Product mouse = new PhysicalProduct(new BigInteger("2"), "Mouse", new BigDecimal("50"), new BigDecimal("54"));
+        Product keyboard = new PhysicalProduct(new BigInteger("3"), "Keyboard", new BigDecimal("80"),new BigDecimal("62"));
 
         Product courseJava = new DigitalProduct(new BigInteger("4"), "Java Course", new BigDecimal("100"), new BigDecimal("100"));
-        //Product coursePython = new DigitalProduct(new BigInteger("5"), "Python Course", new BigDecimal("100"), new BigDecimal("100"));
+        Product coursePython = new DigitalProduct(new BigInteger("5"), "Python Course", new BigDecimal("100"), new BigDecimal("100"));
 
-        Product netflixSubscription = new RenewableProduct(new BigInteger("6"),"netflixSubscription",new BigDecimal("100"),3);
+        Product netflixSubscription = new RenewableProduct(new BigInteger("6"), "netflixSubscription", new BigDecimal("100"), 3);
 
-        Product consultingService = new ConsultingService(new BigInteger("7"),"Consultoria de casas",new BigDecimal("123"));
+        Product consultingService = new ConsultingService(new BigInteger("7"), "Consultoria de casas", new BigDecimal("123"));
 
-        Order order = new Order(new BigInteger("1"),customer);
+        Order order = new Order(new BigInteger("1"), customer);
 
-        order.addItem(laptop,3);
-        order.addItem(courseJava,4);
-        order.addItem(netflixSubscription,2);
-        order.addItem(consultingService,2);
+        order.addItem(laptop, 3);
+        order.addItem(courseJava, 4);
+        order.addItem(netflixSubscription, 2);
+        order.addItem(consultingService, 2);
 
         System.out.println(order.getTotalPrice());
 
-        for (OrderItem item:order.getItems()){
-            String print = item.getProduct().getName()+" "+"x"+item.getQuantity()+" "+item.getProduct().getPrice()+" "+ item.getSubTotalPrice();
+        for (OrderItem item : order.getItems()) {
+            String print = item.getProduct().getName() + " " + "x" + item.getQuantity() + " " + item.getProduct().getPrice() + " " + item.getSubTotalPrice();
             System.out.println(print);
         }
-        System.out.println("Total: "+order.getTotalPrice());
+        System.out.println("Total: " + order.getTotalPrice());
 
         try {
-            OrderItem ordI = new OrderItem(mouse,3);
+            OrderItem ordI = new OrderItem(mouse, 3);
             order.getItems().add(ordI);
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e.getClass().getSimpleName());
         }
 
         try {
             order.getItems();
             order.removeItem(99);
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e.getClass().getSimpleName());
         }
+        /**
+         * tarea 6
+         */
+        System.out.println(order.getItemCount());
+
+        System.out.println(order.getDistinctProduct().size());
+
+        Set<Product> distincProduct = order.getDistinctProduct();
+        System.out.println(distincProduct);
+
+        try {
+            distincProduct.add(new Product(new BigInteger("54"),"Laptops",new BigDecimal("2.4")));
+
+        }catch (UnsupportedOperationException e){
+            System.out.println(order.getDistinctProduct());
+        }
+
+
         /**
          * 1: Por que se estaria exponiendo la lista, la lista que se devuelve en un get debe inmutable, es dedir que el que la reciba no deberia poder modificarla
          * 2: impide hacer modificaciones una vez que el atriburto fue modificado, si deja usarlo obviamente, pero no modificarlo como tal
