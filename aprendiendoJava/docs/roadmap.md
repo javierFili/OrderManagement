@@ -43,7 +43,7 @@ tareas de los bloques siguientes, no con lecciones aparte.
 |-----|--------|------|-----------|-------------------------|--------|
 | 1 | 28 sep | `List` / `ArrayList` | interfaz vs implementación, generics básicos, recorridos, trampas, encapsulación de colecciones | [Lección 01](lessons/01-list-arraylist.md) · `Order` con detalle por producto | ✅ con deuda (ver `progress.md`) |
 | 2 | 05 oct | `equals` / `hashCode` + `Set` | contrato, `getClass` vs `instanceof`, `HashSet`, `LinkedHashSet`, `TreeSet` | [Lección 02](lessons/02-equals-hashcode-set.md) · `Order.getDistinctProducts()` | ▶ |
-| 3 | 12 oct | `Map` | `HashMap`, `LinkedHashMap`, `TreeMap`, `getOrDefault`, `merge`, recorrer entradas | `Order` sin items duplicados (`Map<Product, OrderItem>`) | ⬜ |
+| 3 | 12 oct | `Map` | `HashMap`, `LinkedHashMap`, `TreeMap`, `getOrDefault`, `merge`, recorrer entradas | [Lección 03](lessons/03-map.md) · `Order` sin items duplicados (`Map<Product, OrderItem>`) | ▶ teoría |
 | 4 | 19 oct | Ordenar | `Comparable`, `Comparator`, `comparing().thenComparing()`, `List.sort` | catálogo ordenado por precio, nombre y tipo | ⬜ |
 | 5 | 26 oct | Java moderno | `record`, enums con comportamiento, `Optional`, inmutabilidad, `var`, `switch` moderno | `findByName` devuelve `Optional`; `OrderStatus` como enum con reglas | ⬜ |
 | 6 | 02 nov | Excepciones + fechas | checked vs unchecked, excepciones de dominio propias, try-with-resources, `java.time` | `InsufficientStockException`, `Renewal` con `LocalDate` real | ⬜ |

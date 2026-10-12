@@ -1,23 +1,27 @@
 # Progreso — Java Learning Lab
 
-> Plan completo (26 semanas, 28 sep 2026 → 28 mar 2027): `docs/roadmap.md` · **Semana actual: 2**
+> Plan completo (26 semanas, 28 sep 2026 → 28 mar 2027): `docs/roadmap.md` · **Semana actual: 2** (lección 03 adelantada)
 
 ## ▶ TAREA EN CURSO (retomar aquí)
 
-**Tema:** `equals()` / `hashCode()` + `Set` (semana 2). Lección completa en `docs/lessons/02-equals-hashcode-set.md`.
-**Estado:** asignada el 2026-10-02; en curso (T0 9/10, T1 8/10, T2 8/10, T3 v3 8/10 saltada, T4 v2 7/10, T5 v1 7/10) → **siguiente: checklist T5 (~10 min), mini-tareas 4.A/4.B pendientes**, luego Tarea 6. Se avanzó a pedido del alumno con deuda de la lección 01 (ver abajo).
+**Tema:** `Map` (semana 3, adelantada a pedido del alumno el 2026-10-08). Lección: `docs/lessons/03-map.md`.
+**Estado:** **solo teoría publicada** (§0–§12, reescrita "desde cero" a pedido del alumno: repaso de L02, 🧪 experimentos
+en `src/practical/maps/MapPlayground.java`, ✅ preguntas con respuesta, autoevaluación de 10 preguntas).
+→ **siguiente:** revisar `MapPlayground` + autoevaluación (§12) y **publicar las tareas** (§13) como mini-tareas de ~10 min;
+aplicación final = `Order` con `Map<Product, OrderItem>` (laptop x3 + x1 → x4).
+
+El alumno pidió (2026-10-08) que lo trate como alguien que **no sabe** el tema: lecciones muy explicativas, con
+ejemplos, para llegar a 10/10. Mantener ese nivel.
+
+### Deuda de la lección 02 (se avanzó con estas tareas abiertas)
 
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
-| 0. Calentamiento `Set<String>` | `src/practical/sets/SetBasics.java` | ✅ 9/10 |
-| 1. Ronda 1: sin `equals` | `src/practical/sets/EqualsHashCodeLab.java` | 🟡 8/10 (P1.2, paso 8) |
-| 2. Ronda 2: solo `equals` | `Product.java` + `EqualsHashCodeLab` | ✅ v3 8/10 (deuda: P2.3 sobrecarga, P2.1, borrar println espía) |
-| 3. Ronda 3: `hashCode` + `id` final + `isValidValue` | `Product.java` + `EqualsHashCodeLab` | ⏭ v3 8/10 saltada por el alumno (deuda: colisión 3.C + P3.4 → reaparece en T6) |
-| 4. `getClass` vs `instanceof` | `src/practical/sets/EqualityTypeLab.java` | 🟡 v2 7/10 (mini-tareas 4.A ronda getClass, 4.B P4.1/P4.2) |
-| 5. `HashSet` / `LinkedHashSet` / `TreeSet` | `src/practical/sets/SetOrderLab.java` | 🟡 v1 7/10 (paso 4 `List`, P5.3, comentario paso 5) |
-| 6. `Order.getDistinctProducts()` | `Order.java` + `Main.java` | pendiente |
-
-El alumno pidió tareas muy detalladas, paso a paso (dice que le cuesta entender rápido): mantener ese nivel de detalle.
+| 0–2 | `SetBasics`, `EqualsHashCodeLab`, `Product` | ✅ / 🟡 8/10 (detalles menores) |
+| 3. `hashCode` | `HashSpyLab` | ⏭ saltada; la colisión se re-explica en L03 §0.3 y §7.3 |
+| 4. `getClass` vs `instanceof` | `EqualityTypeLab` | 🟡 v2 7/10: mini-tareas **4.A** (ronda getClass real → `size` 2) y **4.B** (simetría, P4.2) |
+| 5. `HashSet`/`LinkedHashSet`/`TreeSet` | `SetOrderLab` | 🟡 v1 7/10: paso 4 `List`, P5.3 (`HashSet` por defecto), comentario paso 5 |
+| 6. `Order.getDistinctProduct()` | `Order` + `Main` | 📥 commit `4a871fe` (2026-10-07) **sin revisar**: el alumno dice que la versión final quedó en casa. Vistazo: faltan pasos 4–5 (laptop repetida), `Set.copyOf` pierde el orden (L03 §9 lo cubre), P6.1–P6.3 sin responder |
 
 ### Deuda de la lección 01 (no bloquea; parte se practica en la lección 02)
 
@@ -32,6 +36,12 @@ El alumno pidió tareas muy detalladas, paso a paso (dice que le cuesta entender
 Detalle en los bloques 🔍 REVISIÓN de `docs/lessons/01-list-arraylist.md`.
 
 ---
+
+## 2026-10-08 — Paso a la lección 03 (`Map`), solo teoría
+
+* El alumno pide avanzar y siente sus notas "bajísimas"; pide lecciones detalladas, como para alguien que no sabe.
+* Creada `docs/lessons/03-map.md`: todos los ejemplos ejecutados en Java 21 (incl. `Map.copyOf` cambia de orden entre ejecuciones).
+* Tarea 6 de L02 aparece en el commit `4a871fe`, pero el alumno dice que la final está en casa → revisar cuando la suba.
 
 ## 2026-10-06 — Revisión Tarea 5 (lección 02)
 
