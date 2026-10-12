@@ -1664,6 +1664,133 @@ el picking. No importa cuántas unidades, solo **cuáles**, **en el orden en que
 **Restricción:** **no** intentes todavía juntar las líneas repetidas de `Order` (laptop x3 + laptop x1 → laptop x4).
 Eso es `Map` y es la lección 03.
 
+
+> ## 🔍 REVISIÓN TAREA 6 — 2026-10-07 · **5/10** · 🔁 rehacer
+> Historial: **v1 5/10**. Revisado ejecutando `Main` **3 veces** (importa, ver CRÍTICO 1).
+
+**✅ Ya está bien:** `LinkedHashSet` es la implementación correcta y la justificas bien. El for-each con
+`item.getProduct()` está bien. `laptop2` es un `PhysicalProduct` con id `1`, como pedía el paso 5. El
+`println("pasa??")` dentro del `try` es un buen truco para comprobar si se lanza la excepción.
+`getItemCount()` = `8` acertado. Y `Product` ya tiene `equals` + `hashCode` por `id`, que es lo que hace funcionar todo esto.
+
+**Tus predicciones contra la salida real:**
+
+| Paso | Línea | Tu predicción | Salida real | |
+|------|-------|---------------|-------------|---|
+| 6 | `getItemCount()` | `8` | `8` | ✅ |
+| 6 | `getDistinctProducts().size()` | `7` | `6` | ❌ `porque` vago |
+| 6 | `getDistinctProducts()` | ids `1,2,3,4,5,6,7` en orden | **cambia en cada ejecución** (ver abajo) | ❌ sin `real` |
+| 7 | `add(...)` | `UnsupportedOperationException` | `UnsupportedOperationException` | ✅ |
+| 8 | total | — | **no está en el código** | ❌ |
+
+Tu salida del paso 6 en 3 ejecuciones seguidas, **sin cambiar nada**:
+```
+1ª: [7, 6, 5, 4, 3, 1]
+2ª: [3, 1, 7, 6, 5, 4]
+3ª: [7, 1, 3, 4, 5, 6]
+esperado (orden de inserción): [1, 4, 6, 7, 3, 5]
+```
+
+---
+
+#### ❌ CRÍTICO 1 — `Set.copyOf` **pierde el orden** (y P6.3 dice lo contrario)
+
+**Qué pasa:** armas bien el `LinkedHashSet`, con el orden correcto, y en el `return` lo tiras con `Set.copyOf`.
+El requisito era "**en el orden en que se agregaron**". La versión correcta estaba en la línea comentada.
+
+**Teoría: "copia" e "inmodificable" son DOS preguntas distintas.** Esta es la confusión de fondo, y viene
+desde el `List.copyOf` de la lección 01:
+
+| Forma de devolver | ¿Copia o vista? | ¿Quien lo recibe puede modificarlo? | ¿Orden? |
+|-------------------|-----------------|-------------------------------------|---------|
+| `return products;` | el mismo objeto | **sí**, y te cambia tu dato ❌ | el del `LinkedHashSet` |
+| `new LinkedHashSet<>(products)` | copia | sí, pero solo su copia | se conserva |
+| `Set.copyOf(products)` | copia | **no** (`UnsupportedOperationException`) | **ninguno**: cambia en cada ejecución ❌ |
+| `Collections.unmodifiableSet(products)` | **vista** de solo lectura | **no** | **se conserva** ✅ |
+
+- `Set.copyOf` construye un set inmutable **nuevo, sin orden**. Por seguridad, Java incluso **cambia el orden a
+  propósito en cada ejecución** para que nadie dependa de él. Eso es lo que viste.
+- `Collections.unmodifiableSet(x)` **no copia**: envuelve a `x` y lanza la excepción si alguien intenta modificarlo.
+  Al recorrerlo, recorre `x`, así que el orden es el del `LinkedHashSet`.
+
+**"¿Una vista no es peligrosa?"** Solo si alguien más modifica el original. Aquí `products` es una variable
+**local**: se crea nueva en cada llamada y nadie más la tiene. La vista es, en la práctica, una foto fija.
+
+```java
+// comprobado: mismo LinkedHashSet, dos formas de devolverlo
+unmodifiableSet → [laptop, java, netflix, consult, keyboard, python]   (siempre igual)
+Set.copyOf      → [keyboard, python, laptop, netflix, java, consult]   (1ª ejecución)
+                  [keyboard, consult, java, netflix, laptop, python]   (2ª ejecución)
+```
+
+**Tu justificación 2 también está al revés:** "para que el que lo recibe pueda modificarlo". `Set.copyOf` es
+**inmutable**: el que lo recibe **no** puede modificarlo, y tu propio paso 7 lo demuestra.
+
+**Profesionalmente:** "el JSON sale en otro orden cada vez que reinicio" es un bug real en APIs de Spring Boot.
+Su causa típica es esta: un `HashSet` o un `Set.copyOf` donde se necesitaba orden.
+
+**Qué hacer:** `return Collections.unmodifiableSet(products);` y reescribe la justificación con la tabla.
+
+---
+
+#### ❌ CRÍTICO 2 — P6.2: el `laptop` del paso 4 **sí** se habría eliminado sin `equals`/`hashCode`
+
+**Qué pasa:** respondiste que sin `equals`/`hashCode` no se habría eliminado ninguno. Hay que separar los dos casos:
+
+| Caso | Sin `equals`/`hashCode` (de `Object`) | Con los tuyos (por `id`) |
+|------|---------------------------------------|--------------------------|
+| paso 4: **el mismo objeto** `laptop` | `hashCode` igual (es el mismo objeto) → mismo cajón → `this == o` es `true` → **se elimina** ✅ | se elimina ✅ |
+| paso 5: `laptop2`, **otro** objeto con id `1` | `hashCode` distinto → otro cajón → **no se elimina** | se elimina ✅ |
+
+El `equals` de `Object` compara identidad, y un objeto **siempre** es idéntico a sí mismo (regla reflexiva,
+Tarea 2). Comprobado con una clase sin `equals`: `set.add(p)` dos veces con el mismo `p` → `true`, `false`, size `1`.
+
+**La idea a llevarte:** `equals`/`hashCode` solo hacen falta para reconocer **objetos distintos** que representan
+**lo mismo**. Es justo el caso de JPA: Hibernate te da otro objeto para la misma fila de la base de datos.
+
+---
+
+#### 🟠 IMPORTANTE 3 — `size()` = 6: el `porque` es lo más importante de la tarea
+
+"No conté uno" no explica nada, y además **6 es el resultado correcto**. Cuéntalo así:
+```
+items:  laptop(1) java(4) netflix(6) consult(7) keyboard(3) python(5) laptop(1) laptop2(1)
+set:    1         4       6          7          3           5         ya está   ya está (id 1 = laptop)
+        → 6 productos distintos
+```
+Fíjate en un detalle: `laptop2` tiene **otro nombre y otro precio** (`"laptop2"`, `32.4`), pero para el set es
+"el mismo producto" porque tu `equals` solo mira el `id`. ¿Cuál se queda? El **primero** (`Laptop`, `1000`),
+porque `add` no reemplaza (P0.1 de la Tarea 0).
+
+---
+
+#### 🟠 IMPORTANTE 4 — P6.3 y `List.copyOf`
+
+- **P6.3:** "el orden debería mantenerse con `Set.copyOf`" es falso, y tu propia salida lo demuestra (CRÍTICO 1).
+- "Si lo hago en una `List`, quitaría los duplicados": tampoco. `List.copyOf` copia **todo**, duplicados
+  incluidos. Comprobado: `List.copyOf([a, b, a])` → `[a, b, a]`. Solo un `Set` quita duplicados.
+
+---
+
+#### 🟡 MENOR 5 — Pasos incompletos
+
+- **Paso 8 falta:** el total a mano. Era `4186` (antes) + `1000` (laptop ×1) + `32.4` (laptop2 ×1) = **`5218.4`**.
+  Ojo: el **total sí cuenta** el precio de `laptop2`, aunque el set de distintos la descarte. Son dos vistas
+  distintas del mismo pedido.
+- **Paso 7:** pedía `add(mouse)`. Creaste un `Laptop` llamado `"Mouse"`. Funciona igual, pero `mouse` ya existía.
+- **Nombre:** `getDistinctProduct` → `getDistinctProducts` (paso 1). Devuelve varios.
+- **Paso 6:** falta el `real` del `println` del set.
+
+---
+
+**Para llegar a 10/10:**
+- [ ] `return Collections.unmodifiableSet(products);` + justificación con "vista de solo lectura, conserva el orden"
+- [ ] ejecutar 2–3 veces y comprobar que el orden ahora es siempre `[1, 4, 6, 7, 3, 5]`
+- [ ] P6.2: separar el caso del paso 4 (mismo objeto) del paso 5 (objeto nuevo, mismo id)
+- [ ] P6.3: "se pierde el orden" + corregir lo de `List.copyOf`
+- [ ] `porque` del `size()` = 6 con el conteo de arriba
+- [ ] paso 8: total `5218.4` con predicción
+
 ---
 
 ## 4. Qué entregar

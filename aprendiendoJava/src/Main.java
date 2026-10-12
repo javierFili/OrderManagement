@@ -1,9 +1,6 @@
 import Interfaces.ShippingStragy;
 import Models.*;
-import Models.products.ConsultingService;
-import Models.products.DigitalProduct;
-import Models.products.PhysicalProduct;
-import Models.products.RenewableProduct;
+import Models.products.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -29,6 +26,8 @@ public class Main {
         order.addItem(courseJava, 4);
         order.addItem(netflixSubscription, 2);
         order.addItem(consultingService, 2);
+        order.addItem(keyboard,3);
+        order.addItem(coursePython,1);
 
         System.out.println(order.getTotalPrice());
 
@@ -54,18 +53,32 @@ public class Main {
         /**
          * tarea 6
          */
+        System.out.println("---------------Tarea 6");
+
+        order.addItem(laptop,1);
+        Product laptop2 = new PhysicalProduct(new BigInteger("1"),"laptop2",new BigDecimal("32.4"),new BigDecimal("3.4"));
+        order.addItem(laptop2,1);
+
         System.out.println(order.getItemCount());
+        // espero: 8 check
 
         System.out.println(order.getDistinctProduct().size());
+        // espero: 7
+        // real: 6 --> existen dos productos repetidos, la laptop y el mouse por eso el metodo getDistinctPrpoduct los quito
 
         Set<Product> distincProduct = order.getDistinctProduct();
         System.out.println(distincProduct);
+        // espero: orden de insercion 1,2,3,4,5,6,7 obvio en la forma del toString.
 
         try {
-            distincProduct.add(new Product(new BigInteger("54"),"Laptops",new BigDecimal("2.4")));
-
+            Product mouse1 = new Laptop(new BigInteger("54"),"Mouse",new BigDecimal("2.4"),new BigDecimal("4.3"));
+            distincProduct.add(mouse1);
+            // espero: una unsupportedOperationException e
+            System.out.println("pasa??");
         }catch (UnsupportedOperationException e){
             System.out.println(order.getDistinctProduct());
+            System.out.println(e);
+            //espero que entre aqui
         }
 
 
@@ -82,4 +95,11 @@ public class Main {
  * 2: Se lo estoy pasando mediante el constructor, pero lo que me choca es que ahora la clase main sera quien deba declarar, instancia, delegar las clases y luego al momento de instanciar el objeto product es cuando se lo envia
  * 3: Lo esta creando la clase main, no se si eso sea correcto, ademas no pude solucionar el como evitar que se envie o no el weight en esa funcion de la interface, estoy pensando que no se necesita interface..
  * 4: Si se agreaga FreeShipping, etc.. Cada uno tendria el contrato de la interface es decir implementa el metodo como lo necesite implementar(sigo con la duda de que pasa si tiene paramatros diferentes!!), y con eso ya no tocamos product sino que creamos esas clases que implementen a ShippingStrategy y al momento de usarse distinguir una de la otra..
+ */
+
+/**
+ * Tarea 6:
+ *  1: por que queremos que se muestren productos unicos, sin repetir, la mejor forma es usar el Set
+ *  2: no se habria eliminado si no se sobre escribia el todo, por que no existiria un campo valido de identificacion de hashCode, estaria tomando el por defecto que siempre es diferente entre la instancia de un objeto y otro
+ *  3: El orden deberia mantenerse cuando hago el set.copyof, si lo hago en una list quitaria los duplicados, pero si ya se quitaron no pasa nada
  */

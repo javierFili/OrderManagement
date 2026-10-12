@@ -5,7 +5,7 @@ import java.math.BigInteger;
 import java.util.*;
 
 public class Order {
-    private BigInteger id;
+    private final BigInteger id;
     private Customer customer;
     private final List<OrderItem> orderItems;
 
