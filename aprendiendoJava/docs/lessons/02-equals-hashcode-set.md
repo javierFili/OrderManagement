@@ -1665,8 +1665,8 @@ el picking. No importa cuántas unidades, solo **cuáles**, **en el orden en que
 Eso es `Map` y es la lección 03.
 
 
-> ## 🔍 REVISIÓN TAREA 6 — 2026-10-07 · **5/10** · 🔁 rehacer
-> Historial: **v1 5/10**. Revisado ejecutando `Main` **3 veces** (importa, ver CRÍTICO 1).
+> ## 🔍 REVISIÓN TAREA 6 — 2026-10-12 · **8/10** · ✅ aprobada
+> Historial: v1 5/10 → v2 6/10 → v3 7/10 → **v4 8/10**. Revisado ejecutando `Main` **3 veces** (importa, ver CRÍTICO 1).
 
 **✅ Ya está bien:** `LinkedHashSet` es la implementación correcta y la justificas bien. El for-each con
 `item.getProduct()` está bien. `laptop2` es un `PhysicalProduct` con id `1`, como pedía el paso 5. El
@@ -1787,9 +1787,78 @@ porque `add` no reemplaza (P0.1 de la Tarea 0).
 - [ ] `return Collections.unmodifiableSet(products);` + justificación con "vista de solo lectura, conserva el orden"
 - [ ] ejecutar 2–3 veces y comprobar que el orden ahora es siempre `[1, 4, 6, 7, 3, 5]`
 - [ ] P6.2: separar el caso del paso 4 (mismo objeto) del paso 5 (objeto nuevo, mismo id)
-- [ ] P6.3: "se pierde el orden" + corregir lo de `List.copyOf`
-- [ ] `porque` del `size()` = 6 con el conteo de arriba
-- [ ] paso 8: total `5218.4` con predicción
+- [x] P6.3: "se pierde el orden" + corregir lo de `List.copyOf`
+- [x] `porque` del `size()` = 6 con el conteo de arriba
+- [x] paso 8: total `5218.4` con predicción
+
+---
+
+#### 🔁 v2 — 2026-10-12 · **6/10** · 🔁 rehacer
+
+Revisado ejecutando `Main` 3 veces otra vez. **`Order.java` no cambió**: sigue con `return Set.copyOf(products);`.
+Los cambios están solo en `Main`.
+
+**Corregido:**
+- ✅ **Paso 8:** predicción `5218.4`, real `5218.4`. Calculado a mano y acertado.
+- ✅ **`real` del paso 6** copiado.
+
+**Sigue pendiente:**
+- ❌ **CRÍTICO 1 sin tocar.** Mira tu propio `real` del paso 6: `[5, 4, 3, 1, 7, 6]`. Tu `espero` dice "orden de
+  inserción", y no coinciden, pero falta el `porque`. Hoy, en 3 ejecuciones, salió `[3, 1, 7, 6, 5, 4]` dos veces
+  y `[7, 1, 3, 4, 5, 6]` una. **Cuatro órdenes distintos, ninguno es el de inserción `[1, 4, 6, 7, 3, 5]`.**
+  Es un cambio de **una línea** en `Order`: descomenta `Collections.unmodifiableSet` y borra el `Set.copyOf`.
+  Después corrige la justificación 2 ("para que el que lo recibe pueda modificarlo"), que sigue al revés.
+- ❌ **Nuevo `porque` del `size()`: "la laptop y el mouse".** El `mouse` **nunca se agrega al pedido**: en el
+  paso 7 se intenta agregar al set devuelto, y además falla. Los dos repetidos son:
+  - `laptop` del **paso 4** (el **mismo objeto** otra vez),
+  - `laptop2` del **paso 5** (otro objeto, pero con **id `1`**, igual que `laptop`).
+
+  Consejo: antes de escribir un `porque`, dibuja la tabla `items → set` del IMPORTANTE 3. Cuando una
+  explicación nombra algo que no está en los datos, es una señal de que se está adivinando.
+- ❌ **CRÍTICO 2 (P6.2) y P6.3 sin tocar.**
+
+---
+
+#### 🔁 v3 — 2026-10-12 · **7/10** · 🔁 rehacer (falta una línea)
+
+**Corregido:**
+- ✅ **P6.3:** "se pierde el orden con `copyOf`". Correcto.
+- ✅ **`porque` del `size()`:** "mismo `id` = 1, ese es nuestro criterio de igualdad". Es la idea correcta.
+  Solo cambia el nombre: el segundo no es el `mouse` (id `2`, nunca entra al pedido), es **`laptop2`**.
+
+**El cambio quedó en el método equivocado:**
+```
+getItems()            → List.copyOf  →  Collections.unmodifiableList   ← lo cambiaste aquí
+getDistinctProduct()  → Set.copyOf   (sin cambios)                     ← el problema estaba aquí
+```
+Por eso tu `real2` y `real3` siguen sin orden de inserción. Salen `[1, 7, 6, 5, 4, 3]`, y hoy también
+`[7, 6, 5, 4, 3, 1]` y `[1, 3, 4, 5, 6, 7]`. El de inserción es `[1, 4, 6, 7, 3, 5]`.
+
+Sobre `getItems`: no estaba mal. Una **`List` siempre conserva el orden**, también con `List.copyOf`. El problema
+de orden es solo de `Set.copyOf`. Puedes dejar cualquiera de las dos. La diferencia es que `unmodifiableList` es
+una **vista**: si después haces `addItem`, quien guardó la lista ve el item nuevo. `List.copyOf` es una foto.
+
+**Pendiente:**
+- [x] `getDistinctProduct`: `return Collections.unmodifiableSet(products);` y ejecutar 2–3 veces
+- [ ] justificación 2 en `Order`
+- [ ] P6.2: el `laptop` del paso 4 es el **mismo objeto**, así que se elimina incluso sin `equals`/`hashCode`
+
+---
+
+#### ✅ v4 — 2026-10-12 · **8/10** · ✅ aprobada (con 2 comentarios pendientes)
+
+Revisado ejecutando `Main` 3 veces: **el mismo orden en las 3**, `[1, 4, 6, 7, 3, 5]`, que es exactamente el orden
+de inserción (laptop, Java, netflix, consultoría, keyboard, Python). Tu `real2` y `real3` coinciden. 🎉
+`Collections.unmodifiableSet` está en el método correcto, el `add` lanza `UnsupportedOperationException` y el
+total da `5218.4`. **El código cumple todo lo que pedía la tarea.**
+
+**Quedan dos comentarios desactualizados (no bloquean, pero corrígelos para no estudiar algo falso):**
+- [ ] **Justificación 2 en `Order`:** sigue diciendo "prefiero devolver el `copyOf`, para que el que lo recibe
+      pueda modificarlo". Ahora contradice tu propio código. Algo como: "`unmodifiableSet`: vista de solo
+      lectura, conserva el orden del `LinkedHashSet`; `Set.copyOf` lo perdía".
+- [ ] **P6.2:** sigue diciendo que ninguno se habría eliminado sin `equals`/`hashCode`. Es cierto **solo para
+      `laptop2`**. El `laptop` del paso 4 es **el mismo objeto**, y un objeto siempre es igual a sí mismo.
+- (y en el `porque` del `size()`: `mouse` → `laptop2`)
 
 ---
 
@@ -1812,6 +1881,60 @@ porque `add` no reemplaza (P0.1 de la Tarea 0).
 - ¿Por qué una clase con solo `equals` funciona en `List` y falla en `HashSet`?
 - ¿Por qué `Product` se compara por `id` y un `Money` se compararía por todos sus campos?
 - `HashSet`, `LinkedHashSet`, `TreeSet`: ¿cuándo cada uno?
+
+> ## 🔍 REVISIÓN CRITERIOS DE SALIDA — 2026-10-12 · **4 de 5** · 🟡 casi
+
+| # | Criterio | Estado | Lo que falta |
+|---|----------|--------|--------------|
+| 1 | `==` vs `equals` | ✅ | — |
+| 2 | Regla de oro con cajones | 🟡 | el mecanismo está bien, pero **no enunciaste la regla** |
+| 3 | Solo `equals`: `List` sí, `HashSet` no | 🟡 | **por qué** falla: busca en otro cajón y nunca llama a `equals` |
+| 4 | `Product` por `id`, `Money` por todo | ❌ | entidad vs valor (§1.4) |
+| 5 | `HashSet` / `LinkedHashSet` / `TreeSet` | ✅ | (`TreeSet`: "orden natural", no solo alfabético) |
+
+**1 ✅** Completo: `==` compara valores en primitivos y referencias en objetos, y `Object.equals` hace `this == o`.
+Un matiz: "se **debe** sobreescribir" aplica a **tus** clases cuando dos objetos distintos pueden representar lo
+mismo. `String`, `BigInteger` y `BigDecimal` ya lo traen sobreescrito.
+
+**2 🟡** Tu explicación de cómo busca el `HashSet` es buena: `hashCode` elige el cajón y `equals` hace la doble
+verificación dentro. Pero el criterio pide **la regla**, y no está escrita:
+> Si `a.equals(b)` es `true`, entonces `a.hashCode() == b.hashCode()` **obligatoriamente**. Al revés no hace falta (colisión).
+
+Tres correcciones:
+- "es **el mismo objeto**" → "es un objeto **igual**". El mismo objeto es `==`. Esa distinción es toda la lección.
+- "listas del tipo Set" → un `Set` **no** es una lista: no tiene posiciones ni `get(int)` (Tarea 0).
+- "**siempre** sobreescribir para usar Set": no. La Tarea 6 (P6.2) mostró que el **mismo** objeto se deduplica sin
+  ellos. Hacen falta para que **objetos distintos con los mismos datos** cuenten como uno.
+
+**3 🟡** Correcto que `List` solo usa `equals`. Falta la causa exacta de la falla en el `HashSet`:
+```
+solo equals:  A y B iguales, pero hashCode de Object distinto
+              → B va a OTRO cajón → el set nunca compara B con A → acepta el duplicado
+```
+`equals` no "evita" las colisiones. Las **resuelve**: distingue a los que comparten cajón.
+
+**4 ❌** "El `id` tiene que ser único en la BD" es una consecuencia, no la razón. La razón es **qué tipo de objeto es**:
+
+| | **Entidad** (`Product`) | **Valor** (`Money`) |
+|---|---|---|
+| ¿Qué lo identifica? | un `id`, aunque cambien sus datos | **solo sus datos**, no tiene id |
+| Ejemplo | `laptop` cambia de precio 1000 → 900 y **sigue siendo la misma laptop** | un billete de 10 USD vale lo mismo que otro de 10 USD. Nadie pregunta "¿cuál de los dos?" |
+| `equals` compara | `id` | `amount` **y** `currency` |
+| Si comparas mal... | `equals` con `price`: tras `setPrice` sería "otro producto" y se pierde en el `HashSet` (§1.4, `Coupon`) | `equals` heredado de `Object`: `new Money(10,"USD")` ≠ `new Money(10,"USD")` ❌ |
+
+`Money` no existe en tu proyecto: es un ejemplo de clase "de valor". Lo vas a ver con los `record` (semana 5),
+que generan `equals`/`hashCode` con **todos** los campos justamente para este caso.
+
+**5 ✅** Correcto. Para `TreeSet`: "orden natural" (alfabético en `String`, numérico en números). Con `Product`
+necesita `Comparable`/`Comparator`, si no lanza `ClassCastException` (§1.7).
+
+**Para cerrar la lección:** reescribe el 2 (con la regla) y el 4 (entidad vs valor) con tus palabras.
+
+**v2 — 2026-10-12 · 4 de 5**
+- **2 ✅** "Si dos objetos son iguales según `equals()`, deben tener el mismo `hashCode()`. La inversa no es obligatoria." Exacto.
+- **4 🟡** "Porque es un identificador único" responde la mitad (`Product`). Falta el porqué de fondo y la otra
+  mitad: el producto **sigue siendo el mismo aunque cambien su nombre o su precio**, así que solo el `id` lo
+  identifica. `Money` **no tiene id**: dos `Money(10, "USD")` son intercambiables, por eso se compara por **todos** sus campos.
 
 **Siguiente lección:** `Map` (`HashMap`, `LinkedHashMap`, `TreeMap`), para eliminar las líneas repetidas de `Order`
 con un `Map<Product, OrderItem>`. Usa **todo** lo de esta lección: las claves de un `HashMap` son un `HashSet` por dentro.

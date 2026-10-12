@@ -62,8 +62,7 @@ public class Order {
         for (OrderItem item:orderItems){
             products.add(item.getProduct());
         }
-        //return Collections.unmodifiableSet(products);
-        return Set.copyOf(products);
+        return Collections.unmodifiableSet(products);
     }
     /**
      * 1: bueno estoy sacando todos los productos en un for-each, almacenando dentro de un linkedHashSet ya que almacena en el orden de insercion ademas que solo esta insertando solo productos distintos.

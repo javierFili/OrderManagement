@@ -64,12 +64,13 @@ public class Main {
 
         System.out.println(order.getDistinctProduct().size());
         // espero: 7
-        // real: 6 --> existen dos productos repetidos, la laptop y el mouse por eso el metodo getDistinctPrpoduct los quito
+        // real: 6 --> existen dos productos repetidos, la laptop y el mouse que tienen el mismo id, es decir el id=1 comprendes? que mas quieres que te explique?? tiene el mismo id y punto, ese es nuestro criterio de evaluacion para sabe si son iguales o no.
 
         Set<Product> distincProduct = order.getDistinctProduct();
         System.out.println(distincProduct);
         // espero: orden de insercion 1,2,3,4,5,6,7 obvio en la forma del toString.
-
+        // real2: [Product{id=1, name='Laptop' , price= 1000}, Product{id=4, name='Java Course' , price= 100}, Product{id=6, name='netflixSubscription' , price= 100}, Product{id=7, name='Consultoria de casas' , price= 123}, Product{id=3, name='Keyboard' , price= 80}, Product{id=5, name='Python Course' , price= 100}]
+        // real3: [Product{id=1, name='Laptop' , price= 1000}, Product{id=4, name='Java Course' , price= 100}, Product{id=6, name='netflixSubscription' , price= 100}, Product{id=7, name='Consultoria de casas' , price= 123}, Product{id=3, name='Keyboard' , price= 80}, Product{id=5, name='Python Course' , price= 100}]
         try {
             Product mouse1 = new Laptop(new BigInteger("54"),"Mouse",new BigDecimal("2.4"),new BigDecimal("4.3"));
             distincProduct.add(mouse1);
@@ -80,7 +81,8 @@ public class Main {
             System.out.println(e);
             //espero que entre aqui
         }
-
+        System.out.println(order.getTotalPrice());
+        //espero: 5218.4
 
         /**
          * 1: Por que se estaria exponiendo la lista, la lista que se devuelve en un get debe inmutable, es dedir que el que la reciba no deberia poder modificarla
@@ -101,5 +103,5 @@ public class Main {
  * Tarea 6:
  *  1: por que queremos que se muestren productos unicos, sin repetir, la mejor forma es usar el Set
  *  2: no se habria eliminado si no se sobre escribia el todo, por que no existiria un campo valido de identificacion de hashCode, estaria tomando el por defecto que siempre es diferente entre la instancia de un objeto y otro
- *  3: El orden deberia mantenerse cuando hago el set.copyof, si lo hago en una list quitaria los duplicados, pero si ya se quitaron no pasa nada
+ *  3: Se pierde el orden cuando se usa el copyof
  */
