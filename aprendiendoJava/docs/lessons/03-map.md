@@ -870,8 +870,586 @@ las tareas. Si no, dime cuáles fallaste y las repasamos.
 
 ---
 
+#### 🔍 REVISIÓN TEORÍA + AUTOEVALUACIÓN
+
+| Versión | Fecha | Nota | Estado |
+|---------|-------|------|--------|
+| v1 | 2026-10-15 | **7/10** | 🟡 buena base; faltan §6 y la mitad del §7 |
+
+Revisado ejecutando `MapPlayground`. **Todas tus predicciones de §4 y §5 coincidieron con el terminal** (`null`,
+`30`, `31`, `1`, `null`, `-1`, el `NPE` y el `101`). En las lecciones 01 y 02 eso casi no pasaba. 👏
+
+| Sección | Estado | Comentario |
+|---------|--------|------------|
+| 🧪 §3 | ✅ | |
+| ✅ §3 | 🟡 | la respuesta 1 quedó cortada y falta la 2 |
+| 🧪 §4 | ✅ | 7 de 7 predicciones bien |
+| ✅ §4 | 🟡 | la pregunta 1 está **al revés** (ver concepto A) |
+| 🧪 §5 | ✅ | el orden exacto de `LinkedHashMap` predicho bien. En el paso 3 sumaste con `entrySet()`; pedía `values()` (detalle, abajo) |
+| 🧪 §6 | ❌ | **no está**. Es el patrón más importante de la lección (concepto B) |
+| 🧪 §7 | ❌ | el experimento no probó nada: usaste `laptop` dos veces (concepto C) |
+| ✅ §7, §8 | ✅ | |
+| ✅ §9 | 🟡 | la pregunta 2: `Map.of("a",1,"a",2)` no "mezcla", **lanza** `IllegalArgumentException` |
+| Autoevaluación | 🟡 **5,5 / 10** | 1 ❌, 5 vacía, 6 a medias, 8 vacía, 3/7/10 incompletas |
+
+Dijiste que **te faltaron conceptos** en la autoevaluación. Aquí están, uno por uno, explicados de otra forma.
+
+---
+
+**Concepto A — `put` del `Map` vs `add` del `Set` (preguntas 1 y §4-1)**
+
+Escribiste "vale 2, y el `get("a")` es de 1". Es **al revés**: `size` = **1**, `get("a")` = **2**.
+
+Imagina **un casillero** con la etiqueta `"a"`:
+```
+m.put("a", 1);   → casillero "a" vacío → mete 1             → hay 1 casillero, adentro: 1
+m.put("a", 2);   → casillero "a" YA existe → saca 1, mete 2  → sigue habiendo 1 casillero, adentro: 2
+```
+- `size()` cuenta **casilleros** → `1`.
+- `get("a")` mira **adentro** → `2` (el último que metiste).
+
+Y la diferencia con `Set`:
+
+| | `Set.add(x)` con `x` repetido | `Map.put(k, v)` con `k` repetida |
+|---|---|---|
+| ¿Cambia algo? | **no**: lo ignora | **sí**: **reemplaza** el valor |
+| ¿Qué devuelve? | `false` (un `boolean`) | el **valor viejo** |
+
+Autoevaluación 1, frase para completar: *"Si ya existe, `Set.add` ___ y devuelve ___; `Map.put` ___ el valor y devuelve ___."*
+
+---
+
+**Concepto B — la receta de acumular (preguntas 5 y 6)** · ⚠️ es lo que más vas a usar en la Tarea 6
+
+En PHP ya lo has hecho mil veces:
+```php
+$cuenta = [];
+foreach ($ventas as $p) {
+    if (isset($cuenta[$p])) { $cuenta[$p] = $cuenta[$p] + 1; }   // ya estaba: súmale
+    else                    { $cuenta[$p] = 1; }                 // primera vez: empieza en 1
+}
+```
+En Java es **lo mismo**, cambiando `isset` → `containsKey`, `$cuenta[$p] =` → `put` y `$cuenta[$p]` → `get`.
+
+**La receta, en dos frases** (es la respuesta 5):
+> 1. Si la clave **no está**, ponle el **valor inicial** (contar: `1`; sumar: la primera cantidad).
+> 2. Si **ya está**, **saca** el valor viejo, **calcula** el nuevo y **vuelve a guardarlo** con `put`.
+
+**`merge(k, 1, Integer::sum)`** (respuesta 6) es esa misma receta en una sola línea:
+- si `k` no está → guarda `1`;
+- si está → guarda `viejo + 1`.
+
+"Suma 1 a k" es **la mitad** de la respuesta. Falta el caso "si no está, pone 1". Las dos mitades importan:
+sin la primera, el primer producto no tendría dónde sumar.
+
+Haz el 🧪 §6 (votos), **empezando por la tabla a mano**. Es la Tarea 0.
+
+---
+
+**Concepto C — el experimento del §7 no probó nada**
+
+Pusiste `laptop` **las dos veces**:
+```java
+reservas.put(laptop, 1);
+reservas.put(laptop, 5);    // ← mismo objeto. laptop1 nunca se usó
+```
+Así, `size` = 1 siempre, **aunque `Product` no tuviera `equals` ni `hashCode`**: es el mismo objeto, así que
+`==` ya da `true`. El experimento tenía que usar **dos objetos distintos con el mismo id** (`laptop` y `laptop1`).
+Solo así se prueba que **tu `equals`/`hashCode`** hacen su trabajo.
+
+Es el mismo tipo de error que en la lección 01, Tarea 5: el experimento tiene que tener **una sola diferencia**
+con el caso normal, y esa diferencia es la que se pone a prueba.
+
+**Y el `espero` del `put`:** escribiste "la laptop que agregué primero". `put` devuelve el **valor** viejo (un
+`Integer`: `1`), **nunca la clave**. La clave no se toca: se queda la primera.
+
+---
+
+**Concepto D — colisión (pregunta 8)**
+
+Pregunta: dos claves, **mismo `hashCode`**, `equals` = `false`. ¿Cuántas entradas hay? → **2**.
+
+Recuerda los dos pasos para buscar (§0.2):
+```
+paso 1: hashCode → ¿qué cajón?            "Aa" → cajón 2112   "BB" → cajón 2112   (mismo cajón)
+paso 2: equals   → ¿es el mismo?          "Aa".equals("BB") → false             → NO es el mismo
+→ el mapa guarda las dos, en el mismo cajón, una al lado de la otra → 2 entradas
+```
+**Analogía:** dos personas llamadas "Juan Pérez" en el mismo hotel. Tienen el mismo nombre (el mismo cajón),
+pero el pasaporte (`equals`) dice que son distintas → **dos habitaciones**.
+
+Lo vas a ver con **tus propios productos** en la Tarea 4 (ids `31` y `4294967296`: es la deuda de la lección 02).
+
+---
+
+**Detalles (MEJORABLE)**
+- **Autoevaluación 3:** "es posible que no exista" es la causa, pero falta el **mecanismo**: `get` devuelve
+  `null` → Java intenta convertirlo a `int` (**unboxing**) → un `int` no puede ser `null` → `NPE`.
+- **Autoevaluación 7:** falta el "por qué `final`": si el `id` cambiara, cambiaría el `hashCode`, y el
+  producto quedaría **perdido en el cajón viejo** (`get` → `null`).
+- **Autoevaluación 10:** "los mezcla" ✅. Completa: "*…y el orden cambia en cada ejecución; `unmodifiableMap`
+  conserva el orden porque es una vista, no una copia*".
+- **🧪 §5, paso 3:** con `entrySet()` funciona, pero si **solo** necesitas los valores, `values()` es lo directo
+  (§5, tabla "¿Cuál vista uso?").
+- **`imprimir(Objects o)`:** `Objects` (con **s**) es una clase de utilidades (`Objects.hash`), no "cualquier
+  objeto". Lo que querías es `Object` (sin s). Como no usas el método, bórralo.
+- **Git (NO RELEVANTE AHORA):** en los últimos commits se subieron archivos `.class` de `out/production/`. Son
+  archivos compilados; no deberían ir en git. Cuando quieras, lo arreglamos juntos (no lo hagas solo).
+
+---
+
 ## 13. Tareas
 
-> Se publican cuando termines la teoría y la autoevaluación. Formato: **mini-tareas de unos 10 minutos**, una
-> por vez, con `espero` en cada línea y una frase para completar en cada pregunta. La aplicación final: `Order`
-> con un `Map<Product, OrderItem>`, para que `laptop x3` + `laptop x1` den **una sola línea**, `Laptop x4`.
+### Reglas para todas las tareas
+
+1. **Una tarea por vez, en orden.** Al terminar cada una puedes pedirme "revisa tarea N".
+2. **Plantilla obligatoria** en cada `println`:
+   ```java
+   System.out.println("---- T1 · Paso 3 ----");   // separador antes de cada paso
+   System.out.println(algo);
+   // espero: ...                                 // ANTES de ejecutar
+   // real: ...    porque: ...                    // SOLO si fallaste
+   ```
+3. **Las preguntas** (P1.1, P1.2…) se responden **en un comentario al final del archivo**, completando la frase
+   que te doy. Las frases son para ayudarte, no para limitarte: puedes escribir más.
+4. **No copies los ejemplos de la teoría**: las tareas usan **otros datos** a propósito.
+5. **Si un paso no se entiende, no lo adivines.** Pregúntame "no entiendo T2 paso 4". Prefiero eso a un paso mal
+   hecho.
+6. **Checklist** al final de cada tarea: revísala antes de pedir la revisión. Es lo que yo voy a mirar.
+
+**Tiempo total aproximado:** 3 h 30 min.
+
+| Tarea | Tema | Lee antes | Archivo | Tiempo |
+|-------|------|-----------|---------|--------|
+| 0 | Cerrar la teoría | revisión de arriba | `MapPlayground` | 20 min |
+| 1 | Operaciones básicas con dinero | §4 | `MapBasics` | 25 min |
+| 2 | Recorrer | §5 | `MapBasics` | 25 min |
+| 3 | Acumular: contar y sumar | §6 | `SalesCounterLab` | 35 min |
+| 4 | Claves objeto: `Customer` | §7 + §0.2 + §0.3 | `CustomerSpendingLab` + `Customer` | 40 min |
+| 5 | El orden y los getters | §8 + §9 | `MapOrderLab` | 30 min |
+| 6 | **Aplicación:** `Order` sin líneas repetidas | todo | `Order` + `Main` | 60 min |
+
+Todos los archivos nuevos van en `src/practical/maps/`, con `package practical.maps;` y un `main`.
+
+---
+
+### Tarea 0 — Cerrar la teoría (fácil · 20 min)
+
+**Archivo:** `MapPlayground.java` (el que ya tienes).
+
+1. **🧪 §6 (votos):** primero la **tabla de vueltas a mano**. Copia esta plantilla en un comentario de
+   `MapPlayground` y **llena las columnas vacías** sin ejecutar nada. Hazlo fila por fila: cada fila empieza con
+   el "Mapa después" de la fila anterior.
+   ```
+   votos = rojo, azul, rojo, verde, azul, rojo, rojo
+
+   | Vuelta | p     | ¿Estaba? (sí/no) | Qué hace (put ...) | Mapa después |
+   |--------|-------|------------------|--------------------|--------------|
+   | 1      | rojo  |                  |                    |              |
+   | 2      | azul  |                  |                    |              |
+   | 3      | rojo  |                  |                    |              |
+   | 4      | verde |                  |                    |              |
+   | 5      | azul  |                  |                    |              |
+   | 6      | rojo  |                  |                    |              |
+   | 7      | rojo  |                  |                    |              |
+   ```
+   **Cómo llenar una fila** (ejemplo con **otros** datos: `"lápiz"`, cuando el mapa ya es `{goma=1, lápiz=2}`):
+   ```
+   | 5 | lápiz | sí | put(lápiz, 2+1) | {goma=1, lápiz=3} |
+   ```
+   - **¿Estaba?** → ¿la clave aparece en el "Mapa después" de la fila **anterior**? (En la vuelta 1 el mapa está
+     vacío: `{}`.)
+   - **Qué hace** → si no estaba: `put(color, 1)`; si estaba: `put(color, viejo+1)`, escribiendo el número viejo.
+   - **Mapa después** → el mapa completo, con las claves **en el orden en que llegaron por primera vez**
+     (`LinkedHashMap`).
+
+   La última fila es tu `espero` para el código. Después escribe la versión `if/else` y la versión
+   `getOrDefault`, cada una en **su propio** `LinkedHashMap`, e imprime cada mapa con su `espero`.
+2. **🧪 §7, rehecho:** cambia el segundo `put` para que use **`laptop1`** (no `laptop`). Corrige el `espero` del
+   `put`: devuelve un **valor**, no un producto. Después agrega el paso 5 que faltaba, completando esta frase:
+   *"`laptop` y `laptop1` son objetos distintos, pero el mapa los trata como la misma clave porque su
+   `hashCode` ___ (mismo cajón) y su `equals` ___."*
+3. **Autoevaluación:** reescribe las preguntas 1, 5, 6 y 8 con lo que leíste arriba (conceptos A, B, D).
+   Completa 3, 7 y 10 con los detalles.
+4. Borra el método `imprimir(Objects o)`.
+
+**Checklist:**
+- [ ] tabla de votos hecha **antes** del código
+- [ ] §7 con `laptop1` + frase completa
+- [ ] autoevaluación 1, 5, 6, 8 reescritas
+
+---
+
+### Tarea 1 — Operaciones básicas con dinero (fácil · 25 min)
+
+**Objetivo:** usar cada método de §4 con valores `BigDecimal` (dinero), no solo con `Integer`.
+**Antes:** relee §4 (sobre todo la tabla "Resumen de §4").
+**Archivo:** `src/practical/maps/MapBasics.java`
+
+**Contexto:** un catálogo de precios de una tienda de computación. Clave = nombre del producto, valor = precio.
+
+**Pasos:**
+1. Crea `Map<String, BigDecimal> precios = new LinkedHashMap<>();`. (Usamos `LinkedHashMap` solo para que el
+   orden al imprimir sea predecible; §8.)
+2. Imprime lo que **devuelve** `precios.put("teclado", new BigDecimal("45.90"))`. `// espero:`
+3. Agrega, sin imprimir: `"monitor"` → `"189.00"` y `"cable"` → `"7.50"`.
+4. **El teclado bajó de precio.** Imprime lo que devuelve `precios.put("teclado", new BigDecimal("39.90"))`.
+   `// espero:`. Después imprime `precios` y `precios.size()`, cada uno con su `espero`.
+5. Imprime `precios.get("mouse")`. `// espero:`
+6. Imprime `precios.getOrDefault("mouse", BigDecimal.ZERO)`. `// espero:`
+7. **La trampa con objetos.** Dentro de un `try/catch (NullPointerException e)`, escribe:
+   `BigDecimal conIva = precios.get("mouse").add(new BigDecimal("1"));`. En el `catch`, imprime
+   `"NPE: mouse no existe"`. `// espero:` ¿entra al `catch`?
+   > Ojo: aquí **no hay unboxing** (`BigDecimal` no es un primitivo). Piensa por qué explota igual. Pista: ¿qué
+   > valor tiene `precios.get("mouse")` y qué le estás pidiendo a ese valor?
+8. Imprime `precios.containsKey("cable")` y `precios.containsValue(new BigDecimal("7.50"))`. `// espero:` en cada uno.
+9. **Lección 02 regresa:** imprime `precios.containsValue(new BigDecimal("7.5"))` (sin el último cero).
+   `// espero:` → piensa en tu experimento `2.0` vs `2.00` de la lección 02.
+10. Imprime lo que devuelve `precios.remove("cable")` y después lo que devuelve `precios.remove("cable")`
+    **otra vez**. `// espero:` en cada uno.
+
+**Preguntas:**
+- **P1.1** (paso 4) *"`put` devolvió ___ porque ___. Después del `put`, `size` es ___ porque ___."*
+- **P1.2** (paso 7) *"Explotó porque `get("mouse")` devolvió ___, y en la misma línea le pedí `.add(...)` a ___.
+  No es unboxing porque `BigDecimal` es un ___, pero igual no se puede llamar un método sobre `null`."*
+- **P1.3** (paso 9) *"`containsValue` con `7.5` dio ___ porque `BigDecimal.equals` compara también ___. Para
+  comparar dinero sin importar los ceros uso ___."* (Pista: el método que usaste en `isValidValue`.)
+
+**Checklist:**
+- [ ] 10 pasos, cada uno con separador y `espero`
+- [ ] `real` + `porque` en cada predicción fallada
+- [ ] P1.1–P1.3 con las frases completas
+
+---
+
+### Tarea 2 — Recorrer (fácil-medio · 25 min)
+
+**Objetivo:** elegir la vista correcta (`keySet`, `values`, `entrySet`) para cada necesidad.
+**Antes:** relee §5, sobre todo la tabla "¿Cuál vista uso?".
+**Archivo:** sigue en `MapBasics.java`, debajo de la Tarea 1.
+
+**Preparación:** crea un mapa **nuevo** `Map<String, BigDecimal> catalogo = new LinkedHashMap<>();` con 5 productos:
+
+| Clave | Valor |
+|-------|-------|
+| `"notebook"` | `"899.99"` |
+| `"mouse"` | `"19.90"` |
+| `"webcam"` | `"54.00"` |
+| `"pendrive"` | `"8.75"` |
+| `"audifonos"` | `"35.00"` |
+
+**Pasos:**
+1. Imprime `catalogo.keySet()`. `// espero:` con el orden exacto.
+2. **Lista de precios:** recorre con la vista adecuada e imprime una línea por producto, con este formato
+   exacto: `notebook: $899.99`. `// espero:` (las 5 líneas).
+3. **Valor del inventario:** suma **todos los precios** en un `BigDecimal total` (empieza en `BigDecimal.ZERO`;
+   recuerda `total = total.add(...)`). Usa la vista que tiene **solo los valores**. Imprime el total.
+   `// espero:` → **calcúlalo a mano antes** (con calculadora, sin ejecutar).
+4. **El más caro:** recorre con `entrySet()` y guarda en dos variables el **nombre** y el **precio** del más caro.
+   Para comparar precios usa `compareTo` (como en `isValidValue`), nunca `>`. Al final imprime
+   `"Más caro: notebook ($899.99)"`. `// espero:`
+   > Pista: empieza con `String nombreMasCaro = null;` y `BigDecimal precioMasCaro = BigDecimal.ZERO;`. En cada
+   > vuelta: si el precio actual es mayor que `precioMasCaro`, actualiza las dos variables.
+5. **Quitar lo barato:** borra los productos que cuestan **menos de 10**. Primero intenta hacerlo **mal**, dentro de
+   un `try/catch (ConcurrentModificationException e)`: un for-each sobre `catalogo.keySet()` con
+   `catalogo.remove(k)` adentro. `// espero:` ¿explota?
+6. Ahora hazlo **bien**, con `removeIf` sobre `catalogo.values()`:
+   `catalogo.values().removeIf(precio -> precio.compareTo(new BigDecimal("10")) < 0);`
+   (la flecha `->` es una lambda, semana 8; léela como "quita cada `precio` tal que precio < 10").
+   Imprime `catalogo`. `// espero:`
+   > Curioso pero cierto: quitar un **valor** de la vista `values()` quita la **entrada completa** del mapa. Las
+   > vistas no son copias: son ventanas al mapa (§9).
+
+**Preguntas:**
+- **P2.1** *"Para el paso 2 usé `___` porque necesitaba ___ y ___. Para el paso 3 usé `___` porque solo
+  necesitaba ___."*
+- **P2.2** *"En el paso 5, el for-each explotó porque usa un ___ oculto y yo cambié el mapa con ___ en vez de
+  con ese ___ (igual que en la lección 01)."*
+
+**Checklist:**
+- [ ] total del paso 3 calculado **a mano** antes de ejecutar
+- [ ] paso 4 con `compareTo`, sin `>`
+- [ ] paso 5 explota (y lo predijiste), paso 6 funciona
+- [ ] P2.1 y P2.2
+
+---
+
+### Tarea 3 — Acumular: contar y sumar (medio · 35 min)
+
+**Objetivo:** dominar **la receta** de §6 (concepto B de la revisión). Es la base de la Tarea 6.
+**Antes:** relee §6 completo y el concepto B de la revisión.
+**Archivo:** `src/practical/maps/SalesCounterLab.java`
+
+**Parte A — contar (las tres versiones)**
+
+Datos: los productos vendidos hoy, uno por venta:
+```java
+List<String> vendidos = List.of("pendrive", "mouse", "pendrive", "webcam", "mouse", "pendrive", "notebook", "mouse");
+```
+1. **Antes de escribir código:** tabla de vueltas a mano (8 filas), con las columnas `Vuelta | p | ¿Estaba? |
+   Qué hace | Mapa después`. Es igual a la de §6.1, pero con estos datos.
+2. **Versión 1 (`if/else` + `containsKey`)** en `Map<String, Integer> cuenta1 = new LinkedHashMap<>();`. Imprime.
+   `// espero:` (la última fila de tu tabla).
+3. **Versión 2 (`getOrDefault`)** en `cuenta2`, también `LinkedHashMap`. Imprime. `// espero:`
+4. **Versión 3 (`merge`)** en `cuenta3`, pero esta vez con **`HashMap`**. Imprime. `// espero:` → el orden
+   puede cambiar, ¿y los números?
+5. Imprime `cuenta1.equals(cuenta2)` y `cuenta1.equals(cuenta3)`. `// espero:` en cada uno.
+   > Para pensar: `cuenta3` imprime en otro orden. ¿Para `Map.equals` importa el orden? Piensa qué significa que
+   > dos mapas "valgan lo mismo": las mismas claves con los mismos valores.
+
+**Parte B — sumar cantidades (prepara la Tarea 6)**
+
+Ahora los datos son **líneas de pedido** con cantidad, como las de `Order`:
+1. Crea 3 productos (`PhysicalProduct` o `Laptop`, con los constructores que ya usaste): `"Pendrive"` id `20`,
+   `"Mouse"` id `21`, `"Webcam"` id `22`. Precios y pesos a tu elección.
+2. Crea una `List<OrderItem> lineas` con estas 5 líneas, en este orden:
+   `Pendrive x2`, `Mouse x1`, `Pendrive x3`, `Webcam x1`, `Mouse x4`.
+3. **Unidades por producto** (`Map<String, Integer> unidades`, `LinkedHashMap`): recorre `lineas` y acumula
+   `item.getQuantity()` por `item.getProduct().getName()`. Usa **la versión 1 (`if/else`)**: aquí el valor
+   inicial ya no es `1`, es **la cantidad** de la primera línea. Imprime. `// espero:`
+4. Haz lo mismo con `merge` en un segundo mapa `unidades2`. Imprime. `// espero:` mismo resultado.
+5. **Dinero por producto** (`Map<String, BigDecimal> subtotales`): acumula `item.getSubTotalPrice()` con
+   `merge(..., BigDecimal::add)`. Imprime. `// espero:` → calcúlalo a mano con tus precios.
+
+**Preguntas:**
+- **P3.1** (concepto B) *"La receta de acumular es: si la clave no está, ___; si está, ___. En la Parte A el valor
+  inicial es ___ y en la Parte B es ___."*
+- **P3.2** *"`cuenta1.equals(cuenta3)` dio ___ aunque imprimen en distinto orden, porque `Map.equals` compara ___."*
+- **P3.3** *"En la Parte B, si en `Order` uso la clave `Product` en vez del nombre (`String`), para que dos
+  objetos con el mismo id cuenten como el mismo producto, `Product` necesita ___ y ___ (lección 02)."*
+
+**Checklist:**
+- [ ] tabla a mano **antes** del código (Parte A)
+- [ ] las 3 versiones dan los mismos números
+- [ ] Parte B: `if/else` y `merge` dan lo mismo; subtotales calculados a mano
+- [ ] P3.1–P3.3
+
+---
+
+### Tarea 4 — Claves objeto: cuánto gastó cada cliente (medio-avanzado · 40 min)
+
+**Objetivo:** ver con tus propios ojos qué pasa cuando una clase **sin** `equals`/`hashCode` es clave de un
+`HashMap`, arreglarlo, y ver una **colisión** real (deuda de la lección 02, Tarea 3).
+**Antes:** relee §7, §0.2 y §0.3, y el concepto D de la revisión.
+**Archivos:** `src/practical/maps/CustomerSpendingLab.java` + `src/Models/Customer.java`
+
+**Contexto:** marketing quiere saber cuánto gastó cada cliente sumando sus pedidos. En un sistema real, cada
+pedido trae **su propio objeto** `Customer`, leído de la base de datos: el mismo cliente llega como **objetos
+distintos con el mismo id**.
+
+**Ronda 1 — `Customer` tal como está (sin `equals`/`hashCode`)**
+1. En `Order`, agrega un getter `getCustomer()` (no existe todavía).
+2. En el lab, crea **tres** objetos `Customer`:
+   - `ana1`: id `100`, `"Ana"`, `"ana@mail.com"`
+   - `ana2`: id `100`, `"Ana"`, `"ana@mail.com"` ← **otro objeto**, misma Ana (como si viniera de otra consulta)
+   - `beto`: id `200`, `"Beto"`, `"beto@mail.com"`
+3. Crea tres `Order`: `o1` de `ana1`, `o2` de `beto`, `o3` de `ana2`. A cada uno agrégale **un** producto con
+   `addItem` (precios simples, para calcular a mano: por ejemplo `o1` = `"100"` x1, `o2` = `"50"` x1,
+   `o3` = `"30"` x1).
+4. Mete los tres pedidos en una `List<Order> pedidos`.
+5. Crea `Map<Customer, BigDecimal> gastado = new HashMap<>();` y acumula con
+   `merge(pedido.getCustomer(), pedido.getTotalPrice(), BigDecimal::add)` para cada pedido.
+6. Imprime `gastado.size()` y `gastado.get(ana1)`. `// espero:` en cada uno.
+   > Antes de predecir, contesta: ¿qué `equals` y qué `hashCode` usa `Customer` ahora? (§0.1, §7.2)
+
+**Ronda 2 — arreglar `Customer`**
+7. En `Customer`, haz el campo `id` **`final`** (¿hay algún `setId` que se rompa? ¿por qué no?).
+8. Escribe `equals` y `hashCode` comparando **solo el `id`**, con la misma receta que usaste en `Product`
+   (lección 02, §1.2): `this == o`, `instanceof`, comparar `id` con `equals` y `hashCode` con `Objects.hash(id)`.
+   > No la copies de `Product`: escríbela mirando la receta paso a paso. Es la tercera vez que la escribes;
+   > la idea es que te salga sola.
+9. Ejecuta de nuevo, **sin cambiar el lab**. Anota `size()` y `get(ana1)` en una tabla:
+   ```
+   | Línea            | Ronda 1 (sin equals) | Ronda 2 (con equals) |
+   |------------------|----------------------|----------------------|
+   | gastado.size()   |                      |                      |
+   | gastado.get(ana1)|                      |                      |
+   ```
+
+**Ronda 3 — la colisión (deuda de la lección 02)**
+10. Crea dos productos con ids `"31"` y `"4294967296"` (cualquier nombre y precio).
+11. Imprime el `hashCode()` de cada uno y `p31.equals(p429)`. `// espero:` en cada uno.
+    (Ya sabes la respuesta del `hashCode`: está en la revisión v3 de la Tarea 3 de la lección 02.)
+12. Crea `Map<Product, String> etiquetas = new HashMap<>();`, haz `put(p31, "A")` y `put(p429, "B")`. Imprime
+    `size()`, `get(p31)` y `get(p429)`. `// espero:` en cada uno.
+
+**Preguntas:**
+- **P4.1** *"En la Ronda 1, `size` dio ___ porque `ana1` y `ana2` tenían ___ distinto (el de `Object`), así que
+  fueron a cajones distintos y `equals` ___."*
+- **P4.2** *"En la Ronda 2, `merge` encontró la clave de Ana con `ana2` aunque yo la metí con `ana1`, porque
+  ___ y ___."*
+- **P4.3** (la colisión, P3.4 de la lección 02) *"`p31` y `p429` tienen el mismo `hashCode` (___), o sea, caen en
+  el mismo ___. Pero no son la misma clave porque ___ da `false`. Por eso el mapa tiene ___ entradas. Esto se
+  llama ___."*
+- **P4.4** *"`Customer` tiene `setName` y `setEmail`. No los usé en `equals`/`hashCode` porque, si un campo de
+  la clave cambia después del `put`, ___ (§7.4)."*
+
+**Checklist:**
+- [ ] `ana2` es un objeto **nuevo** (con `new`), no `ana2 = ana1`
+- [ ] tabla Ronda 1 / Ronda 2 llenada con la **salida real**
+- [ ] `Customer`: `id` `final`, `equals` + `hashCode` solo con `id`
+- [ ] colisión: 2 entradas, cada `get` con su valor
+- [ ] P4.1–P4.4
+
+---
+
+### Tarea 5 — El orden y los getters (medio · 30 min)
+
+**Objetivo:** elegir la implementación según el orden, descubrir una trampa de `TreeMap` y preparar el getter
+de la Tarea 6.
+**Antes:** relee §8 y §9.
+**Archivo:** `src/practical/maps/MapOrderLab.java`
+
+**Parte A — ventas por mes**
+1. Crea **tres** mapas `Map<String, Integer>`: `HashMap`, `LinkedHashMap` y `TreeMap`.
+2. Mete en **los tres**, en este orden, las ventas de cada mes (clave `"año-mes"`, valor = cantidad de ventas):
+   `"2026-03"` → `40`, `"2025-12"` → `75`, `"2026-10"` → `12`, `"2026-01"` → `33`.
+3. Imprime los tres. `// espero:`
+   - `HashMap`: "orden impredecible" y qué entradas.
+   - `LinkedHashMap` y `TreeMap`: el orden **exacto**.
+4. **La trampa:** crea un `TreeMap` nuevo con las **mismas** ventas, pero escribiendo los meses **sin el cero**:
+   `"2026-3"`, `"2025-12"`, `"2026-10"`, `"2026-1"`. Imprime. `// espero:` el orden exacto.
+   > Pista: `TreeMap<String, ...>` ordena **texto**, letra por letra, como un diccionario. No sabe que son fechas.
+   > Compara `"2026-1"` con `"2026-10"` y con `"2026-3"` carácter por carácter.
+
+**Parte B — reinsertar una clave en `LinkedHashMap`**
+5. En tu `LinkedHashMap` del paso 2, haz `put("2026-03", 41)` (corregir una venta de marzo). Imprime.
+   `// espero:` → ¿marzo **se mueve al final** (como si fuera nuevo) o **se queda en su lugar**?
+   > Esto es clave para la Tarea 6: cuando agregues `laptop` por segunda vez, ¿la línea `Laptop` se va al final
+   > del pedido o se queda donde estaba?
+
+**Parte C — devolver un mapa sin perder el orden**
+6. Crea `Map<String, Integer> soloLectura = Collections.unmodifiableMap(linked);` y
+   `Map<String, Integer> copia = Map.copyOf(linked);`.
+7. Imprime los dos. `// espero:` → ¿cuál conserva el orden? **Ejecuta 3 veces** y anota lo que sale en cada una.
+8. Dentro de un `try/catch (UnsupportedOperationException e)`, intenta `soloLectura.put("2026-11", 5)`.
+   `// espero:`
+9. Haz `linked.put("2026-11", 5)` (en el **original**) y después imprime `soloLectura`. `// espero:` → ¿la vista
+   ve el cambio?
+
+**Preguntas:**
+- **P5.1** *"Con los meses sin cero, `TreeMap` los ordenó ___ porque compara ___ y no ___. Para ordenar fechas
+  de verdad, la clave debería ser una fecha (semana 6: `java.time`), no un `String`."*
+- **P5.2** *"Al hacer `put` sobre una clave que ya existe en un `LinkedHashMap`, la entrada ___ porque el orden
+  de inserción es el de la **primera** vez que llegó la ___."*
+- **P5.3** *"Para devolver el mapa interno de una clase sin perder el orden y sin que lo modifiquen, uso ___.
+  No uso `Map.copyOf` porque ___."*
+
+**Checklist:**
+- [ ] paso 4 predicho **antes** de ejecutar, comparando letra por letra
+- [ ] paso 5: ¿se mueve o se queda? (lo vas a necesitar)
+- [ ] paso 7 ejecutado 3 veces, con las 3 salidas anotadas
+- [ ] P5.1–P5.3
+
+---
+
+### Tarea 6 — Aplicación: `Order` sin líneas repetidas (avanzado · 60 min)
+
+**Objetivo:** el entregable de la semana. `order.addItem(laptop, 3)` + `order.addItem(laptop, 1)` → **una sola
+línea**: `Laptop x4`.
+**Antes:** haz las Tareas 3, 4 y 5 (esta usa la receta de acumular, `equals`/`hashCode` de `Product` y la
+reinserción en `LinkedHashMap`).
+**Archivos:** `src/Models/Order.java`, `src/Main.java`
+
+> 🧠 **Esto se llama refactorizar:** cambiar **cómo** está hecho por dentro **sin cambiar lo que hace** por fuera.
+> La prueba de que lo hiciste bien: el **total** del pedido **no cambia**. Solo cambia que las líneas repetidas
+> se juntan.
+
+**Paso 0 — la foto "antes" (5 min, no te lo saltes)**
+1. En `Main`, cambia el precio de `laptop2` de `"32.4"` a **`"1000"`**. Razón: tiene el **mismo id** que `laptop`,
+   así que es **el mismo producto** y en la vida real tendría el mismo precio (en la base de datos hay un solo
+   precio por id).
+2. Al final de `Main`, vuelve a imprimir **todas las líneas** del pedido (copia el for-each del principio) y el total.
+3. Ejecuta y **copia la salida completa** en un comentario `// FOTO ANTES:`. Ese es tu punto de comparación.
+
+**Paso 1 — cambiar el campo**
+4. Cambia `private final List<OrderItem> orderItems` por `private final Map<Product, OrderItem> orderItems`.
+   Elige la implementación pensando: *¿las líneas deben salir en el orden en que el cliente las agregó?* (§8).
+5. Ahora **muchos métodos dejan de compilar** (en rojo en IntelliJ). Es normal: es el compilador diciéndote qué
+   falta adaptar. Ve **uno por uno** (pasos 6 a 11).
+
+**Paso 2 — adaptar cada método** (uno por vez; compila después de cada uno)
+6. **`addItem(Product product, int quantity)`**, el corazón de la tarea. Es la **receta de acumular** (Tarea 3,
+   Parte B), con un `OrderItem` como valor:
+   - busca con `get` si ya hay una línea para ese producto;
+   - si **no hay**: `put` de un `new OrderItem(product, quantity)`;
+   - si **hay**: `OrderItem` no tiene `setQuantity` (y está bien así). Crea un `new OrderItem(...)` con la
+     **cantidad vieja + la nueva** y haz `put` (reemplaza la línea vieja, como en el concepto A).
+   - ⚠️ En el `new OrderItem` del caso "hay", usa **el producto de la línea que ya existía**
+     (`existente.getProduct()`), no el que llegó. Son `equals`, pero podrían ser objetos distintos (`laptop2`).
+     El pedido se queda con el primero.
+   - Cambia el tipo de retorno de `boolean` a **`void`**: con un `Map` la operación siempre funciona (si los datos
+     son inválidos, el `OrderItem` lanza una excepción). Un `boolean` que siempre es `true` no informa nada.
+7. **`getTotalPrice()`** y **`getTotalUnits()`**: recorre la vista que tiene **solo los valores** (§5).
+8. **`getItems()`**: sigue devolviendo `List<OrderItem>`, para que `Main` no cambie. Construye la lista a partir
+   de la vista de valores, de forma que **no se pueda modificar** (como hasta ahora, con `List.copyOf`).
+   > ¿`List.copyOf` pierde el orden como `Set.copyOf`? Piénsalo: una `List` **siempre** conserva el orden en que
+   > recibe los elementos. El que pierde el orden es el `Set`/`Map` inmutable, porque no tiene posiciones.
+9. **`getItemCount()`** e **`isEmpty()`**: cambio mínimo.
+10. **`removeItem(int index)`**: un `Map` **no tiene posiciones** (§2: no hay `get(0)`). Cámbialo a
+    **`removeItem(Product product)`**, que devuelva `true` si había una línea para ese producto y `false` si no.
+    Pista: mira qué **devuelve** `remove` (§4.6) y compáralo con `null`.
+    En `Main`, cambia `order.removeItem(99)` por `order.removeItem(mouse)` (el mouse no está en el pedido).
+11. **`getDistinctProduct()`**: ya **no necesitas el `for`**. Las claves del mapa **son** los productos distintos.
+    Devuélvelas sin que se puedan modificar y **conservando el orden** (Tarea 5, P5.3, versión `Set`).
+    Debería quedar en **una línea**.
+
+**Paso 3 — comprobar**
+12. Ejecuta `Main`. Copia la salida en `// FOTO DESPUÉS:` y compárala **línea por línea** con la foto de antes:
+    ```
+    | Qué                     | Antes | Después | ¿Debía cambiar? |
+    |-------------------------|-------|---------|-----------------|
+    | total final             |       |         | NO              |
+    | getItemCount()          |       |         | sí, ¿por qué?   |
+    | línea de la laptop      |       |         | sí: una sola    |
+    | posición de la laptop   |       |         | ?? (Tarea 5)    |
+    | getDistinctProduct()    |       |         | NO              |
+    ```
+
+**Preguntas:**
+- **P6.1** *"Elegí `___Map` para `orderItems` porque ___."*
+- **P6.2** *"En `addItem`, para saber si el producto ya estaba usé ___. Funciona con `laptop2` (otro objeto, mismo
+  id) porque `Product` tiene ___ y ___ por `id`. Si no los tuviera, el pedido tendría ___ líneas de laptop."*
+- **P6.3** *"El total no cambió porque ___. `getItemCount()` sí cambió porque ahora cuenta ___ en vez de ___."*
+- **P6.4** *"Cambié `removeItem(int)` por `removeItem(Product)` porque un `Map` no tiene ___. En un backend real
+  también es mejor así, porque el cliente dice 'quita **este producto**', no 'quita la **línea 3**'."*
+- **P6.5** *"`getDistinctProduct()` ahora es una línea porque las ___ del mapa ya son un `Set` de productos sin
+  repetir."*
+
+**Restricciones:**
+- `Main` solo cambia en los pasos 1, 2 y 10. Si tienes que cambiar algo más en `Main` para que compile, detente
+  y pregúntame: probablemente cambiaste la firma de un método que no debías.
+- No agregues `setQuantity` a `OrderItem`.
+
+**Checklist:**
+- [ ] FOTO ANTES copiada **antes** de tocar `Order`
+- [ ] `addItem` con la receta de acumular, usando el producto de la línea existente
+- [ ] `getItems()` sigue devolviendo una `List` que no se puede modificar
+- [ ] `removeItem(Product)` + `Main` adaptado
+- [ ] `getDistinctProduct()` en una línea, conservando el orden
+- [ ] tabla antes/después: **el total no cambia**
+- [ ] P6.1–P6.5
+
+---
+
+## 14. Qué entregar
+
+| Tarea | Archivos |
+|-------|----------|
+| 0 | `MapPlayground.java` |
+| 1 y 2 | `src/practical/maps/MapBasics.java` |
+| 3 | `src/practical/maps/SalesCounterLab.java` |
+| 4 | `src/practical/maps/CustomerSpendingLab.java` + `Customer.java` (+ `getCustomer()` en `Order`) |
+| 5 | `src/practical/maps/MapOrderLab.java` |
+| 6 | `Order.java` + `Main.java` |
+
+## 15. Criterios de salida (responder sin mirar, al final de la semana)
+
+- ¿Cuándo `List`, cuándo `Set` y cuándo `Map`? Da un ejemplo del e-commerce para cada uno.
+- Explica la receta de acumular y escríbela en las versiones `if/else` y `merge`.
+- ¿Por qué `Customer` necesita `equals`/`hashCode` para ser clave de un `HashMap`? ¿Qué pasaba sin ellos?
+- ¿Qué devuelve `put`? ¿Qué pasa con la posición de una clave que se reinserta en un `LinkedHashMap`?
+- ¿Cómo devuelves el `Map` interno de una clase sin romper la encapsulación ni perder el orden?
+
+**Siguiente lección:** ordenar (`Comparable`, `Comparator`). Por fin vas a poder meter un `Product` en un `TreeSet`
+o como clave de un `TreeMap`, sin `ClassCastException`.

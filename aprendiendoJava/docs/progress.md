@@ -1,14 +1,22 @@
 # Progreso — Java Learning Lab
 
-> Plan completo (26 semanas, 28 sep 2026 → 28 mar 2027): `docs/roadmap.md` · **Semana actual: 2** (lección 03 adelantada)
+> Plan completo (26 semanas, 28 sep 2026 → 28 mar 2027): `docs/roadmap.md` · **Semana actual: 3** (al día)
 
 ## ▶ TAREA EN CURSO (retomar aquí)
 
-**Tema:** `Map` (semana 3, adelantada a pedido del alumno el 2026-10-08). Lección: `docs/lessons/03-map.md`.
-**Estado:** **solo teoría publicada** (§0–§12, reescrita "desde cero" a pedido del alumno: repaso de L02, 🧪 experimentos
-en `src/practical/maps/MapPlayground.java`, ✅ preguntas con respuesta, autoevaluación de 10 preguntas).
-→ **siguiente:** revisar `MapPlayground` + autoevaluación (§12) y **publicar las tareas** (§13) como mini-tareas de ~10 min;
-aplicación final = `Order` con `Map<Product, OrderItem>` (laptop x3 + x1 → x4).
+**Tema:** `Map` (semana 3). Lección: `docs/lessons/03-map.md`.
+**Estado:** teoría revisada (v1 7/10, autoevaluación 5,5/10) y **tareas 0–6 publicadas** el 2026-10-15
+→ **siguiente:** revisar Tarea 0 (cerrar teoría: 🧪 §6 votos, 🧪 §7 con `laptop1`, autoevaluación 1/5/6/8) y seguir en orden.
+
+| Tarea | Archivo | Estado |
+|-------|---------|--------|
+| 0. Cerrar teoría | `MapPlayground` | pendiente |
+| 1. Operaciones básicas (`BigDecimal`) | `MapBasics` | pendiente |
+| 2. Recorrer | `MapBasics` | pendiente |
+| 3. Acumular (contar + sumar) | `SalesCounterLab` | pendiente |
+| 4. Claves objeto `Customer` + colisión (deuda L02 T3) | `CustomerSpendingLab` + `Customer` | pendiente |
+| 5. Orden (`TreeMap` con texto, reinserción) + getters | `MapOrderLab` | pendiente |
+| 6. `Order` con `Map<Product, OrderItem>` | `Order` + `Main` | pendiente |
 
 El alumno pidió (2026-10-08) que lo trate como alguien que **no sabe** el tema: lecciones muy explicativas, con
 ejemplos, para llegar a 10/10. Mantener ese nivel.
@@ -21,7 +29,7 @@ ejemplos, para llegar a 10/10. Mantener ese nivel.
 | 3. `hashCode` | `HashSpyLab` | ⏭ saltada; la colisión se re-explica en L03 §0.3 y §7.3 |
 | 4. `getClass` vs `instanceof` | `EqualityTypeLab` | 🟡 v2 7/10: mini-tareas **4.A** (ronda getClass real → `size` 2) y **4.B** (simetría, P4.2) |
 | 5. `HashSet`/`LinkedHashSet`/`TreeSet` | `SetOrderLab` | 🟡 v1 7/10: paso 4 `List`, P5.3 (`HashSet` por defecto), comentario paso 5 |
-| 6. `Order.getDistinctProduct()` | `Order` + `Main` | 📥 commit `4a871fe` (2026-10-07) **sin revisar**: el alumno dice que la versión final quedó en casa. Vistazo: faltan pasos 4–5 (laptop repetida), `Set.copyOf` pierde el orden (L03 §9 lo cubre), P6.1–P6.3 sin responder |
+| 6. `Order.getDistinctProduct()` | `Order` + `Main` | ✅ v4 8/10 (2026-10-12, ya usa `unmodifiableSet`) |
 
 ### Deuda de la lección 01 (no bloquea; parte se practica en la lección 02)
 
@@ -36,6 +44,22 @@ ejemplos, para llegar a 10/10. Mantener ese nivel.
 Detalle en los bloques 🔍 REVISIÓN de `docs/lessons/01-list-arraylist.md`.
 
 ---
+
+## 2026-10-15 — Revisión teoría L03 + tareas publicadas
+
+### Bien hecho
+* 🧪 §4 y §5: **todas las predicciones correctas** (put → null/30, NPE por unboxing, orden de LinkedHashMap, suma 101)
+* autoevaluación 2, 4, 9 correctas; §8 y §9-1 bien
+
+### Errores detectados
+* `size`/`get` invertidos tras dos `put` a la misma clave (cree que size 2, get 1)
+* 🧪 §6 (acumular) sin hacer; autoevaluación 5 vacía y 6 a medias → no tiene la receta de acumular
+* 🧪 §7 usó el mismo objeto dos veces (experimento sin la variable a probar, como L01 T5); cree que `put` devuelve la clave
+* autoevaluación 8 (colisión) vacía → la deuda de L02 T3 persiste → Tarea 4 Ronda 3
+* `Map.of` con clave duplicada: cree que "mezcla" (lanza IAE); `imprimir(Objects o)` confunde `Objects` con `Object`
+* git: `.class` de `out/production/` versionados (pendiente `git rm --cached`, con el alumno)
+* Tono: en `Main` escribió "¿comprendes? ¿qué más quieres que te explique?" (frustración con la revisión de T6) → revisiones
+  más cortas, valorar lo que hizo bien primero
 
 ## 2026-10-08 — Paso a la lección 03 (`Map`), solo teoría
 
