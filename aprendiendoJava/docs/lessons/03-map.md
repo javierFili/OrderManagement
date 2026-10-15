@@ -1016,6 +1016,10 @@ Lo vas a ver con **tus propios productos** en la Tarea 4 (ids `31` y `4294967296
 5. **Si un paso no se entiende, no lo adivines.** Pregúntame "no entiendo T2 paso 4". Prefiero eso a un paso mal
    hecho.
 6. **Checklist** al final de cada tarea: revísala antes de pedir la revisión. Es lo que yo voy a mirar.
+7. **Sintaxis que todavía no viste** (lambdas `->`, method references `::` como `Integer::sum` o
+   `BigDecimal::add`): **siempre es opcional**. Si un paso la pide, puedes resolverlo con lo que ya sabes
+   (`for-each`, `if/else`, `containsKey` + `get` + `put`) y cuenta como correcto. En las Tareas 3 y 4, `merge`
+   es opcional: la versión `if/else` vale igual.
 
 **Tiempo total aproximado:** 3 h 30 min.
 
@@ -1120,6 +1124,111 @@ Todos los archivos nuevos van en `src/practical/maps/`, con `package practical.m
 - [ ] `real` + `porque` en cada predicción fallada
 - [ ] P1.1–P1.3 con las frases completas
 
+
+> ## 🔍 REVISIÓN TAREA 1 — 2026-10-15 · **9/10** · ✅ aprobada
+> Historial: v1 7/10 → **v2 9/10**. Revisado ejecutando `MapBasics`.
+
+**✅ Ya está bien:** `LinkedHashMap` declarado como `Map`. Acertaste lo que devuelve `put` (nuevo → `null`,
+reemplazo → `45.90`), `get` de una clave que no existe (`null`), `getOrDefault` (`0`) y el NPE del paso 7.
+En el paso 10 fallaste y escribiste `real` + `porque` correctos. P1.1 correcta.
+
+**Tus predicciones contra la salida real:**
+
+| Paso | Línea | Tu predicción | Salida real | |
+|------|-------|---------------|-------------|---|
+| 2 | `put("teclado", 45.90)` | `null` | `null` | ✅ |
+| 4 | `put("teclado", 39.90)` | `45.90` | `45.90` | ✅ |
+| 4 | `precios` | `{teclado=49.90, ...}` | `{teclado=45.90, ...}` (y se imprimió **antes** del `put`) | ⚠️ |
+| 5–6 | `get` / `getOrDefault` | `null` / `0` | `null` / `0` | ✅ |
+| 7 | NPE | entra al `catch` | entra al `catch` | ✅ |
+| 8 | `containsKey` / `containsValue(7.50)` | `true` / — | `true` / **no está en el código** | ❌ |
+| 9 | `containsValue(7.5)` | `false` | `false`, pero por **otra razón** (abajo) | ⚠️ |
+| 10 | `remove("cable")` ×2 | `true` / `false` | `39.90` / `null` | ❌ con `porque` ✅ |
+
+---
+
+#### ❌ CRÍTICO 1 — `cable` vale `39.90`, no `7.50`: el experimento del paso 9 no prueba nada
+
+**Qué pasa:** el paso 3 pedía `"cable"` → `"7.50"`. Pusiste `"39.90"`. Por eso:
+- falta el `containsValue(new BigDecimal("7.50"))` del paso 8, que debía dar `true`;
+- el paso 9 da `false`, pero **solo porque no existe ningún 7.5 en el mapa**, no por la escala.
+
+El paso 9 era un experimento de **una sola diferencia**: el mismo número escrito `7.50` y `7.5`. Con tus datos
+la diferencia es "7.5 contra 39.90", y eso no enseña nada. Con los datos correctos (comprobado):
+```
+cable = 7.50
+containsValue(new BigDecimal("7.50")) → true
+containsValue(new BigDecimal("7.5"))  → false   ← mismo valor, otra escala
+```
+
+**Qué hacer:** cambia el cable a `"7.50"`, agrega el `containsValue("7.50")` del paso 8 y vuelve a predecir el 9.
+
+---
+
+#### 🟠 IMPORTANTE 2 — P1.3: no hay nada que sobreescribir
+
+Escribiste: "dio **null**… para comparar uso **Comparable**, creo que tenemos que sobreescribir ese método".
+- `containsValue` devuelve `boolean`: dio **`false`**, no `null`.
+- `BigDecimal` **ya trae** `compareTo`. Lo usaste en `isValidValue` y en la Tarea 2 (paso 4) de este mismo archivo.
+  Solo se sobreescribe en **tus** clases (`Product` en la semana 4), no en `BigDecimal`.
+- La palabra exacta del hueco "`equals` compara también ___" es **la escala** (cuántos decimales tiene).
+
+Frase completa: *"`containsValue` con `7.5` dio `false` porque `BigDecimal.equals` compara también la escala.
+Para comparar dinero sin importar los ceros uso `compareTo`."*
+
+**Profesionalmente:** por esto mismo `containsValue` y `equals` son peligrosos con dinero. Un precio que viene de la
+BD como `7.50` y uno que viene de un JSON como `7.5` "no son iguales" para `equals`.
+
+---
+
+#### 🟡 MENOR 3 — Paso 10: `remove` del `Map` devuelve el **valor**
+
+Tu `porque` es correcto. Para que no se repita, conéctalo con lo que ya sabes:
+
+| Método | Devuelve |
+|--------|----------|
+| `Set.remove(x)` (lección 02) | `boolean`: ¿estaba? |
+| `List.set(i, x)` (lección 01) | el valor **anterior** |
+| `Map.put(k, v)` / `Map.remove(k)` | el valor **anterior**, o `null` si no había |
+
+En `Map`, "¿se borró?" se lee como "¿devolvió algo distinto de `null`?".
+
+---
+
+#### 🟡 MENOR 4 — Orden de los pasos y ✅ sin comprobar
+
+- En el paso 4 imprimiste `precios` y `size()` **antes** del segundo `put`. Iban **después**, para ver
+  `teclado=39.90` y comprobar que `size` sigue en 3 (tu P1.1 lo afirma, pero no lo viste).
+- Marcaste ✅ en `teclado=49.90`, pero salió `45.90`. Antes de poner ✅, compara número por número.
+- Separadores: pedía `---- T1 · Paso 3 ----`. Tus `T4`, `T5`… se confunden con "Tarea 4".
+
+---
+
+**Para llegar a 10/10:**
+- [x] cable = `"7.50"`, paso 8 completo, paso 9 re-predicho
+- [x] paso 4: imprimir `precios` y `size()` **después** del segundo `put`
+- [ ] P1.3: `false`, "la escala", `compareTo` (sin sobreescribir nada)
+
+---
+
+#### ✅ v2 — 2026-10-15 · **9/10** · ✅ aprobada
+
+**Corregido:**
+- ✅ `cable` = `7.50`. Ahora el paso 9 sí es un experimento de una sola diferencia: `7.50` → `true`,
+  `7.5` → `false`. Mismo valor, otra escala.
+- ✅ Paso 8 completo (`containsValue("7.50")` → `true`).
+- ✅ Paso 4: `precios` y `size()` **después** del segundo `put` → `teclado=39.90`, `size` 3. P1.1 comprobada.
+- ✅ P1.3 ya no dice "sobreescribir".
+
+**Detalles que quedan (no bloquean):**
+- **P1.3:** sigue diciendo "dio **null**". `containsValue` devuelve `boolean`: es **`false`**. Y el método es
+  **`compareTo`**. `Comparable` es la interfaz que lo declara (semana 4), no lo que llamas.
+- **Comentarios viejos:** al cambiar los datos, actualiza lo que quedó del intento anterior:
+  - el primer `espero` del mapa todavía dice `{teclado=49.90, ..., cable=39.90}` ✅, pero sale `45.90` y `7.50`;
+  - en el paso 10, tu `real` dice `39.90`, pero ahora sale **`7.50`**.
+
+  Un comentario que no coincide con la salida es peor que no tener comentario: cuando lo repases, te va a enseñar algo falso.
+
 ---
 
 ### Tarea 2 — Recorrer (fácil-medio · 25 min)
@@ -1171,6 +1280,64 @@ Todos los archivos nuevos van en `src/practical/maps/`, con `package practical.m
 - [ ] paso 4 con `compareTo`, sin `>`
 - [ ] paso 5 explota (y lo predijiste), paso 6 funciona
 - [ ] P2.1 y P2.2
+
+
+> ## 🔍 REVISIÓN TAREA 2 — 2026-10-15 · **8/10** · ✅ puedes pasar a la Tarea 3
+> Historial: **v1 8/10**. Revisado ejecutando `MapBasics`.
+
+**✅ Ya está bien:** elegiste bien la vista en cada paso (`entrySet` para nombre + precio, `values` para
+sumar). El **total calculado a mano** (`1017.64`) es exacto. El más caro usa `compareTo`, sin `>`. Predijiste que
+el paso 5 explota. P2.1 correcta.
+
+**Sobre el paso 6 y la lambda: tienes razón.** Te pedí usar una sintaxis (`->`) que todavía no habías visto, y
+eso rompe la regla de no adivinar. Tu solución está **muy bien**: juntar primero las claves en una `List` y
+borrarlas **después** del recorrido es el patrón clásico, y funciona en cualquier versión de Java. Desde aquí, las
+tareas solo usan lo que ya está explicado.
+
+---
+
+#### 🟠 IMPORTANTE 1 — El paso 5 ya borró `pendrive` antes de explotar
+
+**Qué pasa:** tu paso 6 imprime el mapa sin `pendrive` y parece que tu solución funcionó. Pero el `pendrive` ya
+lo había borrado **el paso 5**. La secuencia real (comprobado):
+```
+paso 5:  ... vuelta "pendrive" → catalogo.remove("pendrive")   ← SÍ se borró
+         siguiente vuelta → el iterator detecta el cambio → ConcurrentModificationException
+         catch → "No se puede modificar"
+         catalogo ahora: {notebook, mouse, webcam, audifonos}   ← sin pendrive
+
+paso 6:  tu lista aEliminar queda VACÍA → no borra nada → imprime lo mismo
+```
+La excepción **no deshace** lo que ya pasó. Lo que se ejecutó antes del error queda hecho.
+
+**Profesionalmente:** esto es justo lo que resuelven las **transacciones** de base de datos (`@Transactional`,
+semana 19). Sin ellas, un error a mitad de proceso deja los datos "a medias".
+
+**Qué hacer:** para probar de verdad tu paso 6, imprime `catalogo` justo después del `catch` del paso 5, con su
+`espero`. Después vuelve a agregar `catalogo.put("pendrive", new BigDecimal("8.75"));` antes del paso 6.
+
+---
+
+#### 🟠 IMPORTANTE 2 — `compareTo(...) == 1`: usa `> 0` y `< 0`
+
+Funciona porque `BigDecimal.compareTo` devuelve exactamente `-1`, `0` o `1`. Pero el contrato general de
+`compareTo` **solo promete el signo**. Por ejemplo, `"b".compareTo("z")` devuelve **`-24`** (comprobado), así que
+`== -1` daría `false` aunque `"b"` va antes.
+```java
+if (a.compareTo(b) > 0)   // a es mayor     ← así siempre
+if (a.compareTo(b) < 0)   // a es menor
+```
+Esto importa en la semana 4, cuando escribas `compareTo` para `Product`.
+
+---
+
+#### 🟡 MENOR 3
+
+- **P2.2:** el segundo hueco es "en vez de con ese **iterator**". Es el iterator oculto el que hay que usar para
+  borrar (`iterator.remove()`), no `removeIf`. Tu primera parte ("usa un iterador que detecta el cambio") está bien.
+- **Formatos:** el paso 2 pedía `notebook: $899.99` y saliste con `notebook= ($899.99)`. El paso 4 pedía
+  `Más caro: notebook ($899.99)`. Y en el paso 2 el `espero` va **una vez, con las 5 líneas**, no dentro del `for`.
+- Paso 6 sin ✅ (acertaste el resultado, aunque por la razón del IMPORTANTE 1).
 
 ---
 
