@@ -136,3 +136,19 @@ public class MapPlayground {
  * 10: por que los mezcla.
  *
  */
+
+/**
+ * votos = rojo, azul, rojo, verde, azul, rojo, rojo
+ *
+ * | Vuelta | p     | ¿Estaba? (sí/no) | Qué hace (put ...) | Mapa después |
+ * |--------|-------|------------------|--------------------|--------------|
+ * | 1      | rojo  |                  |                    |              |
+ * | 2      | azul  |                  |                    |              |
+ * | 3      | rojo  |                  |                    |              |
+ * | 4      | verde |                  |                    |              |
+ * | 5      | azul  |                  |                    |              |
+ * | 6      | rojo  |                  |                    |              |
+ * | 7      | rojo  |                  |                    |              |
+ *
+ *
+ */

@@ -11,6 +11,7 @@ public class Main {
         printl("JAvier123");
         printl("mostrar");
         printl(new Product(new BigInteger("1"),"laptop", new BigDecimal("342.4")));
+
     }
     public static void printl(Object ... o){
         for (Object item:o){
