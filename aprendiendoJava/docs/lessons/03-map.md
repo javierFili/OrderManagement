@@ -1391,6 +1391,103 @@ Ahora los datos son **líneas de pedido** con cantidad, como las de `Order`:
 - [ ] Parte B: `if/else` y `merge` dan lo mismo; subtotales calculados a mano
 - [ ] P3.1–P3.3
 
+> ## 🔍 REVISIÓN TAREA 3 — 2026-10-18 · **7/10** · 🟠 corrige la Parte B y P3.1, y la cierro
+> Historial: **v1 7/10**. Revisado ejecutando `SalesCounterLab` con Java 21.
+
+**✅ Ya está bien:** la **Parte A está completa y correcta**: las tres versiones (`if/else`, `getOrDefault`,
+`merge`) dan los mismos números, y escribiste bien la receta en cada una. En el paso 5 fallaste la predicción de
+`cuenta1.equals(cuenta3)` y lo **reconociste con un `real:` honesto**. Eso es justo lo que se busca, y P3.2 lo
+explica bien. P3.3 correcta (`equals` y `hashCode`). En `unidades2` sacaste el nombre a una variable
+(`itemName`): bien.
+
+| Paso | espero | real | ¿ok? |
+|------|--------|------|------|
+| A2 `cuenta1` | `{pendrive=3, mouse=3, webcam=1, notebook=1}` | igual | ✅ |
+| A3 `cuenta2` | igual | igual | ✅ |
+| A4 `cuenta3` (HashMap) | mismos números, otro orden | `{mouse=3, webcam=1, pendrive=3, notebook=1}` | ✅ |
+| A5 `cuenta1.equals(cuenta2)` | `true` | `true` | ✅ |
+| A5 `cuenta1.equals(cuenta3)` | `false` | `true` | ❌ (bien corregido con `real:`) |
+| B3 `unidades` | `{pendrive=2,mouse=5,webcam=1}` | igual | ✅ pero con **datos incorrectos** (IMPORTANTE 1) |
+| B4 `unidades2` | igual | igual | ✅ (mismos datos incorrectos) |
+| B5 `subtotales` | `{pendrive=86.2,mouse=11,webcam=4.2}` | `{pendrive=86.4, mouse=11.0, webcam=4.2}` | ❌ marcado ✅ (IMPORTANTE 2) |
+
+---
+
+#### 🟠 IMPORTANTE 1 — La Parte B usa 4 líneas en vez de 5: falta `Pendrive x3`
+
+**Qué pasa:** el paso B2 pedía `Pendrive x2, Mouse x1, Pendrive x3, Webcam x1, Mouse x4`. Tu lista tiene
+`pendrive x2, mouse x1, webcam x1, mouse x4`. Con eso, `pendrive` aparece **una sola vez** y nunca entra en la
+rama "ya está" del `if/else`. Tu resultado `pendrive=2` no prueba nada: daría lo mismo con un `put` sin acumular.
+
+**Teoría:** en una prueba, los datos se eligen para que **cada rama** del código se ejecute. `Pendrive x3` estaba
+ahí para comprobar que sumas **la cantidad** (`2 + 3`), no `+ 1`. Es el error típico al pasar de contar a sumar.
+
+**Qué hacer:** agrega la línea que falta en su posición (la 3ª). Vuelve a calcular a mano `unidades` y
+`subtotales`, y actualiza los tres `espero`. Usa también los nombres con mayúscula (`"Pendrive"`, `"Mouse"`,
+`"Webcam"`) como pide el paso B1. El producto `notebook` no se pide en la Parte B: puedes quitarlo.
+
+---
+
+#### 🟠 IMPORTANTE 2 — `subtotales`: esperabas `86.2` y `11`, salió `86.4` y `11.0`, y pusiste ✅
+
+**Qué pasa:** hay dos diferencias, y las dos tienen explicación.
+1. **`86.2` vs `86.4`:** `43.2 × 2 = 86.4`. Tu propio comentario de la línea 51 dice `//86.4`. Al copiar el
+   `espero` te equivocaste en un dígito y no lo comparaste con la salida.
+2. **`11` vs `11.0`:** esto no es un descuido, es **teoría de `BigDecimal`** (tu punto débil de la lección 02).
+   `2.2 × 1 = 2.2` y `2.2 × 4 = 8.8` tienen **escala 1** (un decimal). Al sumarlos, el resultado
+   también tiene escala 1: `11.0`. `BigDecimal` **no borra los ceros** por su cuenta.
+   ```java
+   new BigDecimal("11").equals(new BigDecimal("11.0"))       // false: distinta escala
+   new BigDecimal("11").compareTo(new BigDecimal("11.0"))    // 0: mismo valor
+   ```
+   Así que en un test, `assertEquals(new BigDecimal("11"), subtotal)` **fallaría**.
+
+**Profesionalmente:** un `✅` sin comparar letra por letra con la salida real es un test que "pasa" sin probar
+nada. Cuando escribas tests con JUnit (semana 7), `assertEquals` compara por ti y no perdona `86.2` vs `86.4`.
+
+**Qué hacer:** con la línea nueva del IMPORTANTE 1, calcula a mano los subtotales **con la escala correcta** y
+escribe el `espero` como lo imprimiría Java. Después compara con la salida, carácter por carácter.
+
+---
+
+#### 🟠 IMPORTANTE 3 — P3.1: el valor inicial no es `null`, y el de la Parte B está en el enunciado
+
+**Qué pasa:** escribiste *"en la parte A el valor inicial es de null y en la Parte B... no sé a qué te
+refieres"*. Hay una confusión entre **lo que lees** y **lo que guardas**:
+- `get(item)` de una clave que no está **devuelve** `null`. Eso es lo que **lees**.
+- El **valor inicial** es lo que **guardas** con `put` la primera vez que aparece la clave. Mira tu propio código:
+  en la Parte A es `cuenta1.put(item, 1)` → el valor inicial es `1`.
+
+Es la misma confusión de siempre entre **lo que devuelve** un método y **lo que hace**.
+
+**Para la Parte B:** mira la rama "no está" de `unidades` (línea 64, dentro del `if (!unidades.containsKey(...))`). ¿Qué pones con el
+`put` la primera vez? El paso B3 lo dice: *"aquí el valor inicial ya no es `1`, es ___ de la primera línea"*.
+
+**Qué hacer:** reescribe P3.1 completa con tus palabras.
+
+---
+
+#### 🟡 MENOR 4
+
+- **Tabla de vueltas:** fila 4 dice `put(pendrive,1)`, debería ser `put(webcam,1)`. Fila 8 dice `¿Estaba? no`,
+  pero `mouse` **sí** estaba (por eso haces `2+1`). Fila 3: falta cerrar el paréntesis.
+- **Etiquetas:** imprimes `T3`, `t4`, `T5`, `T5`, pero son **pasos** de la Tarea 3, no tareas, y `T5` sale dos
+  veces. Usa `A3`, `A4`, `A5`, `B3`… así sabes qué salida es de qué paso.
+- En `unidades` (versión `if/else`) llamas `item.getProduct().getName()` **4 veces**. Sácalo a una variable
+  como hiciste en `unidades2`.
+- Imports sin usar: `Models.Order`.
+
+---
+
+**Para llegar a 10/10:**
+- [x] tabla a mano antes del código (Parte A)
+- [x] las 3 versiones dan los mismos números
+- [ ] Parte B con las **5** líneas exactas (falta `Pendrive x3`) y nombres con mayúscula (IMPORTANTE 1)
+- [ ] `espero` de `unidades`, `unidades2` y `subtotales` recalculados, con la escala real de `BigDecimal`, y sin ✅ si no coinciden (IMPORTANTE 2)
+- [ ] P3.1 completa: valor inicial Parte A y Parte B (IMPORTANTE 3)
+- [x] P3.2, P3.3
+- [ ] corregir filas 3, 4 y 8 de la tabla (MENOR 4)
+
 ---
 
 ### Tarea 4 — Claves objeto: cuánto gastó cada cliente (medio-avanzado · 40 min)
