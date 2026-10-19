@@ -53,16 +53,20 @@ public class Order {
         return true;
     }
 
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return orderItems.isEmpty();
     }
 
-    public Set<Product> getDistinctProduct(){
+    public Set<Product> getDistinctProduct() {
         Set<Product> products = new LinkedHashSet<>();
-        for (OrderItem item:orderItems){
+        for (OrderItem item : orderItems) {
             products.add(item.getProduct());
         }
         return Collections.unmodifiableSet(products);
+    }
+
+    public Customer getCustomer() {
+        return customer;
     }
     /**
      * 1: bueno estoy sacando todos los productos en un for-each, almacenando dentro de un linkedHashSet ya que almacena en el orden de insercion ademas que solo esta insertando solo productos distintos.

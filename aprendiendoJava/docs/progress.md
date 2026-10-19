@@ -11,11 +11,11 @@
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
 | 0. Cerrar teoría | `MapPlayground` | pendiente |
-| 1. Operaciones básicas (`BigDecimal`) | `MapBasics` | pendiente |
-| 2. Recorrer | `MapBasics` | pendiente |
-| 3. Acumular (contar + sumar) | `SalesCounterLab` | pendiente |
-| 4. Claves objeto `Customer` + colisión (deuda L02 T3) | `CustomerSpendingLab` + `Customer` | pendiente |
-| 5. Orden (`TreeMap` con texto, reinserción) + getters | `MapOrderLab` | pendiente |
+| 1. Operaciones básicas (`BigDecimal`) | `MapBasics` | ✅ v1 9/10 |
+| 2. Recorrer | `MapBasics` | ✅ v1 8/10 |
+| 3. Acumular (contar + sumar) | `SalesCounterLab` | 🟠 v1 7/10: Parte B (falta `Pendrive x3`), escala `BigDecimal`, P3.1 |
+| 4. Claves objeto `Customer` + colisión (deuda L02 T3) | `CustomerSpendingLab` + `Customer` | 🟠 v1 8/10 (2026-10-19): `porque` de `Objects.hash` = 62, P4.3 (*cajón*, *colisión*), P4.2, `this == o` |
+| 5. Orden (`TreeMap` con texto, reinserción) + getters | `MapOrderLab` | 🔁 v1 6/10 (2026-10-19): paso 4 sin `TreeMap` nuevo ni `espero`, ✅ sin comparar en `HashMap`, datos `2025-10`, P5.2 (valor vs lugar) |
 | 6. `Order` con `Map<Product, OrderItem>` | `Order` + `Main` | pendiente |
 
 El alumno pidió (2026-10-08) que lo trate como alguien que **no sabe** el tema: lecciones muy explicativas, con

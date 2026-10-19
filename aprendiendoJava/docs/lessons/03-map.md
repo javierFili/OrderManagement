@@ -1555,6 +1555,143 @@ distintos con el mismo id**.
 - [ ] colisión: 2 entradas, cada `get` con su valor
 - [ ] P4.1–P4.4
 
+> ## 🔍 REVISIÓN TAREA 4 — 2026-10-19 · **8/10** · 🟠 corrige P4.3, el `porque` del `hashCode` y P4.2, y la cierro
+> Historial: **v1 8/10**. Revisado ejecutando `CustomerSpendingLab` con Java 21. La Ronda 1 la comprobé
+> compilando una copia de `Customer` **sin** `equals`/`hashCode`: da `3` y `23.2`, como en tu tabla.
+
+**✅ Ya está bien:** el código funciona y **la tabla Ronda 1 / Ronda 2 está llenada con la salida real**
+(`3 → 2`, `23.2 → 55.20`). `ana2` es un `new` de verdad. `Customer` tiene `id` `final`, y `equals`/`hashCode`
+usan **solo el `id`**. La colisión funciona: 2 entradas, cada `get` con su valor. Y algo que mejoró mucho
+respecto a la Tarea 3: cuando fallaste (`get(ana1)` en la Ronda 2, los `hashCode`) **escribiste el `real:`** y
+**no pusiste ✅**. Fíjate también en `55.20`: escribiste la escala de `BigDecimal` bien (`23.2 + 32.00` → dos
+decimales). Eso era el IMPORTANTE 2 de la Tarea 3: ya lo tienes.
+
+| Paso | espero | real | ¿ok? |
+|------|--------|------|------|
+| 6 R1 `size()` | `3` | `3` | ✅ |
+| 6 R1 `get(ana1)` | `23.2` | `23.2` | ✅ |
+| 6 R2 `size()` | `2` | `2` | ✅ |
+| 6 R2 `get(ana1)` | `23.2` | `55.20` | ❌ bien corregido con `real:` (olvidaste sumar `o3`) |
+| 7 `id` `final` | — | compila | ✅ (respuesta a medias, MENOR 4) |
+| 8 `equals`/`hashCode` | — | correctos | ✅ (falta `this == o`, MEJORABLE 3) |
+| 11 `prod31.hashCode()` | `31` | `62` | ❌ `porque` vacío (IMPORTANTE 1) |
+| 11 `prod429.hashCode()` | `0` | `62` | ❌ `porque` vacío (IMPORTANTE 1) |
+| 11 `equals` | `false` | `false` | ✅ |
+| 12 `size` / `get` / `get` | `2` / `A` / `B` | igual | ✅ |
+
+---
+
+#### 🟠 IMPORTANTE 1 — `hashCode`: "no sé calcularlo a mano" no es un `porque`, y el `62` ya estaba escrito
+
+**Qué pasa:** predijiste `31` y `0` y salió `62` las dos veces. El paso 11 decía dónde estaba la respuesta: la
+revisión v3 de la Tarea 3 de la lección 02 (`docs/lessons/02-equals-hashcode-set.md`, líneas 1328–1329):
+```
+id 31          → hashCode 62
+id 4294967296  → hashCode 62     ← colisión
+```
+No hace falta que sepas calcular el `hashCode` de un `BigInteger` de memoria. Lo que sí necesitas es entender
+**de dónde sale el `62`**, porque es la deuda de la lección 02.
+
+**Teoría:** `Product.hashCode()` devuelve `Objects.hash(id)`. `Objects.hash(x)` **no** devuelve
+`x.hashCode()`: hace una cuenta con él.
+```
+Objects.hash(x)  =  31 * 1 + x.hashCode()
+```
+- `BigInteger("31").hashCode()` es `31` → `31 + 31 = 62`.
+- `BigInteger("4294967296")` es `2³²`. Su `hashCode` también sale `31` (el `BigInteger` guarda el número en
+  trozos de 32 bits y "dobla" los trozos en un solo `int`, y en ese doblado `2³²` y `31` dan lo mismo)
+  → `31 + 31 = 62`.
+
+Tu `espero: 31` tenía media razón: es el `hashCode` del **id**, no del **producto**. Te faltó el `31 * 1 +` de
+`Objects.hash`.
+
+**Ejemplo con otros datos** (no es tu tarea):
+```java
+Objects.hash(new BigInteger("5"))    // 31 + 5  = 36
+new BigInteger("5").hashCode()       // 5
+```
+
+**Qué hacer:** en los dos `real: 62`, cambia el `porque` por una frase con tus palabras que diga **qué hace
+`Objects.hash`** y por qué los dos ids terminan en el mismo número.
+
+---
+
+#### 🟠 IMPORTANTE 2 — P4.3: "el mismo 62" y "doble verificación" no son los nombres
+
+**Qué pasa:** escribiste *"caen en el mismo **62**… Esto se llama **doble verificación**"*.
+- El `62` es el **`hashCode`** (el número). Lo que comparten es el **cajón** (en inglés *bucket*): el lugar
+  del `HashMap` donde se guarda la entrada (§0.2).
+- Que dos objetos **distintos** tengan el mismo `hashCode` y caigan en el mismo cajón se llama **colisión**
+  (§0.3, §7.3). Es la palabra que esta Ronda quería que te quedara.
+- "Doble verificación" describe bien **lo que hace el `HashMap`** para resolverla (primero `hashCode` para
+  elegir el cajón, después `equals` dentro del cajón), pero no es el nombre del fenómeno.
+
+**Por qué importa:** en una entrevista te van a preguntar *"¿qué es una colisión en un HashMap y cómo se
+resuelve?"*. La respuesta es justo tu P4.3 con las dos palabras correctas.
+
+**Qué hacer:** reescribe P4.3 con *cajón* y *colisión*. Si quieres, agrega una segunda frase con tu "doble
+verificación": está bien pensada.
+
+---
+
+#### 🟡 IMPORTANTE (pequeño) 3 — P4.2 dice **qué** cambiaste, no **por qué** funciona
+
+**Qué pasa:** *"porque se sobreescribió el equals y hashcode"*. Es cierto, pero la frase pedía dos razones
+(`porque ___ y ___`): **qué hace cada uno** con `ana2`.
+
+**Teoría (§7.1):** `merge(ana2, …)` hace dos cosas, en orden:
+1. calcula `ana2.hashCode()` → `Objects.hash(100)` → el **mismo número** que `ana1` → va al **mismo cajón**;
+2. dentro del cajón compara con `equals` → compara los `id` → `100` y `100` → `true` → **es la misma clave**,
+   así que suma en vez de crear una entrada nueva.
+
+**Qué hacer:** completa P4.2 con esas dos ideas, con tus palabras (sin copiar mis números de paso).
+
+---
+
+#### 🟡 MEJORABLE 4 — `equals`: falta `this == o` y el `id` podría ser `null`
+
+```java
+public boolean equals(Object cus) {
+    if (cus instanceof Customer) { return this.id.equals(((Customer) cus).getId()); }
+    return false;
+}
+```
+- **Funciona** (también con `null`: `null instanceof Customer` es `false`). Pero la receta del paso 8 empieza
+  con `if (this == o) return true;`: si es **el mismo objeto**, no hace falta comparar nada. Es la receta que
+  vas a ver en todo código Java, y la de tu `Product`.
+- Si alguien crea `new Customer(null, …)`, `this.id.equals(...)` lanza `NullPointerException`.
+  `Objects.equals(this.id, otro.id)` no falla con `null`. (En `hashCode` ya usas `Objects.hash`, que tampoco falla.)
+
+**Qué hacer:** agrega el `this == o` al principio. Lo de `Objects.equals` es opcional.
+
+---
+
+#### ⚪ MENOR 5
+
+- **Paso 7:** la pregunta era *"¿hay algún `setId` que se rompa? ¿por qué no?"*. La respuesta es: **no se rompe
+  nada porque `Customer` nunca tuvo `setId`** (lo comprobé en el historial de git). Si lo hubiera tenido, **no
+  compilaría**: a un campo `final` no se le puede asignar nada fuera del constructor. Tu frase *"no debería
+  hacer ningún setId"* va por ahí, pero no contesta el "por qué no".
+- **Separadores:** los `println` no tienen `---- T4 · Paso 6 ----` (regla 2). Con dos `size` y tres `get`
+  seguidos, sin separador no se sabe qué salida es de qué paso.
+- **Nombres:** el paso 5 pedía `gastado`, usaste `gastando`. En el `for`, la variable se llama `item` pero es un
+  **pedido**: `for (Order pedido : pedidos)` se lee solo.
+- `mouse` y `webcam` son `new Laptop(...)`. Para el lab no importa, pero el nombre engaña.
+- `String args[]` → en Java se escribe `String[] args` (el `[]` va con el tipo).
+
+---
+
+**Para llegar a 10/10:**
+- [x] `ana2` es un objeto nuevo
+- [x] tabla Ronda 1 / Ronda 2 con la salida real
+- [x] `Customer`: `id` `final`, `equals` + `hashCode` solo con `id`
+- [x] colisión: 2 entradas, cada `get` con su valor
+- [ ] `porque` de los dos `hashCode` = `62`, explicando `Objects.hash` (IMPORTANTE 1)
+- [ ] P4.3 con **cajón** y **colisión** (IMPORTANTE 2)
+- [ ] P4.2 con las dos razones: mismo `hashCode` → mismo cajón, `equals` por `id` → `true` (IMPORTANTE 3)
+- [ ] `this == o` en `Customer.equals` (MEJORABLE 4)
+- [x] P4.1, P4.4
+
 ---
 
 ### Tarea 5 — El orden y los getters (medio · 30 min)
@@ -1604,6 +1741,138 @@ de la Tarea 6.
 - [ ] paso 5: ¿se mueve o se queda? (lo vas a necesitar)
 - [ ] paso 7 ejecutado 3 veces, con las 3 salidas anotadas
 - [ ] P5.1–P5.3
+
+> ## 🔍 REVISIÓN TAREA 5 — 2026-10-19 · **6/10** · 🔁 rehaz el paso 4 (la trampa) y corrige P5.1/P5.2
+> Historial: **v1 6/10**. Revisado ejecutando `MapOrderLab` con Java 21 (la Parte C, 4 veces). Para comparar,
+> ejecuté aparte los datos exactos del enunciado.
+
+**✅ Ya está bien:** las **Partes B y C las entendiste**. En el paso 5 predijiste bien que marzo **se queda en su
+lugar**, y además imprimiste lo que **devuelve** `put` (`40`, el valor viejo): muy bien, eso es separar lo que
+devuelve de lo que hace. En la Parte C acertaste que `unmodifiableMap` conserva el orden y `copyOf` no, que
+`put` sobre la vista lanza la excepción, y que la vista **ve** el `2026-11`. P5.3 elige bien
+`unmodifiableMap`. `LinkedHashMap` y `TreeMap` del paso 3 están exactos.
+
+| Paso | espero | real | ¿ok? |
+|------|--------|------|------|
+| 2 datos | `"2025-12"` → `75` | usaste `"2025-10"` | ❌ (IMPORTANTE 3) |
+| 3 `HashMap` | `{2026-03=40,2026-10=75,2025-10=12,2026-01=33}` | `{2026-10=12, 2025-10=75, 2026-03=40, 2026-01=33}` | ❌ marcado ✅ (IMPORTANTE 2) |
+| 3 `LinkedHashMap` | orden de inserción | igual | ✅ |
+| 3 `TreeMap` | `{2025-10, 2026-01, 2026-03, 2026-10}` | igual | ✅ |
+| 4 `TreeMap` sin cero | — (sin `espero`) | 6 entradas mezcladas | ❌ (IMPORTANTE 1) |
+| 5 `put("2026-03", 41)` | `40`, se queda en su lugar | igual | ✅ |
+| 7 `soloLectura` | en orden | en orden | ✅ |
+| 7 `copia` | orden aleatorio | cambia en cada ejecución | ✅ pero sin las 3 salidas anotadas (MEJORABLE 5) |
+| 8 `put` en la vista | entra al `catch` | entra, pero no imprime nada | 🟡 (MEJORABLE 5) |
+| 9 vista tras `linked.put` | (sin la palabra `espero`) | incluye `2026-11=5` | ✅ |
+
+---
+
+#### 🟠 IMPORTANTE 1 — Paso 4: no creaste un `TreeMap` **nuevo**, y no hay `espero` (era el punto de la Parte A)
+
+**Qué pasa:** el paso 4 pedía *"crea un `TreeMap` **nuevo**"*. Hiciste `put` sobre el `treemap` del paso 2, que ya
+tenía `"2026-03"`, `"2026-01"`, etc. Resultado: un mapa con **6 entradas** mezcladas (con cero y sin cero):
+```
+{2025-10=75, 2026-01=33, 2026-03=40, 2026-1=33, 2026-10=12, 2026-3=40}
+```
+Con eso no se ve la trampa. Y como no escribiste `espero`, no hubo predicción que comparar. Por eso P5.1 te salió
+*"los ordenó de otra forma"*: no viste el orden limpio.
+
+**Teoría:** un `TreeMap<String, …>` compara las claves **carácter por carácter**, de izquierda a derecha, como un
+diccionario. En la primera letra distinta decide. Si una palabra se acaba antes (es el comienzo de la otra), va
+primero.
+
+**Ejemplo con otros datos** (no es tu tarea), códigos de producto:
+```
+"A-2", "A-11", "A-1"
+"A-1"  vs "A-11" → "A-1" se acaba antes      → "A-1" primero
+"A-11" vs "A-2"  → 3er carácter: '1' < '2'   → "A-11" antes que "A-2"
+TreeMap → {A-1, A-11, A-2}     ← el 11 antes que el 2: no son números, son texto
+```
+
+**Qué hacer:** crea un `TreeMap` **nuevo** (otra variable), mete los 4 meses sin cero
+(`"2026-3"`, `"2025-12"`, `"2026-10"`, `"2026-1"`). **Antes de ejecutar**, compáralos de a pares como en el
+ejemplo y escribe el `espero` con el orden exacto. Después ejecuta y compara carácter por carácter.
+
+---
+
+#### 🟠 IMPORTANTE 2 — `HashMap`: valores cambiados y ✅ sin comparar (otra vez)
+
+**Qué pasa:** tu `espero` dice `2026-10=75` y `2025-10=12`, pero metiste `2026-10 → 12` y `2025-10 → 75`.
+Los **valores** de un `HashMap` nunca se mezclan: lo único impredecible es el **orden**. Además, el paso pedía
+escribir *"orden impredecible"* + qué entradas, y escribiste un orden exacto. Y pusiste ✅.
+
+Es el mismo hallazgo que el IMPORTANTE 2 de la Tarea 3 (`86.2` vs `86.4` con ✅). En la Tarea 4 lo hiciste bien.
+Aquí volvió.
+
+**Qué hacer:** reescribe el `espero` como pide el paso: *"orden impredecible; entradas: 2026-03=40, …"*, con cada
+clave junto a **su** valor. Pon ✅ solo después de comparar con la salida.
+
+---
+
+#### 🟠 IMPORTANTE 3 — Datos: `"2025-10"` en vez de `"2025-12"`
+
+**Qué pasa:** el paso 2 pide `"2025-12"` → `75`. Usaste `"2025-10"` en los tres mapas. Aquí no cambia mucho el
+resultado, pero es la **segunda tarea seguida** con datos distintos al enunciado (en la Tarea 3 faltó
+`Pendrive x3`). Los datos de cada paso están elegidos para que salga algo concreto, y si los cambias, la tarea
+deja de probar lo que tenía que probar.
+
+**Qué hacer:** cámbialo a `"2025-12"` en los tres mapas. Antes de ejecutar, compara tu `put` con el enunciado
+línea por línea.
+
+---
+
+#### 🟠 IMPORTANTE 4 — P5.2: la entrada **sí** se modifica. Lo que no cambia es su **lugar**
+
+**Qué pasa:** escribiste *"la entrada **no se modifica**"*. Pero tu propia salida dice `2026-03=41`: el **valor**
+cambió de `40` a `41`. Lo que **no** cambió es la **posición** (sigue primera).
+
+Son dos cosas distintas que hace `put` sobre una clave que ya existe:
+- el **valor**: se **reemplaza** (§4.1);
+- el **orden** en un `LinkedHashMap`: se **queda** donde estaba, porque cuenta la **primera** inserción de la clave.
+
+**Para la Tarea 6:** si agregas `laptop` dos veces, la línea `Laptop` **se queda en su lugar** y se actualiza su
+cantidad. No se va al final.
+
+**Qué hacer:** reescribe P5.2 separando las dos ideas: qué pasa con el valor y qué pasa con el lugar.
+Y en P5.1, cambia *"de otra forma"* por **el orden exacto** que te salga en el paso 4 rehecho.
+
+---
+
+#### 🟡 MEJORABLE 5 — Parte C: faltan las 3 ejecuciones y el `catch` está vacío
+
+- **Paso 7:** pedía **ejecutar 3 veces y anotar**. Yo lo ejecuté 4 veces y `copia` salió en dos órdenes distintos:
+  `{2026-03=41, 2026-01=33, 2025-10=75, 2026-10=12}` y `{2026-10=12, 2025-10=75, 2026-01=33, 2026-03=41}`.
+  Hazlo tú y anota las 3 salidas. Así **ves** que "impredecible" significa que cambia de una ejecución a otra.
+- **Paso 8:** el `catch` está vacío. Si entra, no lo sabes. Pon un `println` dentro (por ejemplo
+  `"no se puede modificar"`) para que la salida lo muestre.
+- **Paso 9:** falta la palabra `// espero:` y la respuesta a *"¿la vista ve el cambio?"*. **Sí lo ve**, porque
+  `unmodifiableMap` **no copia**, es una **ventana** al mapa original (§9). Agrégalo a P5.3: quien recibe la vista
+  **no puede** modificarla, pero **sí ve** los cambios que haga la clase dueña. Eso es justo lo que queremos para
+  `Order`.
+- **P5.3:** *"copyOf mezcla los datos"* → los datos son los mismos; lo que pierde es el **orden**.
+
+---
+
+#### ⚪ MENOR 6
+
+- **Nombres:** `hasmap`, `linke`. El enunciado usa `linked`: `hashMap`, `linked`, `tree` se leen mejor.
+- **Separadores** `---- T5 · Paso N ----` (regla 2): tampoco están en esta tarea. En la Parte A hay 4 mapas
+  impresos seguidos y no se sabe cuál es cuál. Es la tercera vez que te lo marco: a partir de la Tarea 6 lo cuento
+  como IMPORTANTE.
+- El comentario `// cambiar el copyOf..` no se entiende: bórralo o complétalo.
+- `String args[]` → `String[] args` (igual que en la Tarea 4).
+
+---
+
+**Para llegar a 10/10:**
+- [ ] datos exactos: `"2025-12"` (IMPORTANTE 3)
+- [ ] `espero` del `HashMap`: "orden impredecible" + entradas con su valor correcto (IMPORTANTE 2)
+- [ ] paso 4 con un `TreeMap` **nuevo**, `espero` escrito **antes** comparando de a pares (IMPORTANTE 1)
+- [x] paso 5: se queda en su lugar
+- [ ] P5.1 con el orden exacto y P5.2 separando valor / lugar (IMPORTANTE 4)
+- [ ] paso 7: 3 ejecuciones anotadas; `println` en el `catch`; `espero` + respuesta del paso 9 (MEJORABLE 5)
+- [x] P5.3 (`unmodifiableMap`). Agrega lo de la "ventana"
+- [ ] separadores por paso (MENOR 6)
 
 ---
 

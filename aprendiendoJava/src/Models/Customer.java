@@ -1,9 +1,10 @@
 package Models;
 
 import java.math.BigInteger;
+import java.util.Objects;
 
 public class Customer {
-    private BigInteger id;
+    private final BigInteger id;
     private String name;
     private String email;
 
@@ -32,6 +33,19 @@ public class Customer {
 
     public String getEmail() {
         return this.email;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public boolean equals(Object cus) {
+        if (cus instanceof Customer) {
+            return this.id.equals(((Customer) cus).getId());
+        }
+        return false;
     }
 
 }
