@@ -7,17 +7,17 @@ import java.util.*;
 public class Order {
     private final BigInteger id;
     private Customer customer;
-    private final List<OrderItem> orderItems;
+    private final Map<Product, OrderItem> orderItems;
 
     public Order(BigInteger id, Customer customer) {
         this.id = id;
         this.customer = customer;
-        orderItems = new ArrayList<>();
+        orderItems = new HashMap<>();
     }
 
     public BigDecimal getTotalPrice() {
         BigDecimal res = BigDecimal.ZERO;
-        for (OrderItem orderItem : orderItems) {
+        for (OrderItem orderItem : orderItems.values()) {
             res = res.add(orderItem.getSubTotalPrice());
         }
         return res;
@@ -25,12 +25,17 @@ public class Order {
 
     public boolean addItem(Product product, int quantity) {
         OrderItem orderItem = new OrderItem(product, quantity);
+        try {
+            this.orderItems.put(product, orderItem);
+        } catch (Exception e) {
+            return false;
+        }
 
-        return this.orderItems.add(orderItem);
+        return true;
     }
 
-    public List<OrderItem> getItems() {
-        return List.copyOf(orderItems);// es que a este es al que entiendo mejor ademas que no se como usar el otro.
+    public Map<Product, OrderItem> getItems() {
+        return Collections.unmodifiableMap(orderItems);
     }
 
     public int getItemCount() {
@@ -39,18 +44,19 @@ public class Order {
 
     public int getTotalUnits() {
         int totalQuantity = 0;
-        for (OrderItem item : orderItems) {
+        for (OrderItem item : orderItems.values()) {
             totalQuantity += item.getQuantity();
         }
         return totalQuantity;
     }
 
-    public boolean removeItem(int index) {
-        if (index > orderItems.size() - 1 || index < 0) {
+    public boolean removeItem(Product product) {
+        try {
+            OrderItem removed = orderItems.remove(product);
+            return removed != null ? true : false;
+        } catch (Exception e) {
             return false;
         }
-        orderItems.remove(index);
-        return true;
     }
 
     public boolean isEmpty() {
@@ -59,7 +65,7 @@ public class Order {
 
     public Set<Product> getDistinctProduct() {
         Set<Product> products = new LinkedHashSet<>();
-        for (OrderItem item : orderItems) {
+        for (OrderItem item : orderItems.values()) {
             products.add(item.getProduct());
         }
         return Collections.unmodifiableSet(products);
@@ -67,6 +73,11 @@ public class Order {
 
     public Customer getCustomer() {
         return customer;
+    }
+
+    @Override
+    public String toString(){
+        return id+" = "+customer.toString()+" "+orderItems.toString();
     }
     /**
      * 1: bueno estoy sacando todos los productos en un for-each, almacenando dentro de un linkedHashSet ya que almacena en el orden de insercion ademas que solo esta insertando solo productos distintos.

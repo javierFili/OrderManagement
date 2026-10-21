@@ -31,12 +31,14 @@ public class MapOrderLab {
 
         printl(treemap);
         // espero:{2025-10=75, 2026-01=33, 2026-03=40, 2026-10=12} ✅
-
-        treemap.put("2026-3", 40);
-        treemap.put("2025-10", 75);
-        treemap.put("2026-10", 12);
-        treemap.put("2026-1", 33);
+        printl("------T4----");
+        Map<String,Integer> treemap2 = new TreeMap<>();
+        treemap2.put("2026-3", 40);
+        treemap2.put("2025-12", 75);
+        treemap2.put("2026-10", 12);
+        treemap2.put("2026-1", 33);
         printl(treemap);
+        // espero:{2025-10=75, 2026-01=33, 2026-03=40, 2026-10=12} ✅
 
         printl(linke.put("2026-03", 41));
         // espero: 40, se qieda en su lugar, porque tendria que moverse? es acaso nuevo?✅
@@ -60,7 +62,7 @@ public class MapOrderLab {
         }
         linke.put("2026-11",5);
         printl(soloLectura);
-        // {2026-03=41, 2025-10=75, 2026-10=12, 2026-01=33, 2026-11=5}
+        //espero:  {2026-03=41, 2025-10=75, 2026-10=12, 2026-01=33, 2026-11=5}✅
     }
 
     public static void printl(Object... o) {

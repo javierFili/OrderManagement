@@ -1963,6 +1963,165 @@ reinserción en `LinkedHashMap`).
 - [ ] tabla antes/después: **el total no cambia**
 - [ ] P6.1–P6.5
 
+> ## 🔍 REVISIÓN TAREA 6 — 2026-10-21 · **4/10** · 🔁 falta el corazón (`addItem`) y las fotos
+> Historial: **v1 4/10**. Revisado ejecutando tu `Main` con Java 21. Para tener la FOTO ANTES que falta, ejecuté
+> aparte el `Order` del último commit (con `List`) y `laptop2` a `"1000"`.
+
+**✅ Ya está bien:** el **esqueleto del refactor está hecho**. Cambiaste el campo a `Map<Product, OrderItem>`;
+`getTotalPrice()` y `getTotalUnits()` recorren `values()` (justo la vista correcta, §5); `getItemCount()` e
+`isEmpty()` con cambio mínimo; y en `removeItem` usaste **lo que devuelve `remove` comparado con `null`**, que era
+la pista del paso 10. También hiciste el paso 1 (`laptop2` a `"1000"`), y el `toString()` de `Order` y `Customer`
+es una buena idea para depurar.
+
+**El problema en una línea:** el total era **6186** y ahora es **2086**. Se perdieron 4000 = `Laptop x4`.
+Un refactor que cambia el total no es un refactor: es un bug (lo dice el 🧠 del inicio de la tarea).
+
+| Paso | Pedido | Lo que hiciste | ¿ok? |
+|------|--------|----------------|------|
+| 0 FOTO ANTES | salida copiada antes de tocar `Order` | no está | ❌ (IMPORTANTE 3) |
+| 1 `laptop2` → `"1000"` | `"1000"` | `"1000"` | ✅ |
+| 4 implementación | la que conserva el orden de inserción | `HashMap` | ❌ (IMPORTANTE 2) |
+| 6 `addItem` | receta de acumular, `void` | solo `put` → reemplaza; sigue `boolean` + `try/catch` | ❌ (CRÍTICO 1) |
+| 7 totales con `values()` | sí | sí | ✅ |
+| 8 `getItems()` | sigue devolviendo `List` | devuelve `Map` → tuviste que cambiar `Main` | ❌ (IMPORTANTE 4) |
+| 9 `getItemCount` / `isEmpty` | cambio mínimo | igual | ✅ |
+| 10 `removeItem(Product)` | `remove` + `null`; en `Main` con `mouse` | idea ✅; en `Main` usaste `coursePython` | 🟡 (IMPORTANTE 4) |
+| 11 `getDistinctProduct()` | una línea, sin `for` | sigue el `for` | ❌ (MEJORABLE 5) |
+| 12 FOTO DESPUÉS + tabla | sí | no está | ❌ (IMPORTANTE 3) |
+| P6.1–P6.5 | respondidas | no están (los comentarios del final son de la L02) | ❌ |
+
+---
+
+#### ❌ CRÍTICO 1 — `addItem` no acumula: **reemplaza**
+
+**Qué pasa:** tu `addItem` hace siempre `put(product, new OrderItem(product, quantity))`. Sigue lo que ocurre
+con la laptop:
+
+| Llamada | Lo que hay en el mapa para id=1 |
+|---------|--------------------------------|
+| `addItem(laptop, 3)` | `Laptop x3` |
+| `addItem(laptop, 1)` | `Laptop x1` ← el `x3` desapareció |
+| `addItem(laptop2, 1)` | `laptop2 x1` ← el `x1` desapareció |
+
+Por eso tu salida muestra `[Product{id=1, name='laptop2' ...`: la línea quedó con **el producto que llegó al
+final** (justo lo que el ⚠️ del paso 6 pedía evitar).
+
+**Teoría:** es el **concepto A** de la revisión de la teoría: `put` sobre una clave que ya existe **reemplaza el
+valor**, no suma. Para sumar necesitas la **receta de acumular** (§6.1, la misma de la Tarea 3 Parte B):
+*leer lo viejo → calcular lo nuevo → guardar*.
+
+**Ejemplo (otros datos, un carrito de frutas con `Map<String, Integer>`):**
+```
+carrito.put("manzana", 2);
+carrito.put("manzana", 5);          // ahora vale 5, NO 7  ← esto hace tu addItem
+
+Integer vieja = carrito.get("pera");   // null → no había
+// si es null: put("pera", 4)
+// si no es null: put("pera", vieja + 4)
+```
+En tu caso el "valor" no es un `Integer` sino un `OrderItem`, así que el `vieja + 4` es: **un `OrderItem` nuevo**
+con `existente.getProduct()` y `existente.getQuantity() + quantity`.
+
+**Qué hacer:** reescribe `addItem` siguiendo los 4 guiones del paso 6, en este orden: `get` → `if (... == null)`
+→ `put` nuevo / `put` con la suma. Cambia el retorno a `void` y **quita el `try/catch`** (ver abajo).
+
+> **Sobre los `try/catch` de `addItem` y `removeItem`:** `put` y `remove` de un `HashMap` no lanzan excepciones
+> con estos datos. Además, en `addItem` el `new OrderItem(...)` (lo único que **sí** puede lanzar) está **fuera**
+> del `try`, así que ese `catch` nunca atrapa nada. Un `try/catch` que no puede ocurrir solo confunde al que lee.
+> Y `removed != null ? true : false` es lo mismo que `removed != null` (ya es un `boolean`).
+
+---
+
+#### 🟠 IMPORTANTE 2 — `HashMap`: las líneas salen en otro orden
+
+**Qué pasa:** agregaste `Laptop, Java Course, netflix, Consultoria, Keyboard, Python`, y tu `Main` imprime
+`Laptop, Keyboard, Java Course, Python Course, netflix, Consultoria`. El cliente ve su pedido desordenado.
+
+**Teoría:** §8. Es la pregunta del paso 4: *¿las líneas deben salir en el orden en que el cliente las agregó?* →
+sí → la implementación que **recuerda el orden de inserción**. Es la misma que ya elegiste en la Tarea 5 para
+`linked`.
+
+**Qué hacer:** cambia la implementación en el constructor (solo el `new ...<>()`; el tipo del campo sigue siendo
+`Map`). Después contesta P6.1.
+
+---
+
+#### 🟠 IMPORTANTE 3 — Sin FOTO ANTES, FOTO DESPUÉS ni tabla: no tenías cómo ver el bug
+
+**Qué pasa:** el paso 0 existe justo para esto. Si hubieras tenido la foto, al ver `2086` contra `6186` habrías
+encontrado el CRÍTICO 1 tú solo. Te dejo la foto antes (ejecutada con el `Order` del último commit):
+
+```
+// FOTO ANTES (Order con List, laptop2 a "1000"):
+// 4186
+// Laptop x3 1000 3000
+// Java Course x4 100 400
+// netflixSubscription x2 100 200
+// Consultoria de casas x2 123 246
+// Keyboard x3 80 240
+// Python Course x1 100 100
+// Total: 4186
+// UnsupportedOperationException
+// ---------------Tarea 6
+// 8
+// 6
+// [Product{id=1, name='Laptop' ...}, ... , Product{id=5, name='Python Course' ...}]
+// [ ...lo mismo... ]
+// java.lang.UnsupportedOperationException
+// 6186
+```
+
+**Qué hacer:** pega esa foto en `Main`. Cuando arregles todo, copia tu salida como `// FOTO DESPUÉS:` y llena la
+tabla del paso 12. El **6186** final tiene que coincidir.
+
+---
+
+#### 🟠 IMPORTANTE 4 — Cambiaste `Main` más de lo permitido
+
+**Qué pasa:** la restricción dice que `Main` solo cambia en los pasos 1, 2 y 10. Cambiaste además:
+- `order.getItems().values()` → porque `getItems()` ahora devuelve `Map`. El paso 8 pide que **siga devolviendo
+  `List<OrderItem>`**: por fuera nadie tiene que enterarse de que por dentro hay un `Map` (eso es encapsular).
+- Comentaste `order.getItems().add(ordI)`: con la `List` inmodificable vuelve a compilar y vuelve a imprimir
+  `UnsupportedOperationException`, como en la foto antes.
+- `removeItem(coursePython)` en vez de `removeItem(mouse)`: borrar el curso **cambia el total** (−100) y las líneas,
+  así que ya no puedes comparar con la foto. El `mouse` no está en el pedido → debe devolver `false` sin tocar nada.
+
+**Qué hacer:** `getItems()` → construye la `List` a partir de `orderItems.values()` con `List.copyOf` (paso 8) y
+deshaz esos tres cambios de `Main` (deja `removeItem(mouse)`; el `println` de lo que devuelve puedes dejarlo,
+está bien para ver el `false`).
+
+---
+
+#### 🟡 MEJORABLE 5 — `getDistinctProduct()` todavía tiene el `for`
+
+**Qué pasa:** funciona, pero recorre los valores para sacar productos que el mapa **ya tiene** guardados como
+claves. Además, como sacas `item.getProduct()`, hoy devuelve `laptop2` (consecuencia del CRÍTICO 1).
+
+**Pista:** ¿qué vista de §5 te da **solo las claves**? ¿Qué tipo devuelve? Envuélvela con lo mismo que ya usas en
+el `return` actual. Una línea. Conserva el orden **si** arreglaste el IMPORTANTE 2.
+
+---
+
+#### ⚪ MENOR 6
+
+- **Separadores** `---- T6 · Paso N ----`: no están (te avisé en la T5 que desde aquí contaba como IMPORTANTE;
+  lo dejo en MENOR porque hay cosas más urgentes arriba).
+- Los `espero` de la sección "Tarea 6" de `Main` son de la L02 (8 / 7): actualízalos a lo que esperas **ahora**.
+  Ojo: con el `Map`, `getItemCount()` ya no debería dar 8.
+- `import java.util.*` ok; `BigInteger` en `Order` sí se usa (el `id`).
+
+---
+
+**Para llegar a 10/10:**
+- [ ] FOTO ANTES pegada en `Main` (IMPORTANTE 3)
+- [ ] implementación que conserva el orden + P6.1 (IMPORTANTE 2)
+- [ ] `addItem` con la receta de acumular, `void`, sin `try/catch`, usando `existente.getProduct()` (CRÍTICO 1)
+- [ ] `getItems()` devuelve `List` inmodificable; `Main` con `getItems()` sin `.values()`, `add(ordI)` y `removeItem(mouse)` (IMPORTANTE 4)
+- [ ] `removeItem`: sin `try/catch` ni `? true : false`
+- [ ] `getDistinctProduct()` en una línea (MEJORABLE 5)
+- [ ] FOTO DESPUÉS + tabla del paso 12 → **total 6186**
+- [ ] P6.1–P6.5
+
 ---
 
 ## 14. Qué entregar

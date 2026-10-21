@@ -31,7 +31,7 @@ public class Main {
 
         System.out.println(order.getTotalPrice());
 
-        for (OrderItem item : order.getItems()) {
+        for (OrderItem item : order.getItems().values()) {
             String print = item.getProduct().getName() + " " + "x" + item.getQuantity() + " " + item.getProduct().getPrice() + " " + item.getSubTotalPrice();
             System.out.println(print);
         }
@@ -39,14 +39,15 @@ public class Main {
 
         try {
             OrderItem ordI = new OrderItem(mouse, 3);
-            order.getItems().add(ordI);
+            //order.getItems().add(ordI);
         } catch (Exception e) {
             System.out.println(e.getClass().getSimpleName());
         }
 
         try {
             order.getItems();
-            order.removeItem(99);
+            System.out.print(order.removeItem(coursePython));
+            System.out.println(order);
         } catch (Exception e) {
             System.out.println(e.getClass().getSimpleName());
         }
@@ -56,7 +57,7 @@ public class Main {
         System.out.println("---------------Tarea 6");
 
         order.addItem(laptop,1);
-        Product laptop2 = new PhysicalProduct(new BigInteger("1"),"laptop2",new BigDecimal("32.4"),new BigDecimal("3.4"));
+        Product laptop2 = new PhysicalProduct(new BigInteger("1"),"laptop2",new BigDecimal("1000"),new BigDecimal("3.4"));
         order.addItem(laptop2,1);
 
         System.out.println(order.getItemCount());

@@ -16,7 +16,7 @@
 | 3. Acumular (contar + sumar) | `SalesCounterLab` | 🟠 v1 7/10: Parte B (falta `Pendrive x3`), escala `BigDecimal`, P3.1 |
 | 4. Claves objeto `Customer` + colisión (deuda L02 T3) | `CustomerSpendingLab` + `Customer` | 🟠 v1 8/10 (2026-10-19): `porque` de `Objects.hash` = 62, P4.3 (*cajón*, *colisión*), P4.2, `this == o` |
 | 5. Orden (`TreeMap` con texto, reinserción) + getters | `MapOrderLab` | 🔁 v1 6/10 (2026-10-19): paso 4 sin `TreeMap` nuevo ni `espero`, ✅ sin comparar en `HashMap`, datos `2025-10`, P5.2 (valor vs lugar) |
-| 6. `Order` con `Map<Product, OrderItem>` | `Order` + `Main` | pendiente |
+| 6. `Order` con `Map<Product, OrderItem>` | `Order` + `Main` | 🔁 v1 4/10 (2026-10-21): `addItem` reemplaza en vez de acumular (total 6186 → 2086), `HashMap`, `getItems()` devuelve `Map`, sin fotos ni P6 |
 
 El alumno pidió (2026-10-08) que lo trate como alguien que **no sabe** el tema: lecciones muy explicativas, con
 ejemplos, para llegar a 10/10. Mantener ese nivel.
@@ -44,6 +44,19 @@ ejemplos, para llegar a 10/10. Mantener ese nivel.
 Detalle en los bloques 🔍 REVISIÓN de `docs/lessons/01-list-arraylist.md`.
 
 ---
+
+## 2026-10-21 — Revisión Tarea 6 (L03)
+
+### Bien hecho
+* campo `Map<Product, OrderItem>`; totales con `values()`; `removeItem` usa lo que devuelve `remove` vs `null`
+* `laptop2` a `"1000"`; `toString` en `Order`/`Customer` para depurar
+
+### Errores detectados
+* **concepto A otra vez:** `addItem` hace solo `put` → reemplaza la línea (Laptop x3 → x1 → laptop2 x1). No aplicó la receta de acumular
+* `HashMap` en vez de la implementación con orden de inserción
+* `getItems()` cambió a `Map` → modificó `Main` (rompe la restricción); `removeItem(coursePython)` en vez de `mouse`
+* `try/catch` que no pueden ocurrir; `? true : false`; `getDistinctProduct()` aún con `for`
+* sin FOTO ANTES/DESPUÉS ni P6.1–P6.5 (por eso no vio que el total cambió)
 
 ## 2026-10-15 — Revisión teoría L03 + tareas publicadas
 
