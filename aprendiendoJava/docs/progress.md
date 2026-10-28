@@ -1,22 +1,42 @@
 # Progreso — Java Learning Lab
 
-> Plan completo (26 semanas, 28 sep 2026 → 28 mar 2027): `docs/roadmap.md` · **Semana actual: 3** (al día)
+> Plan completo (26 semanas, 28 sep 2026 → 28 mar 2027): `docs/roadmap.md` · **Semana actual: 5** (1 semana de atraso: en lección 04)
 
 ## ▶ TAREA EN CURSO (retomar aquí)
 
-**Tema:** `Map` (semana 3). Lección: `docs/lessons/03-map.md`.
-**Estado:** teoría revisada (v1 7/10, autoevaluación 5,5/10) y **tareas 0–6 publicadas** el 2026-10-15
-→ **siguiente:** revisar Tarea 0 (cerrar teoría: 🧪 §6 votos, 🧪 §7 con `laptop1`, autoevaluación 1/5/6/8) y seguir en orden.
+**Tema:** Ordenar: `Comparable` / `Comparator` (semana 4). Lección: `docs/lessons/04-ordenar-comparable-comparator.md`.
+**Estado:** lección completa publicada el 2026-10-27 (teoría secciones 0 a 13 + tareas 1–6, todo ejecutado en Java 21)
+→ **siguiente:** el alumno lee la teoría, hace los 🧪 en `SortPlayground` y la autoevaluación sección 13; después Tarea 1.
 
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
+| Teoría + autoevaluación | `SortPlayground` | pendiente |
+| 1. Ordenar `String`/números/`BigDecimal`, `void`, inmutables | `SortBasics` | pendiente |
+| 2. `Product implements Comparable` (por id) | `Product`, `ComparableLab` | pendiente |
+| 3. `ProductPrice/NameComparator`, `reversed`, `thenComparing`, estabilidad | `Models/comparators/*`, `ComparatorLab` | pendiente |
+| 4. Trampa `TreeSet`/`TreeMap` con empates | `TreeTrapLab` | pendiente |
+| 5. Orden por tipo (`instanceof`) + ranking de `Map` por valor | `ProductTypeComparator`, `SalesEntryComparator`, `RankingLab` | pendiente |
+| 6. Entregable `Catalog` (copias ordenadas no modificables) | `Models/Catalog`, `CatalogMain` | pendiente |
+
+**Atraso:** hoy (2026-10-27) es la semana 5 del roadmap; vamos 1 semana atrasados (la lección 04 era del 19 oct).
+
+### Lección 03 (`Map`): hecha en la laptop del alumno, sin subir
+
+El 2026-10-27 el alumno dijo que terminó la lección 03 en su laptop pero no la subió a GitHub, y quiso avanzar.
+**Cuando la suba:** revisar las tareas 3–6 (últimas notas: T3 7/10, T4 8/10, T5 6/10, T6 4/10 — ver tabla).
+
+| Tarea L03 | Archivo | Último estado revisado |
+|-----------|---------|------------------------|
 | 0. Cerrar teoría | `MapPlayground` | pendiente |
-| 1. Operaciones básicas (`BigDecimal`) | `MapBasics` | ✅ v1 9/10 |
+| 1. Operaciones básicas | `MapBasics` | ✅ v1 9/10 |
 | 2. Recorrer | `MapBasics` | ✅ v1 8/10 |
-| 3. Acumular (contar + sumar) | `SalesCounterLab` | 🟠 v1 7/10: Parte B (falta `Pendrive x3`), escala `BigDecimal`, P3.1 |
-| 4. Claves objeto `Customer` + colisión (deuda L02 T3) | `CustomerSpendingLab` + `Customer` | 🟠 v1 8/10 (2026-10-19): `porque` de `Objects.hash` = 62, P4.3 (*cajón*, *colisión*), P4.2, `this == o` |
-| 5. Orden (`TreeMap` con texto, reinserción) + getters | `MapOrderLab` | 🔁 v1 6/10 (2026-10-19): paso 4 sin `TreeMap` nuevo ni `espero`, ✅ sin comparar en `HashMap`, datos `2025-10`, P5.2 (valor vs lugar) |
-| 6. `Order` con `Map<Product, OrderItem>` | `Order` + `Main` | 🔁 v1 4/10 (2026-10-21): `addItem` reemplaza en vez de acumular (total 6186 → 2086), `HashMap`, `getItems()` devuelve `Map`, sin fotos ni P6 |
+| 3. Acumular | `SalesCounterLab` | 🟠 v1 7/10: Parte B (falta `Pendrive x3`), escala `BigDecimal`, P3.1 |
+| 4. Claves objeto `Customer` + colisión | `CustomerSpendingLab` + `Customer` | 🟠 v1 8/10: `porque` de `Objects.hash` = 62, P4.3, P4.2, `this == o` |
+| 5. Orden `TreeMap` | `MapOrderLab` | 🔁 v1 6/10: paso 4 sin `TreeMap` nuevo ni `espero`, P5.2 |
+| 6. `Order` con `Map<Product, OrderItem>` | `Order` + `Main` | 🔁 v1 4/10: `addItem` reemplaza en vez de acumular, `HashMap`, `getItems()` |
+
+Conceptos de L03 que reaparecen en L04: receta de acumular (T5 Parte B), `TreeMap` por clave (T5 paso 9,
+Sección 9), `unmodifiable` vs copia (T6), escala `BigDecimal` (T1 paso 7, T4 paso 4), `compareTo > 0` (sección 4).
 
 El alumno pidió (2026-10-08) que lo trate como alguien que **no sabe** el tema: lecciones muy explicativas, con
 ejemplos, para llegar a 10/10. Mantener ese nivel.
@@ -26,7 +46,7 @@ ejemplos, para llegar a 10/10. Mantener ese nivel.
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
 | 0–2 | `SetBasics`, `EqualsHashCodeLab`, `Product` | ✅ / 🟡 8/10 (detalles menores) |
-| 3. `hashCode` | `HashSpyLab` | ⏭ saltada; la colisión se re-explica en L03 §0.3 y §7.3 |
+| 3. `hashCode` | `HashSpyLab` | ⏭ saltada; la colisión se re-explica en L03 secciones 0.3 y 7.3 |
 | 4. `getClass` vs `instanceof` | `EqualityTypeLab` | 🟡 v2 7/10: mini-tareas **4.A** (ronda getClass real → `size` 2) y **4.B** (simetría, P4.2) |
 | 5. `HashSet`/`LinkedHashSet`/`TreeSet` | `SetOrderLab` | 🟡 v1 7/10: paso 4 `List`, P5.3 (`HashSet` por defecto), comentario paso 5 |
 | 6. `Order.getDistinctProduct()` | `Order` + `Main` | ✅ v4 8/10 (2026-10-12, ya usa `unmodifiableSet`) |
@@ -61,13 +81,13 @@ Detalle en los bloques 🔍 REVISIÓN de `docs/lessons/01-list-arraylist.md`.
 ## 2026-10-15 — Revisión teoría L03 + tareas publicadas
 
 ### Bien hecho
-* 🧪 §4 y §5: **todas las predicciones correctas** (put → null/30, NPE por unboxing, orden de LinkedHashMap, suma 101)
-* autoevaluación 2, 4, 9 correctas; §8 y §9-1 bien
+* 🧪 secciones 4 y 5: **todas las predicciones correctas** (put → null/30, NPE por unboxing, orden de LinkedHashMap, suma 101)
+* autoevaluación 2, 4, 9 correctas; secciones 8 y 9-1 bien
 
 ### Errores detectados
 * `size`/`get` invertidos tras dos `put` a la misma clave (cree que size 2, get 1)
-* 🧪 §6 (acumular) sin hacer; autoevaluación 5 vacía y 6 a medias → no tiene la receta de acumular
-* 🧪 §7 usó el mismo objeto dos veces (experimento sin la variable a probar, como L01 T5); cree que `put` devuelve la clave
+* 🧪 sección 6 (acumular) sin hacer; autoevaluación 5 vacía y 6 a medias → no tiene la receta de acumular
+* 🧪 sección 7 usó el mismo objeto dos veces (experimento sin la variable a probar, como L01 T5); cree que `put` devuelve la clave
 * autoevaluación 8 (colisión) vacía → la deuda de L02 T3 persiste → Tarea 4 Ronda 3
 * `Map.of` con clave duplicada: cree que "mezcla" (lanza IAE); `imprimir(Objects o)` confunde `Objects` con `Object`
 * git: `.class` de `out/production/` versionados (pendiente `git rm --cached`, con el alumno)
