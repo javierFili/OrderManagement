@@ -1,10 +1,12 @@
 package practical.sorting;
 
+import Models.Customer;
+import com.sun.source.tree.Tree;
+
+import javax.swing.text.html.CSS;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.math.BigInteger;
+import java.util.*;
 
 public class SortPlayground {
     public static void main(String args[]) {
@@ -50,6 +52,68 @@ public class SortPlayground {
         // espero:igual✅
         print(new BigDecimal("5.00").equals(new BigDecimal("5")));
         // espero:false✅
+        //leccion 5
+        try {
+            Customer customer1 = new Customer(new BigInteger("1"), "Javier", "javierfiligranaagreda@gmail.com");
+            Customer customer2 = new Customer(new BigInteger("2"), "Daniel", "danielsalamanca@gmail.com");
+            Set<Customer> setCustomer = new TreeSet<>();
+            print("no");
+            setCustomer.add(customer1);
+            print("no1");
+            setCustomer.add(customer2);
+            print("no2");
+            // Collections.sort(setCustomer);
+            // Required type:
+            //List
+            //<T>
+            //Provided:
+            //Set
+            //<Customer>
+            //reason: no instance(s) of type variable(s) T exist so that Set<Customer> conforms to List<T>
+
+        } catch (ClassCastException classCastException) {
+            print(classCastException.getMessage());
+            // espero: entra pero por en el primer add.✅
+        }
+        //  6:Comparator:
+        Customer mario = new Customer(new BigInteger("1"), "mario", "lkasjdf@mgial.com");
+        Customer andrea = new Customer(new BigInteger("2"), "Andrea", "aklsdjf@gmail.com");
+        Customer luz = new Customer(new BigInteger("3"), "Luz", "kalsjdf@gmail.com");
+        List<Customer> listCustoms = new ArrayList<>();
+        listCustoms.add(mario);
+        listCustoms.add(andrea);
+        listCustoms.add(luz);
+        listCustoms.sort(new CustomerNameComparator());
+        for (Customer cus:listCustoms){
+            print(cus);
+        }
+        // espero: Andrea,Luz, mario ✅
+        print(Collections.max(listCustoms,new CustomerNameComparator()).getName());
+        // espero: Andrea ✅
+        // real: mario
+        // por que: bueno en realidad mario es mayor que Andrea, fue una confusion mia.
+
+        // tema 7: reversed,thenComparing
+        Customer andrea1 = new Customer(new BigInteger("4"), "andrea", "aklsdjfed@gmail.com");
+        listCustoms.add(andrea1);
+        listCustoms.sort(new CustomerNameComparator());
+        for (Customer cus:listCustoms){
+            print(cus);
+        }
+        // espero: Andrea,andrea,Luz,mario✅
+        listCustoms.sort(new CustomerNameComparator().reversed());
+        print("a--------");
+        for (Customer cus:listCustoms){
+            print(cus);
+        }
+        // espero: mario,Luz,andrea,Andrea
+        // real: mario,Luz,Andrea,andrea
+
+        // tema 8: La trampa: TreeSet, TreeMap.
+
+        // tema 9: Ordenar un map
+
+
 
     }
 
@@ -66,4 +130,41 @@ public class SortPlayground {
  * R: por uqe es una lista no modificable.
  * Ordenas ["b", "B", "a"] con Collections.sort. ¿Qué sale?
  * R: sale: [B,a,b]
+ */
+
+/**
+ * ¿Cuántos órdenes naturales puede tener una clase?
+ * R: Solo deberia tener un solo orden natural, el cual sea unico para no intervenir o chocar con otros.
+ * ¿Por qué el orden natural de Product debería ser el id y no el precio?
+ * R: Por que el id si viene de la bd seria unico, mientras el precio puede repetirse en otros productos lo cual haria que se pierdan productos una vez choquen
+ * Escribiste compareTo en tu clase pero TreeSet sigue lanzando ClassCastException. ¿Qué falta?
+ * R: implements Comparable<MiClase>
+ */
+
+/***
+ * ¿Qué diferencia hay entre compareTo(otro) y compare(a, b)?
+ * R: el compareTo se lo pone dentro de una clase y es unico, mientras que compare(a,b) es para comparar dos elementos entre si, ademas que se puede poner en las clases que se desea, crearla en si
+ * ¿Qué le pasas a lista.sort(...) para ordenar por salario: la clase PorSalario o un objeto?
+ * R: se le pasa la clase Porsalario que implementa compare<...
+ * ¿Collections.max(lista, comp) deja la lista ordenada?
+ * R: no,no la ordena, solo la recorre.
+ */
+
+
+/**
+ * ¿Qué hace thenComparing si el primer comparador no da 0?
+ * R: no hace nada, solo interviene cuando hay empate.
+ * Dos productos con el mismo precio, sin desempate. ¿En qué orden quedan?
+ * R: en el orden natural, es decir el primero que llego, si hay empate no se re-ordenan.
+ * ¿Hace falta escribir una clase PorSalarioDescendente?
+ * R: No,no hace falta ya que existe el reversed.
+ */
+
+/**
+ * Un TreeSet<Product> con un comparador por precio. Agregas dos productos distintos que cuestan 49.00. ¿size?
+ * R: solo 1
+ * ¿Por qué con List.sort el mismo comparador no "pierde" nada?
+ * R: por que usa solo el compareTo
+ * ¿Qué le agregas al comparador para que el TreeSet no pierda elementos?
+ * R: avisarle que tambien use el orden natural thenComparing(Comparator.naturalOrder())
  */
