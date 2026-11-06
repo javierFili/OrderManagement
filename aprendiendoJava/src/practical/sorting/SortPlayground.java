@@ -168,3 +168,26 @@ public class SortPlayground {
  * ¿Qué le agregas al comparador para que el TreeSet no pierda elementos?
  * R: avisarle que tambien use el orden natural thenComparing(Comparator.naturalOrder())
  */
+
+/***
+ * ¿Qué devuelve lista.sort(null)? ¿Qué le pasa a lista?
+ * R: no devuelve nada
+ * ¿Por qué falla List.of(2, 1).sort(null) y cómo ordenas esos datos sin que falle?
+ * R: por que es una lista que nose puede modificar, tendria que ir agregand ouno a uno cada dato
+ * a.compareTo(b) da -24. ¿Quién va primero? ¿Por qué no se compara con == -1?
+ * R: va el a primero, nose comprara con ==-1 por que estariamos diciendo que todos los a.compareTo(b) da -1,0,1 pero no es cierto.
+ * ¿Por qué no se escribe return a - b; en un comparador de int?
+ * R: por que se puede salir el rango, a podria ser mayor a lo que contiene int y pues daria valores inciertos.
+ * Diferencia entre Comparable y Comparator: dónde se escribe cada uno y cuántos puede haber.
+ * R: El comparable es para una sola clase especifica, se usa para compararla, mientras que el comparator no, se puede tener varias, podriamos ordernar de una o otra forma dependiendo como esta la clase que implemneta ese comparator.
+ * ¿Qué elegirías como orden natural de Product y por qué?
+ * R: el orden natural deberia ser como viene nomas, es decir por el id y al primero que llego por que de esa forma tambien vendra de la bd, aunque personalmente me traeria product ya ordenado
+ * ¿Qué hace new PorPrecio().reversed().thenComparing(new PorNombre()), en palabras?
+ * R: obtiene el reverso de PorPrecio si hubiera un empate toma en cuenta el nombre.
+ * Dos elementos empatan en un List.sort. ¿En qué orden quedan?
+ * R: en el orden natural.
+ * Un TreeSet con un comparador por precio, y dos productos distintos con el mismo precio: ¿qué pasa? ¿Cómo lo arreglas?
+ * R: no se puede ordenar, se arregla sacando a una lista ordenarla y ponerla de nuevo.
+ * ¿Cómo muestras un Map<String, Integer> ordenado por valor, de mayor a menor?
+ * R: saco a una lista y la ordeno ahi.
+ */

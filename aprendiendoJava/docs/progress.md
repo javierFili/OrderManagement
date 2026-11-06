@@ -10,7 +10,7 @@
 
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
-| Teoría + autoevaluación | `SortPlayground` | pendiente |
+| Teoría + autoevaluación | `SortPlayground` | 🔁 v1 5,5/10 (2026-11-06): 🧪 3–7 ✅; 🧪 8–9 vacíos; ❌ P8 (confunde *orden natural* con *estable*), P9 (cree que `TreeSet` "no ordena"; en sección 8 lo tenía bien); ½ en 1, 2, 5, 6, 10 (responde la mitad) |
 | 1. Ordenar `String`/números/`BigDecimal`, `void`, inmutables | `SortBasics` | pendiente |
 | 2. `Product implements Comparable` (por id) | `Product`, `ComparableLab` | pendiente |
 | 3. `ProductPrice/NameComparator`, `reversed`, `thenComparing`, estabilidad | `Models/comparators/*`, `ComparatorLab` | pendiente |

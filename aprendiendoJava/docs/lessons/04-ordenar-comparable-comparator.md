@@ -984,6 +984,107 @@ tareas. Si no, dime cuáles fallaste.
    arreglas?
 10. ¿Cómo muestras un `Map<String, Integer>` ordenado por valor, de mayor a menor?
 
+> ## 🔍 REVISIÓN AUTOEVALUACIÓN + 🧪 — 2026-11-06 · **5,5/10** · 🔁 repite 6 preguntas cortas antes de la Tarea 1
+> Historial: **v1 5,5/10**. Revisado leyendo `SortPlayground` y ejecutándolo con Java 21.
+
+**✅ Ya está bien:** los 🧪 de las secciones 3 a 7 están hechos, con `espero` y casi todos acertados. Escribiste tu
+propio `CustomerNameComparator` y usaste `reversed()`. Los `porque` de `"mesa".compareTo("silla")` y de
+`Collections.max` están bien. Y en los ✅ de la sección 8 respondiste **perfecto**: `size` 1 y
+`thenComparing(Comparator.naturalOrder())`. O sea, **ya lo sabías**: en la autoevaluación se te mezcló.
+
+| # | Tu respuesta | Nota | Qué falta |
+|---|--------------|------|-----------|
+| 1 | "no devuelve nada" | ½ | falta la segunda mitad: ¿qué le pasa a `lista`? |
+| 2 | no se puede modificar; "agregar uno a uno" | ½ | el **por qué** está bien; el **cómo** es la copia de la sección 3.5, en una línea |
+| 3 | `a` primero; solo importa el signo | ✅ 1 | |
+| 4 | se sale del rango | ✅ 1 | precisión: lo que se pasa del rango es **el resultado** de `a - b`, no `a` |
+| 5 | Comparable uno, Comparator varios | ½ | falta el **dónde**: ¿en qué clase se escribe cada uno y qué método tiene? |
+| 6 | por `id` | ½ | el `id` ✅, pero "el primero que llegó" no es orden natural (ver 8). Falta el **porqué** (sección 5.2) |
+| 7 | precio al revés; empate → nombre | ✅ 1 | agrega: el nombre **no** se invierte (A→Z) |
+| 8 | "en el orden natural" | ❌ 0 | ver IMPORTANTE 1 |
+| 9 | "no se puede ordenar; sacar a una lista" | ❌ 0 | ver IMPORTANTE 2 |
+| 10 | "saco a una lista y la ordeno" | ½ | ¿una lista **de qué**?, ¿con qué comparador?, ¿cómo logras "de mayor a menor"? |
+
+**Total: 5,5/10.** La regla de la sección 13 es 8/10 para pasar a las tareas.
+
+---
+
+#### 🟠 IMPORTANTE 1 — Pregunta 8: "orden natural" y "orden en que venían" **no son lo mismo**
+
+**Qué pasa:** en los ✅ de la sección 7 escribiste bien *"el primero que llegó"*. Aquí escribiste *"el orden
+natural"*. En Java son **dos cosas distintas**:
+
+| Nombre | Qué es | Quién lo decide |
+|--------|--------|-----------------|
+| **orden natural** | el de `compareTo` (`Comparable`) | la clase, ej. `Product` por `id` |
+| **orden de llegada** (estabilidad) | cómo estaban en la lista **antes** de ordenar | quien armó la lista |
+
+**En tu propio código está el ejemplo** (líneas 104–110): con `reversed()` esperabas `andrea, Andrea` y salió
+`Andrea, andrea`, y no escribiste el `porque`. El porqué es este: tu comparador usa `compareToIgnoreCase`, así
+que `"Andrea"` y `"andrea"` **empatan** (da 0). `reversed()` de un 0 sigue siendo 0, y en un empate `List.sort`
+**no los mueve**: quedan como venían. Andrea (id 2) venía antes, así que queda antes.
+Si fuera el orden natural de `Customer` (por id), habrías visto lo mismo **por casualidad**. Para que se vea la
+diferencia, la lista tendría que venir con id 4 antes que id 2.
+
+**Qué hacer:** escribe el `porque` en la línea 110 y vuelve a responder la 8 usando la palabra **estable**.
+
+---
+
+#### 🟠 IMPORTANTE 2 — Pregunta 9: el `TreeSet` sí ordena, pero **pierde** un producto
+
+**Qué pasa:** respondiste *"no se puede ordenar"*. El `TreeSet` ordena sin problema. Lo que pasa es que **descarta**
+uno de los dos productos. Ya lo habías escrito bien en la sección 8 (`size` 1, `thenComparing`).
+
+**Teoría (sección 8):** un `TreeSet` no usa `equals`. Si la comparación da `0`, cree que el elemento **ya está**
+y no lo agrega (`add` devuelve `false`).
+
+**Ejemplo (otros datos, comprobado):** un `TreeSet<String>` con un comparador **por largo del texto**:
+```
+add("sol") → true
+add("mar") → false   ← mismo largo (3) → "ya está"
+size → 1, contenido [sol]
+
+con el comparador por largo + thenComparing(Comparator.naturalOrder()):
+size → 2, contenido [mar, sol]   ← empate de largo: decide el orden alfabético
+```
+Sacarlo a una lista (tu respuesta) **evita** el problema, pero no lo **arregla**: el `TreeSet` sigue roto.
+
+**Qué hacer:** responde la 9 de nuevo en dos partes: *qué pasa* (con `add` y `size`) y *cómo se arregla* (con
+el comparador).
+
+---
+
+#### 🟡 MEJORABLE 3 — Respuestas a medias (1, 2, 5, 10)
+
+Las cuatro van bien encaminadas, pero dicen **la mitad**. La pregunta pide dos cosas y respondes una:
+- **1:** *"no devuelve nada **y** la lista ___"*.
+- **2:** *"agregar uno a uno"* funciona, pero es la receta de la sección 3.5 escrita a mano. Ejemplo con otros datos
+  (comprobado): `List.of(9, 4, 7)` → copia en un `ArrayList` nuevo → `sort(null)` → original `[9, 4, 7]`,
+  copia `[4, 7, 9]`. ¿Cómo se crea esa copia en **una** línea?
+- **5:** completa la tabla: `Comparable` → se escribe en ___, método ___, cuántos ___. `Comparator` → se escribe
+  en ___, método ___, cuántos ___.
+- **10:** los 3 pasos de la sección 9.2: *saco ___ a una `List`; la ordeno con un comparador que compara ___;
+  para que sea de mayor a menor ___; la recorro.*
+
+---
+
+#### ⚪ MENOR 4
+
+- Los 🧪 de las **secciones 8 y 9** están vacíos (líneas 112–114). La 9 y la 10 de la autoevaluación salen de ahí.
+  Haz los dos antes de volver a responder.
+- **Imports que sobran:** `com.sun.source.tree.Tree` y `javax.swing.text.html.CSS` los agregó IntelliJ solo.
+  Bórralos: no se usan, y `com.sun...` puede no existir en otro JDK.
+- Línea 37: el `espero` del `List.copyOf` habla de colores, pero la lista es `c, a, b`.
+- `String args[]` → `String[] args`.
+
+---
+
+**Para pasar a la Tarea 1 (8/10):**
+- [ ] 🧪 sección 8 y 🧪 sección 9 hechos en `SortPlayground`
+- [ ] `porque` de la línea 110 (empate + estable)
+- [ ] responder otra vez 1, 2, 5, 8, 9, 10 en un comentario nuevo `/** Autoevaluación v2 */` (no borres la v1)
+- [ ] borrar los dos imports que sobran
+
 ---
 
 ## 14. Tareas
