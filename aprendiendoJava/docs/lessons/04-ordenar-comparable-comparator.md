@@ -1,4 +1,4 @@
-# Lección 04 — Ordenar: `Comparable` y `Comparator`
+    # Lección 04 — Ordenar: `Comparable` y `Comparator`
 
 > Ruta: Fase 3 (Collections), semana 4 del roadmap.
 > Viene de: Lección 03 (`Map`). Prepara: Lección 05 (Java moderno) y, más adelante, Streams (`sorted`) y Spring
