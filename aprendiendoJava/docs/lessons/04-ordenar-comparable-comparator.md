@@ -1179,6 +1179,110 @@ ordenar una lista inmutable.
 - [ ] ✅ solo donde coincide letra por letra
 - [ ] P1.1–P1.3
 
+> ## 🔍 REVISIÓN TAREA 1 — 2026-11-14 · **7/10** · 🔁 faltan 5 arreglos cortos · Historial: v1 6 → v2 7
+
+**✅ Lo bueno:** el código compila y corre. Acertaste el orden con mayúsculas (paso 2), el `CASE_INSENSITIVE` con
+`Ébano` al final (paso 3), los números (paso 5) y los `BigDecimal` (paso 6: `0.50, 5, 5.00, 19.90, 100`). En el
+**código** del paso 7 pusiste bien HashSet `5` y TreeSet `4`. P1.1 está bien: `void`, no se asigna.
+
+**Salida real vs tu `espero`:**
+
+| Paso | Tu espero | Real | |
+|------|-----------|------|---|
+| 2 | `Bogotá, Cusco, Quito, asunción, lima, Ébano` | `[Bogotá, Cusco, Quito, asunción, lima, Ébano]` | ✅ |
+| 3 | `asuncion,bogota,cusco,lima,quito,ebano` | `[asunción, Bogotá, Cusco, lima, Quito, Ébano]` | ✅ (orden correcto) |
+| 4 | `Ébano,lima,asunción,`**`Cusco,Quito`**`,Bogotá` | `[Ébano, lima, asunción, `**`Quito, Cusco`**`, Bogotá]` | ❌ marcaste ✅ |
+| 5 | `0,4,4,15,33,120` (+ al revés) | `[0, 4, 4, 15, 33, 120]` — **no hiciste el "al revés"** | ½ |
+| 6 | `0.50,5,5.00,19.90,100` | `[0.50, 5, 5.00, 19.90, 100]` | ✅ |
+| 7 | `5` / `4` | `5` / `4` | ✅ (pero P1.2 dice lo contrario) |
+| 8 | tu explicación | falta el **error copiado** | ½ |
+| 9 | *(vacío)* ✅ | `no se puede ordenarnull` | ❌ ✅ sin espero |
+| 10 | `M,L,S,XL` (solo una lista) | `[L, M, S, XL]` — y `tallas` no se imprime | ❌ marcaste ✅ |
+
+---
+
+#### ❌ CRÍTICO 1 — P1.2 está al revés (y el porqué también)
+
+Tu código imprime HashSet **5** y TreeSet **4**, pero en P1.2 escribiste "HashSet 4 y TreeSet 5, porque HashSet usa
+hashcode y TreeSet usa hashcode y equals". El `TreeSet` **no usa `hashCode` ni `equals`**: usa `compareTo`.
+
+- `HashSet` → `equals` + `hashCode`. Para `BigDecimal`, `equals` mira la **escala**: `5` y `5.00` son **distintos** → quedan 5.
+- `TreeSet` → `compareTo`. `new BigDecimal("5").compareTo(new BigDecimal("5.00"))` da **0** → son "el mismo" → quedan 4.
+
+Es exactamente lo de la sección 4.1 (regla 3: `BigDecimal` **no** es consistente con `equals`) y lo de la sección 8.
+**Profesionalmente:** si guardas montos en un `TreeSet`/`TreeMap` y en otro lado en un `HashSet`, te salen
+cantidades distintas. Es un bug real en código de pagos.
+
+> Frase correcta: *"HashSet tiene **5** y TreeSet tiene **4**, porque HashSet usa **`equals`/`hashCode` (que mira la
+> escala)** y TreeSet usa **`compareTo` (que no la mira)**."*
+
+#### 🟠 IMPORTANTE 2 — Tres ✅ que no coinciden (pasos 4, 9 y 10)
+
+- **Paso 4:** `reverseOrder()` invierte el orden **del paso 2**: `Bogotá, Cusco, Quito, …` al revés da
+  `…, Quito, Cusco, Bogotá`. Tú pusiste `Cusco, Quito`. Lo calculaste "a ojo" y no lo comparaste con la salida.
+- **Paso 10:** `"L" < "M" < "S" < "XL"` (orden alfabético letra por letra). Tú esperabas `M,L,S,XL`, que es el orden
+  de **tallas de ropa**, no el de `String`. Para tener ese orden haría falta un `Comparator` propio (Tarea 3).
+- **Paso 9:** `// espero:✅` sin nada escrito no vale. Regla 3: un ✅ equivocado cuenta más que un fallo honesto.
+
+#### 🟠 IMPORTANTE 3 — Paso 9: imprime `e`, no `e.getMessage()`
+
+El enunciado pide `"no se puede ordenar: " + e`. Tú pusiste `e.getMessage()` y sale `no se puede ordenarnull`
+(sin espacio, y con `null`). Las listas de `List.of` lanzan la excepción **sin mensaje**, así que `getMessage()`
+es `null`. Con `e` (comprobado):
+```
+no se puede ordenar: java.lang.UnsupportedOperationException
+```
+**Profesionalmente:** en un log, `getMessage()` solo puede salir `null`. Loguea la excepción completa (`e`), que
+incluye **la clase**, que es lo que te dice qué pasó.
+
+#### 🟡 MENOR 4 — Pasos que faltan
+
+- **Separadores:** pusiste `Parte A/B/C`; la regla 2 pide `---- T1 · Paso N ----` antes de cada paso.
+- **Paso 5:** falta ordenar `stock` al revés (`Comparator.reverseOrder()`) con su `espero`.
+- **Paso 6:** falta el porqué de `5` antes de `5.00`: `compareTo` da 0 (empate) y `sort` es **estable**, así que
+  quedan en el orden en que venían (sección 7.3).
+- **Paso 8:** copia el error tal cual. Con `javac` es:
+  `error: incompatible types: void cannot be converted to List<String>`
+- **Paso 10:** imprime **también** `tallas`: sigue `[M, S, XL, L]`, porque la copia no toca la original.
+- **P1.3:** la idea es correcta. Solo afina: ignora **la diferencia** entre mayúsculas y minúsculas (no "las
+  minúsculas"), pero no los acentos: `É` tiene un código mayor que cualquier letra sin acento.
+
+---
+
+**Para llegar a 10/10:**
+- [x] P1.2 corregida (5 / 4, `equals`+`hashCode` vs `compareTo`) — v2
+- [ ] pasos 4 y 10: `// real: … porque: …` y quita los ✅ — v2: ahora coinciden, pero falta el `porque`
+- [ ] paso 9: `"no se puede ordenar: " + e` con su `espero`
+- [ ] paso 5: el "al revés"
+- [ ] paso 8: el error copiado
+- [ ] paso 10: imprime `tallas` y `tallasOrdenadas`
+- [ ] separadores `---- T1 · Paso N ----`
+
+> **Tarea 2 (`ComparableLab`):** todavía está vacía (solo `main` y `print`) y `Product` aún no implementa
+> `Comparable`. No hay nada que revisar; empieza por el paso 1 **antes** de tocar `Product`.
+
+#### 🔁 v2 — 2026-11-14 · **7/10**
+
+Volví a ejecutar. Solo cambiaste **P1.2** y los `espero` de los **pasos 4 y 10**. El resto del archivo está igual.
+
+**✅ Arreglado:**
+- **P1.2:** ahora dice `5` / `4`, y que el `TreeSet` usa `compareTo`. Ese era el fallo importante y ya está.
+  (Si quieres afinarla: `HashSet` usa `hashCode` **y `equals`**, y es `equals` el que mira la escala.)
+- **Pasos 4 y 10:** ahora coinciden con la salida. Pero **borraste tu `espero` original y escribiste encima el
+  resultado**. La regla 2 pide dejar el `espero` y agregar `// real: … porque: …`. El fallo es lo que sirve
+  para aprender: el `porque` del paso 10 (`"L" < "M"` letra por letra; el orden de tallas necesita un
+  comparador propio) era justo el punto de ese paso.
+
+**❌ Sigue igual (no lo tocaste):**
+- **Paso 9:** todavía `+ e.getMessage()` → la salida sigue siendo `no se puede ordenarnull`, y el `espero` sigue vacío con ✅.
+  Cámbialo a `"no se puede ordenar: " + e` y escribe el `espero`.
+- **Paso 5:** falta ordenar `stock` al revés.
+- **Paso 8:** falta copiar el error: `incompatible types: void cannot be converted to List<String>`.
+- **Paso 10:** falta imprimir `tallas`.
+- Separadores `---- T1 · Paso N ----`.
+
+Son 5 cosas cortas (unos 10 minutos). Con el paso 9 y dos más ya llegas al 8.
+
 ---
 
 ### Tarea 2 — `Product` con orden natural (medio · 35 min)

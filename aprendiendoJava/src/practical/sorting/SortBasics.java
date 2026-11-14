@@ -16,7 +16,7 @@ public class SortBasics {
         // espero: asuncion,bogota,cusco,lima,quito,ebano ✅
         ciudades.sort(Comparator.reverseOrder());
         print(ciudades);
-        //espero: Ébano,lima,asunción,Cusco,Quito,,Bogotá✅
+        //espero:[Ébano, lima, asunción,Quito, Cusco, Bogotá]✅
 
         print("-----Parte B ----");
 
@@ -46,13 +46,13 @@ public class SortBasics {
             tallas.sort(null);
 
         } catch (UnsupportedOperationException e) {
-            print("no se puede ordenar" + e.getMessage());
-            // espero:✅
+            print("no se puede ordenar" + e);
+            // espero:no se puede ordenarjava.lang.UnsupportedOperationException ✅
         }
         List<String> tallasOrdenadas = new ArrayList<>(tallas);
         tallasOrdenadas.sort(null);
         print(tallasOrdenadas);
-        //espero: M,L,S,XL✅
+        //espero:[L, M, S, XL✅
 
     }
 
@@ -62,3 +62,8 @@ public class SortBasics {
         }
     }
 }
+/**
+ * P1.1 "sort devuelve void. Por eso, para ver la lista ordenada, se le debe llamar directamente a la funcion y no asignarla.."
+ * P1.2 "En el paso 7, HashSet tiene 5 y TreeSet tiene 4, porque HashSet usa hashcode y TreeSet usa compareTo."
+ * P1.3 "Ébano queda al final incluso sin mayúsculas porque CASE_INSENSITIVE_ORDER ignora las minusculas, pero no acentos o carasteres que no pertencen al ingles."
+ */
