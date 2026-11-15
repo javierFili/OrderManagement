@@ -1342,6 +1342,81 @@ regla de `equals`.
 - [ ] tabla del paso 5 con espero y real
 - [ ] P2.1–P2.3
 
+> ## 🔍 REVISIÓN TAREA 2 — 2026-11-14 · **7/10** · 🔁 corrige 3 cosas y vuelve a pedir revisión
+
+**✅ Lo bueno:** el `compareTo` de `Product` está **perfecto**: `implements Comparable<Product>`, `@Override`, sin
+`if`, delegando en `BigInteger.compareTo`. Compila y corre. Acertaste el orden del catálogo, los signos de la
+tabla, los 5 `add` (`true ×4, false`), el paso 7 (`MacBook, ThinkPad`) y P2.2 completa. En el paso 7 también
+acertaste por qué compila: `Laptop` **hereda** el `compareTo` de `Product`.
+
+**Salida real vs tu `espero`:**
+
+| Paso | Tu espero | Real | |
+|------|-----------|------|---|
+| 1 | `ClassCastException` | — (ya no se ve: `Product` ya es `Comparable`, y no hay `// real:`) | ½ |
+| 4 | `7 curso java, 12 silla, 12 silla gamer, 25 macbook, 40 thinkpad` | igual | ✅ (pero el porqué está mal, ver 1) |
+| 5 | `+  -  0  true` | `1  -1  0  true` | ✅ |
+| 6 | `true true true true false` | `true true true true false` | ✅ (faltan `size` y el `TreeSet`) |
+| 7 | `25, 40`, compila | `[MacBook (25), ThinkPad (40)]` | ✅ |
+
+---
+
+#### 🟠 IMPORTANTE 1 — Paso 4: `Silla` va primero por **estabilidad**, no por "orden natural"
+
+Escribiste "primero va silla ya que es el orden natural". El orden natural es **por `id`**, y las dos sillas tienen
+**el mismo `id` (12)**: `silla.compareTo(sillaGamer)` da **0** (tú mismo lo imprimiste en el paso 5). Para el orden
+natural están **empatadas**: no dice cuál va primero.
+
+Va primero `Silla` porque `Collections.sort` es **estable**: en un empate deja los elementos **en el orden en que
+venían**, y `silla` se agregó al `catalogo` antes que `sillaGamer` (sección 7.3).
+
+> Es la misma confusión de la pregunta 8 de la autoevaluación: **orden natural** = qué dice `compareTo`;
+> **estable** = qué pasa cuando `compareTo` dice 0.
+
+#### 🟠 IMPORTANTE 2 — P2.3: es `NullPointerException`, y no es por "tipos diferentes"
+
+`null` no es "otro tipo": es **la ausencia de objeto**. El problema es que **llamas un método sobre `null`**.
+Lo comprobé con un producto con `id` `null`:
+```
+nulo.compareTo(silla)  → NullPointerException: Cannot invoke "java.math.BigInteger.compareTo(...)"
+                         because the return value of "Models.Product.getId()" is null
+silla.compareTo(nulo)  → NullPointerException: Cannot read field "signum" because "val" is null
+```
+> Frase correcta: *"lanzaría **`NullPointerException`**, porque **`getId()` devuelve `null` y se le llama
+> `.compareTo(...)` a `null`** (o `BigInteger.compareTo` recibe `null`)."*
+
+**Profesionalmente:** por eso el `id` de una entidad se valida en el constructor, o los productos sin guardar
+(sin `id`) no se meten en un `TreeSet`.
+
+#### 🟡 MENOR 3 — P2.1 a medias
+
+"Se rompía" no dice **qué** pasa. Con los datos de esta tarea los 5 precios son distintos, así que un `TreeSet`
+por precio **guardaría las dos sillas** (comprobado: `add(sillaGamer)` → `true`, `size` 2), aunque tu `equals`
+dice que son el mismo producto: **no sería consistente con `equals`** (sección 4.1, regla 3). Y si dos productos
+**distintos** costaran lo mismo, perderías uno (sección 8).
+Esto también responde la pregunta del paso 5 que quedó sin contestar: con `id`, **sí** es consistente
+(`compareTo` 0 ⇔ `equals` true).
+
+#### 🟡 MENOR 4 — Pasos y datos
+
+- **Paso 1:** falta `// real: ClassCastException` (lo de la lección 02), y el bloque debía quedar **comentado**.
+  Tal como está, tu `espero` dice ClassCastException pero el programa imprime el Dell sin error.
+- **Paso 6:** imprime `size()` (→ `4`) y el `TreeSet` (→ queda `Silla`, no `Silla gamer`).
+- **Datos:** `sillaGamer` cuesta `149.90` (pusiste `149.00`) y el curso es `"Curso Java"`. Esta vez no cambia el
+  resultado, pero la regla 4 es para que no te pase cuando sí importa.
+- Separadores `---- T2 · Paso N ----` (regla 2).
+
+---
+
+**Para llegar a 10/10:**
+- [ ] paso 4: el porqué → estable (empate en `id` 12, se queda el orden de llegada)
+- [ ] P2.3: `NullPointerException` + llamar un método sobre `null`
+- [ ] P2.1: qué pasaría con las dos sillas (y con dos productos de igual precio)
+- [ ] paso 5: "¿consistente con `equals`?" → sí, por qué
+- [ ] paso 1: `// real:` y bloque comentado
+- [ ] paso 6: `size()` y el `TreeSet`
+- [ ] precio `149.90`, `"Curso Java"`, separadores
+
 ---
 
 ### Tarea 3 — Comparadores de precio y nombre (medio · 40 min)
@@ -1405,6 +1480,83 @@ regla de `equals`.
 - [ ] copia nueva en cada paso
 - [ ] pasos 5–10 + estabilidad + max/min, cada uno con `espero`
 - [ ] P3.1–P3.3
+
+> ## 🔍 REVISIÓN TAREA 3 — 2026-11-14 · **6,5/10** · 🔁 rehaz el paso de estabilidad y vuelve a pedir revisión
+
+**✅ Lo bueno:** los **dos comparadores están perfectos**: en `Models/comparators/`, con `@Override`, sin `if`,
+delegando en `BigDecimal.compareTo` y `String.compareToIgnoreCase`. Usaste copia nueva en cada paso e `imprimir` en
+una línea. Acertaste los pasos 5, 6, 7, 9 y 10, y en el paso 6 respondiste **muy bien** que el empate
+`curso`/`mouse` **no** se invierte (`reversed` solo da vuelta al precio; el empate sigue en orden de llegada).
+P3.1 está perfecta y P3.2 está bien.
+
+**Salida real vs tu `espero`:**
+
+| Paso | Tu espero | Real | |
+|------|-----------|------|---|
+| 5 | `curso, Mouse, silla, audífonos, ThinkPad, MacBook` | igual | ✅ |
+| 6 | `MacBook, ThinkPad, silla, audífonos, curso, Mouse` | igual | ✅ |
+| 7 | `audífonos, curso, MacBook, Mouse, silla, ThinkPad` | igual | ✅ |
+| 8 | **`MacBook, ThinkPad`**`, audífonos, silla, curso, Mouse` | **`Curso java, Mouse`**`, Audifonos, Silla, ThinkPad, MacBook` | ❌ marcaste ✅ |
+| 9 | `MacBook, ThinkPad, audífonos, silla, curso, Mouse` | igual | ✅ |
+| 10 | `thinkpad, silla, mouse, macbook, curso, audífonos` | igual | ✅ |
+| estabilidad | ordenaste **por nombre** | — el experimento no prueba nada | ❌ |
+| max / min / min() | `MacBook` / `Curso java` / `7` | `MacBook` / `Curso java` / `Curso java` (id 7) | ✅ (falta el porqué del empate) |
+
+---
+
+#### ❌ CRÍTICO 1 — El paso de estabilidad se hizo con el comparador equivocado, y P3.3 dice "reversed"
+
+El enunciado pide `Collections.reverse(l)` y después **`new ProductPriceComparator()`**. Tú usaste
+`nameComparator`. Como **no hay dos nombres iguales**, no hay empates, y el resultado es el mismo que el paso 7:
+el experimento no mide nada.
+
+Con el comparador de precio (lo ejecuté con tus datos):
+```
+paso 5  (base):          Curso java 49.00 | Mouse 49.00 | Silla 89.90 | Audifonos 89.90 | ThinkPad | MacBook
+punto 6 (base al revés): Mouse 49.00 | Curso java 49.00 | Audifonos 89.90 | Silla 89.90 | ThinkPad | MacBook
+```
+Los precios quedan igual, pero **los dos empates se dan vuelta**: en la lista al revés `Mouse` llegaba antes que
+`Curso java`, y `sort` lo respeta.
+
+Por eso P3.3 no es "reversed": es **estable**. La segunda mitad la tienes bien ("conserva el orden de inserción";
+mejor dicho, el orden **en que estaban en la lista** antes de ordenar).
+> Frase correcta: *"…porque `sort` es **estable**: en un empate conserva **el orden en que venían en la lista**."*
+
+Es la tercera vez que aparece esta idea (pregunta 8 de la autoevaluación, paso 4 de la Tarea 2): **estable = qué
+hace `sort` cuando `compare` da 0**.
+
+#### 🟠 IMPORTANTE 2 — Paso 8: `thenComparing` **no** invierte nada
+
+Tu `espero` del paso 8 empieza por `MacBook, ThinkPad`, como el paso 9. Pero el paso 8 no tiene `reversed()`: es
+precio **de menor a mayor**, y en el empate, nombre. Real:
+`Curso java 49.00 | Mouse 49.00 | Audifonos 89.90 | Silla 89.90 | ThinkPad 1200.00 | MacBook 1999.99`.
+Tu explicación (audífonos pasa delante de silla) sí está bien. Lo que falló fue copiar el orden, y el ✅ sin
+comparar con la salida (regla 3).
+
+#### 🟡 MENOR 3 — Datos: `"curso java"` y `"audífonos"` van **en minúsculas** (y con tilde)
+
+No es manía: ese era el experimento del paso 7. Con `"Curso java"` y `"Audifonos"` con mayúscula, el resultado
+**sería el mismo aunque tu comparador NO ignorara mayúsculas**, así que no puedes saber si `compareToIgnoreCase`
+está haciendo su trabajo. Con `"curso java"` en minúsculas, un `compareTo` normal lo mandaría **detrás** de
+`ThinkPad` (sección 3.2). El tuyo, bien hecho, lo deja segundo. Esa es la prueba.
+
+#### 🟡 MENOR 4 — Punto 7
+
+- Imprime **solo el nombre** (`.getName()`), no el `toString` completo.
+- `Collections.min` con empate: devuelve `Curso java` porque, entre los empatados, se queda con **el primero que
+  encuentra en la lista** (`curso` está antes que `mouse` en `base`). Falta escribir ese porqué.
+- Falta imprimir `base` al final: no cambió, porque `max`/`min` **no ordenan** la lista.
+- Sobra `import org.w3c.dom.ls.LSInput;` (IntelliJ lo agregó solo). Separadores `---- T3 · Paso N ----`.
+
+---
+
+**Para llegar a 10/10:**
+- [ ] punto 6 con `new ProductPriceComparator()`, `espero` y comparación con el paso 5
+- [ ] P3.3: **estable**
+- [ ] paso 8: `// real: … porque: …` y quita el ✅
+- [ ] `"curso java"` y `"audífonos"` exactos
+- [ ] punto 7: solo nombres, porqué del empate en `min`, imprimir `base`
+- [ ] quitar el import que sobra, separadores
 
 ---
 

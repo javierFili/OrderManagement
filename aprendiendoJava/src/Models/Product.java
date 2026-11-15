@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Objects;
 
-public class Product {
+public class Product implements Comparable<Product> {
     private final BigInteger id;
     private String name;
     private BigDecimal price;
@@ -69,6 +69,11 @@ public class Product {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public int compareTo(Product product) {
+        return this.getId().compareTo(product.getId());
     }
 
 }
