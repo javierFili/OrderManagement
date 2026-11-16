@@ -1611,6 +1611,81 @@ está haciendo su trabajo. Con `"curso java"` en minúsculas, un `compareTo` nor
 - [ ] paso 6 con nombre **y** valor
 - [ ] P4.1–P4.4
 
+> ## 🔍 REVISIÓN TAREA 4 — 2026-11-16 · **7/10** · 🔁 corrige P4.1 y completa los pasos 3 y 5 · Historial: v1 7
+
+**✅ Lo bueno:** **todas** tus predicciones `true`/`false` y de tamaño son correctas (6 `add`, `size` 4,
+`contains` de la `List` y del `HashSet`, `size` 6 del arreglo, los tres valores del `TreeMap`). El arreglo con
+`thenComparing(Comparator.naturalOrder())` está exacto. Muy bien el paso 4: escribiste `espero: false`,
+`real: true` y **no** pusiste ✅ falso, y el porqué es correcto (`compareTo` ignora la escala: `49` = `49.00`).
+El paso 6 lo predijiste completo: `Curso java = 3`. Creaste `productT3()` como se sugería.
+
+**Salida real vs tu `espero`** (lo ejecuté con tus datos):
+
+| Paso | Tu espero | Real | |
+|------|-----------|------|---|
+| 2 | `true true true true false false` | igual | ✅ (columna "¿ya había alguien?" mal en 2 filas, ver 🟠 2) |
+| 3 | `4` / ¿quiénes faltan? **sin responder** | `4` · `Curso java, Silla, ThinkPad, MacBook` → faltan `Mouse` y `Audifonos` | 🟡 falta el contenido |
+| 4 | `false` / `false` / `false` | `true` / `false` / `false` | ✅ (fallo bien explicado) |
+| 5 | `6` / orden **sin responder** | `Curso java(7), Mouse(31), Silla(12), Audifonos(18), ThinkPad, MacBook` | 🟡 falta el orden |
+| 6 | `null`, `10`, `1`, `Curso java = 3` | igual | ✅ |
+
+---
+
+#### ❌ CRÍTICO 1 — P4.1 dice lo contrario de la lección
+
+Escribiste: *"…cuando en el **equals** ya existe"*. Es justo lo que **no** hace. Un `TreeSet` **nunca llama a
+`equals`**: decide "ya está" cuando **`compare` (o `compareTo`) da `0`**.
+
+Tu propio código lo demuestra:
+- `mouse.equals(curso)` → `false` (ids 31 y 7 distintos). Si el `TreeSet` usara `equals`, `mouse` habría entrado.
+  Pero `add(mouse)` dio `false`.
+- `fantasma.equals(...)` → `false` con todos (id 99). Si usara `equals`, `contains` daría `false`. Dio `true`.
+
+**Ejemplo con otros datos:** un `TreeSet<String>` con `String.CASE_INSENSITIVE_ORDER`. `add("Hola")` → `true`,
+`add("HOLA")` → `false`, aunque `"Hola".equals("HOLA")` es `false`. Lo que manda es el comparador.
+
+> Frase correcta: *"Un `TreeSet` decide que un elemento 'ya está' cuando **el comparador devuelve 0**, no cuando
+> **`equals` devuelve `true`**."*
+
+#### 🟠 IMPORTANTE 2 — Paso 2: la columna "¿ya había alguien con ese precio?" mira el futuro
+
+La pregunta es si **ya estaba dentro del `TreeSet` en ese momento**. Pusiste `silla → si audifonos` y
+`curso → si Mouse`, pero `audifonos` y `mouse` se agregan **después**. Cuando entra `silla`, el set solo tiene a
+`ThinkPad`: la respuesta es **no**. Tu `true` estaba bien, pero el razonamiento escrito no coincide con él.
+Correcto: `no, no, no, no, sí (curso), sí (silla)`.
+
+#### 🟡 MENOR 3 — Pasos 3 y 5: falta imprimir el contenido y el `espero` del orden
+
+- **Paso 3:** imprime `new ArrayList<>(porPrecio)` (solo nombres) y responde `// espero: faltan ___ y ___`.
+- **Paso 5:** imprime el contenido y escribe el orden **antes** de ejecutar. Lo interesante es el empate
+  `Silla`/`Audifonos` (ambos `89.90`): ¿quién va primero y por qué? Pista: no es el orden de llegada ni el
+  nombre; es lo que pusiste en `thenComparing`. Mira los ids.
+
+#### 🟡 MENOR 4 — Las otras preguntas, a medias
+
+- **P4.2:** el `HashSet` no compara solo `hashCode`: usa `hashCode` **para elegir el cajón** y después `equals`.
+  Y los dos miran **el `id`**. Mejor: *"…el `TreeSet` compara **el precio con `compareTo`** y el `HashSet` usa
+  **`hashCode` + `equals`, es decir, el id**."*
+- **P4.3:** completa los dos últimos huecos con las palabras **"vieja"** y **"nueva"**: se quedó con la clave
+  **vieja** (`Curso java`) y el valor **nuevo** (`3`). Esa es la idea que hay que recordar.
+- **P4.4:** bien la idea. Más precisa: *"…porque una lista **acepta repetidos**: `sort` solo cambia
+  posiciones, nunca decide si algo 'ya está'."*
+
+#### ⚪ NO RELEVANTE AHORA
+
+- `String args[]` funciona, pero en Java se escribe `String[] args`.
+- El `StringBuilder` del paso 6 sobra para una sola concatenación: `print(item.getKey().getName() + "=" + item.getValue())`.
+- Separadores `---- T4 · Paso N ----` en todos los pasos (solo tienes en 5 y 6).
+
+---
+
+**Para llegar a 10/10:**
+- [ ] P4.1 reescrita: **comparador da 0** / **`equals`**
+- [ ] paso 2: columna "¿ya había alguien?" corregida (`no, no, no, no, sí, sí`)
+- [ ] paso 3: imprimir contenido + `// espero: faltan ___ y ___`
+- [ ] paso 5: imprimir contenido + `// espero:` con el orden, y por qué `Silla` va antes que `Audifonos`
+- [ ] P4.2 con `hashCode` + `equals` (id); P4.3 con "vieja"/"nueva"
+
 ---
 
 ### Tarea 5 — Ordenar por tipo + ranking de un `Map` (medio-avanzado · 40 min)

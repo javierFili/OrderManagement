@@ -6,15 +6,15 @@
 
 **Tema:** Ordenar: `Comparable` / `Comparator` (semana 4). Lección: `docs/lessons/04-ordenar-comparable-comparator.md`.
 **Estado:** lección completa publicada el 2026-10-27 (teoría secciones 0 a 13 + tareas 1–6, todo ejecutado en Java 21)
-→ **siguiente:** el alumno lee la teoría, hace los 🧪 en `SortPlayground` y la autoevaluación sección 13; después Tarea 1.
+→ **siguiente:** correcciones de T1–T4 (checklists en cada 🔍 REVISIÓN) y Tarea 5.
 
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
 | Teoría + autoevaluación | `SortPlayground` | 🔁 v1 5,5/10 (2026-11-06): 🧪 3–7 ✅; 🧪 8–9 vacíos; ❌ P8 (confunde *orden natural* con *estable*), P9 (cree que `TreeSet` "no ordena"; en sección 8 lo tenía bien); ½ en 1, 2, 5, 6, 10 (responde la mitad) |
-| 1. Ordenar `String`/números/`BigDecimal`, `void`, inmutables | `SortBasics` | pendiente |
-| 2. `Product implements Comparable` (por id) | `Product`, `ComparableLab` | pendiente |
-| 3. `ProductPrice/NameComparator`, `reversed`, `thenComparing`, estabilidad | `Models/comparators/*`, `ComparatorLab` | pendiente |
-| 4. Trampa `TreeSet`/`TreeMap` con empates | `TreeTrapLab` | pendiente |
+| 1. Ordenar `String`/números/`BigDecimal`, `void`, inmutables | `SortBasics` | 🔁 v2 7/10 (2026-11-14): P1.2 al revés, 3 ✅ falsos, `e.getMessage()` |
+| 2. `Product implements Comparable` (por id) | `Product`, `ComparableLab` | 🔁 v1 7/10 (2026-11-14): paso 4 = estabilidad, P2.3 NPE |
+| 3. `ProductPrice/NameComparator`, `reversed`, `thenComparing`, estabilidad | `Models/comparators/*`, `ComparatorLab` | 🔁 v1 6,5/10 (2026-11-14): estabilidad con comparador equivocado, P3.3 |
+| 4. Trampa `TreeSet`/`TreeMap` con empates | `TreeTrapLab` | 🔁 v1 7/10 (2026-11-16): predicciones todas ✅; ❌ P4.1 (cree que `TreeSet` usa `equals`); faltan contenido pasos 3 y 5 |
 | 5. Orden por tipo (`instanceof`) + ranking de `Map` por valor | `ProductTypeComparator`, `SalesEntryComparator`, `RankingLab` | pendiente |
 | 6. Entregable `Catalog` (copias ordenadas no modificables) | `Models/Catalog`, `CatalogMain` | pendiente |
 
