@@ -1117,8 +1117,8 @@ Las cuatro van bien encaminadas, pero dicen **la mitad**. La pregunta pide dos c
 | 2 | `Product` con orden natural (`Comparable`) | Sección 5 | `Product`, `ComparableLab` | 35 min |
 | 3 | Comparadores de precio y nombre, `reversed`, `thenComparing` | Secciones 6 y 7 | `Models/comparators/*`, `ComparatorLab` | 40 min |
 | 4 | La trampa del `TreeSet` con empates | Sección 8 | `TreeTrapLab` | 25 min |
-| 5 | Ordenar por tipo + ranking de un `Map` | Secciones 9 y 10 | `ProductTypeComparator`, `RankingLab` | 40 min |
-| 6 | **Entregable:** `Catalog` ordenado por precio, nombre y tipo | todo | `Models/Catalog`, `CatalogMain` | 45 min |
+| 5 | Ordenar por tipo + ranking de un `Map` | Secciones 9 y 10 | `ProductTypeComparator`, `SalesEntryComparator`, `RankingLab` | 45 min |
+| 6 | **Entregable:** `Catalog` ordenado por precio, nombre y tipo | todo | `Models/Catalog`, `CatalogMain` | 50 min |
 
 Todos los archivos de práctica van en `src/practical/sorting/` (paquete `practical.sorting`). Los comparadores
 del dominio van en `src/Models/comparators/` (paquete `Models.comparators`).
@@ -1688,125 +1688,383 @@ Correcto: `no, no, no, no, sí (curso), sí (silla)`.
 
 ---
 
-### Tarea 5 — Ordenar por tipo + ranking de un `Map` (medio-avanzado · 40 min)
+### Tarea 5 — Ordenar por tipo + ranking de un `Map` (medio-avanzado · 45 min)
 
-**Objetivo:** un comparador que no usa un campo sino el **tipo** (`instanceof`), y ordenar un `Map` por valor
-con desempate.
-**Antes:** relee las secciones 9 y 10.
+> **Redacción v2 (2026-11-16):** misma tarea, explicada en pasos más pequeños. Si ya empezaste, sigue desde aquí.
 
-**Parte A — por tipo**
-**Archivos:** `src/Models/comparators/ProductTypeComparator.java` (nuevo) y
-`src/practical/sorting/RankingLab.java` (nuevo, con `main`).
+**🎯 Qué vas a hacer, en una frase:** dos ejercicios independientes.
+- **Parte A:** ordenar productos por **qué clase son** (primero laptops, después otros físicos, después digitales).
+- **Parte B:** contar ventas en un `Map` y mostrar un **ranking** de más vendidos.
 
-Orden deseado: **1.** `Laptop` · **2.** otros `PhysicalProduct` · **3.** `DigitalProduct` · **4.** cualquier otro.
+**Antes:** relee la sección 10 (para la Parte A) y la sección 9.2 (para la Parte B). Son cortas.
 
-1. Escribe `ProductTypeComparator` con un método privado `int rank(Product p)` y `compare` usando
-   `Integer.compare(rank(a), rank(b))`.
-   **Primera versión (a propósito mal):** en `rank`, pregunta **primero** `instanceof PhysicalProduct` (→ 2),
-   después `instanceof Laptop` (→ 1), después `instanceof DigitalProduct` (→ 3), y si no, 4.
-2. En `RankingLab`, crea una lista con los 6 productos de la Tarea 3 **más** `sillaGamer` (id 12, de la Tarea 2)
-   al final. Ordénala con `new ProductTypeComparator()` e imprime. `// espero:` ¿los `Laptop` quedan primero?
-3. **Arregla** el orden de los `if` (sección 10). Ejecuta de nuevo (copia nueva de la lista). `// espero:`
-4. Ordena con `new ProductTypeComparator().thenComparing(new ProductPriceComparator())`. `// espero:` (dentro de
-   cada tipo, por precio).
+**📁 Archivos de esta tarea** (fíjate en la última columna):
 
-**Parte B — ranking de más vendidos** (retoma la receta de acumular de la lección 03)
+| Archivo | Qué es | ¿Tiene `main`? |
+|---------|--------|----------------|
+| `src/Models/comparators/ProductTypeComparator.java` | un **comparador**: una clase que solo sabe comparar dos productos | ❌ **no** |
+| `src/practical/sorting/SalesEntryComparator.java` | otro **comparador**, para las entradas del `Map` | ❌ **no** |
+| `src/practical/sorting/RankingLab.java` | el **laboratorio**: aquí creas los datos, ordenas e imprimes | ✅ sí |
 
-Datos:
+> ⚠️ **Ojo con tu `ProductTypeComparator` actual:** ahora mismo es una clase con `main` y sin
+> `implements Comparator<Product>`. Un comparador **no** tiene `main`, igual que tu `ProductPriceComparator`
+> no lo tiene. Borra el `main` y el método `print` de ese archivo; los productos y los `println` van en
+> `RankingLab`.
+
+---
+
+#### Parte A — ordenar por tipo (pasos 1 a 5)
+
+**🧠 La idea antes de empezar.** Un `Product` no tiene un campo "tipo" que puedas comparar. Entonces le
+**inventamos un número** a cada clase (su *rango*) y comparamos esos números, igual que comparabas precios:
+
+| Si el producto es… | rango |
+|--------------------|-------|
+| `Laptop` | 1 |
+| otro `PhysicalProduct` (silla, mouse…) | 2 |
+| `DigitalProduct` | 3 |
+| cualquier otra cosa | 4 |
+
+`compare` solo hace esto: *"dame el rango de `a`, dame el rango de `b`, y compáralos con `Integer.compare`"*.
+El número **más chico va primero**.
+
+**Paso 1 — el esqueleto del comparador.** Deja `ProductTypeComparator` con esta forma (el cuerpo lo
+escribes tú):
+```java
+package Models.comparators;
+
+// imports: Product, Laptop, PhysicalProduct, DigitalProduct, Comparator
+
+public class ProductTypeComparator implements Comparator<Product> {
+
+    private int rank(Product p) {
+        // una cadena de if con instanceof que devuelve 1, 2, 3 o 4
+    }
+
+    @Override
+    public int compare(Product a, Product b) {
+        // una sola línea: Integer.compare(...) con los dos rangos
+    }
+}
+```
+
+**Paso 2 — la versión MAL hecha (a propósito).** Escribe `rank` preguntando en **este** orden:
+1. ¿`p instanceof PhysicalProduct`? → `return 2;`
+2. ¿`p instanceof Laptop`? → `return 1;`
+3. ¿`p instanceof DigitalProduct`? → `return 3;`
+4. si ninguno → `return 4;`
+
+> Sí, está mal. Queremos **ver** el error con nuestros ojos antes de arreglarlo.
+
+**Paso 3 — los datos en `RankingLab`.** Copia los 6 productos de la **Tarea 3**, con **los datos exactos de
+esa tabla** (ojo: `"curso java"` y `"audífonos"` van **en minúsculas**, y `audífonos` lleva tilde). Te
+conviene un método que los devuelva, como hiciste en `TreeTrapLab`:
+```java
+static List<Product> productosT3() {
+    // crea los 6 productos y devuélvelos en una lista nueva, en el orden de la tabla de la Tarea 3
+}
+```
+En `main`:
+```java
+List<Product> lista = productosT3();
+lista.add(sillaGamer);   // PhysicalProduct, id 12, "Silla gamer", 149.90, peso 9.0  → queda al FINAL
+```
+Ahora la lista tiene **7** productos. Haz también un método `static void imprimir(List<Product> l)` que
+imprima en **una línea** `nombre (Clase) | nombre (Clase) | ...`. Para el nombre de la clase usa
+`p.getClass().getSimpleName()` (devuelve `"Laptop"`, `"PhysicalProduct"`…).
+
+**Paso 4 — ejecutar la versión mala.** Copia nueva → ordena → imprime:
+```java
+System.out.println("---- T5 · Paso 4 ----");
+List<Product> l4 = new ArrayList<>(lista);
+l4.sort(new ProductTypeComparator());
+imprimir(l4);
+```
+**Antes de ejecutar**, llena esta tabla en un comentario. La columna clave es **"¿en qué `if` entra
+primero?"**: recorre los `if` de arriba abajo, como lo haría Java, y para en el **primero** que dé `true`.
+
+| Producto | Clase real | ¿en qué `if` entra primero? | rango que recibe |
+|----------|------------|-----------------------------|------------------|
+| ThinkPad | `Laptop` | | |
+| Silla | `PhysicalProduct` | | |
+| curso java | `DigitalProduct` | | |
+| MacBook | `Laptop` | | |
+| Mouse | `PhysicalProduct` | | |
+| audífonos | `PhysicalProduct` | | |
+| Silla gamer | `PhysicalProduct` | | |
+
+Después escribe `// espero:` con el orden de los 7 nombres. Pista: los que tienen **el mismo rango** empatan,
+y en un empate `sort` **no los mueve** (estabilidad, sección 7.3).
+✅ Te salió bien la predicción si ves que **las dos laptops no quedan juntas al principio**.
+
+**Paso 5 — arreglar y comparar.**
+- **5a.** Cambia el orden de los `if` en `rank` para que pregunte **del más específico al más general**
+  (sección 10: el hijo antes que el padre). **No borres el paso 4 del lab**: deja su `espero`/`real` como
+  prueba de que la versión mala fallaba, y agrega un comentario `// (paso 4 corrido con la versión mala)`.
+- **5b.** Repite el paso 4 con el separador `---- T5 · Paso 5b ----` (copia nueva). `// espero:`
+- **5c.** Copia nueva, y ordena con dos criterios: primero el tipo y, **dentro del mismo tipo**, el precio:
+  ```java
+  l5c.sort(new ProductTypeComparator().thenComparing(new ProductPriceComparator()));
+  ```
+  `// espero:` los 7 nombres. Ayuda: escribe primero los grupos (laptops / físicos / digitales), ordena **cada
+  grupo** por precio, y después júntalos. Mira bien el empate de precio entre `Silla` y `audífonos` (los dos
+  `89.90`): ¿quién queda primero y por qué?
+
+---
+
+#### Parte B — ranking de más vendidos (pasos 6 a 11)
+
+**🧠 La idea antes de empezar.** Esto tiene **tres etapas**, y cada una usa algo que ya sabes:
+
+```
+List<String> vendidos  ──(1. contar: receta de la lección 03)──▶  Map<String,Integer> cuenta
+                                                                         │
+                                         (2. sacar las entradas a una lista: sección 9.2)
+                                                                         ▼
+                                                     List<Map.Entry<String,Integer>> ranking
+                                                                         │
+                                          (3. ordenar con TU comparador e imprimir)
+                                                                         ▼
+                                                     1. ... / 2. ... / 3. ...
+```
+
+Datos (cópialos **exactos**):
 ```java
 List<String> vendidos = List.of("webcam", "mouse", "teclado", "mouse", "webcam",
                                 "pendrive", "mouse", "teclado", "monitor", "webcam");
 ```
-5. Cuenta las ventas en un `Map<String, Integer> cuenta` (`LinkedHashMap`) con la versión que prefieras de la
-   receta (`if/else`, `getOrDefault` o `merge`). Imprime. `// espero:`
-6. Crea `src/practical/sorting/SalesEntryComparator.java` que implemente
-   `Comparator<Map.Entry<String, Integer>>`:
-   - primero por **cantidad, de mayor a menor**;
-   - **si empatan**, por **nombre, de A a Z**.
 
-   Aquí sí necesitas un `if`: guarda en un `int` el resultado de comparar las cantidades; si **no** es `0`,
-   devuélvelo; si es `0`, devuelve la comparación de los nombres.
-7. Pasa las entradas a una lista (sección 9.2), ordénala con tu comparador, y recórrela imprimiendo con la posición:
-   ```
-   1. xxxx — 3 ventas
-   2. ...
-   ```
-   (Necesitas un contador `int posicion = 1;` que sumas en cada vuelta.) `// espero:` las 5 líneas exactas.
-8. Imprime `cuenta` otra vez. `// espero:` ¿cambió el mapa?
-9. Imprime `new TreeMap<>(cuenta)`. `// espero:` ¿por qué no es igual al ranking?
+**Paso 6 — contar.** Crea `Map<String, Integer> cuenta = new LinkedHashMap<>();` y recorre `vendidos`
+sumando 1 a cada producto, con la receta de acumular de la lección 03: `if/else` con `containsKey`, o
+`getOrDefault`. (No uses `merge(..., Integer::sum)`: lleva `::`, que todavía no vimos.)
+Imprime `cuenta`. `// espero:` (¿en qué orden salen las claves en un `LinkedHashMap`?)
 
-**Preguntas:**
-- **P5.1** *"En la primera versión de `rank`, un `Laptop` entró en el `if` de ___ porque un `Laptop` también es
-  un ___. La regla es preguntar de lo más ___ a lo más ___."*
-- **P5.2** *"Para ordenar un `Map` por valor, primero ___, después ___. El mapa original ___."*
-- **P5.3** *"`new TreeMap<>(cuenta)` ordena por ___, por eso ___."*
+**Paso 7 — el comparador de entradas.** Crea `SalesEntryComparator` con este esqueleto:
+```java
+package practical.sorting;
 
-**Checklist:**
-- [ ] primera versión de `rank` ejecutada **mal** a propósito, con su `espero`/`real`
-- [ ] arreglo del orden de los `if`
-- [ ] `SalesEntryComparator` con desempate por nombre
-- [ ] ranking con posición, formato exacto
-- [ ] P5.1–P5.3
+// imports: Comparator, Map
+
+public class SalesEntryComparator implements Comparator<Map.Entry<String, Integer>> {
+
+    @Override
+    public int compare(Map.Entry<String, Integer> a, Map.Entry<String, Integer> b) {
+        // 1. compara las CANTIDADES de mayor a menor y guarda el resultado en un int
+        // 2. si ese int NO es 0 → devuélvelo (las cantidades ya deciden)
+        // 3. si es 0 (empate)   → devuelve la comparación de los NOMBRES, de A a Z
+    }
+}
+```
+Dos recordatorios:
+- La cantidad es `a.getValue()`; el nombre es `a.getKey()`.
+- "De mayor a menor" sin `reversed()`: pon **`b` primero** dentro del `Integer.compare` (sección 9.2).
+
+**Paso 8 — sacar a lista y ordenar.**
+```java
+List<Map.Entry<String, Integer>> ranking = new ArrayList<>(cuenta.entrySet());
+ranking.sort(new SalesEntryComparator());
+```
+
+**Paso 9 — imprimir con posición.** Recorre `ranking` con un for-each y un contador `int posicion = 1;` que
+sumas al final de cada vuelta. El formato es **exactamente** este (con raya `—`, o con `-` si no puedes
+escribirla):
+```
+1. nombre — cantidad
+```
+`// espero:` las **5 líneas exactas**. Las dos preguntas que tienes que resolver antes de ejecutar:
+- hay **dos** productos con 3 ventas: ¿cuál va primero y por qué?
+- hay **dos** con 1 venta: ¿cuál va primero y por qué?
+
+**Paso 10 — ¿cambió el mapa?** Imprime `cuenta` otra vez. `// espero:`
+
+**Paso 11 — comparar con `TreeMap`.** Imprime `new TreeMap<>(cuenta)`. `// espero:` y en un comentario:
+¿por qué **no** sale igual que el ranking?
 
 ---
 
-### Tarea 6 — Entregable: `Catalog` ordenado por precio, nombre y tipo (avanzado · 45 min)
+**Preguntas** (al final de `RankingLab`, completando la frase; **un hueco = una parte de la respuesta**):
+- **P5.1** *"En la versión mala, `ThinkPad` entró en el `if` de ___ porque un `Laptop` también es un ___. Por
+  eso recibió rango ___ en vez de ___. La regla es preguntar de lo más ___ a lo más ___."*
+- **P5.2** *"En el paso 5c, `Silla` quedó antes que `audífonos` porque tienen el mismo ___ y el mismo ___, así
+  que empatan en todo, y en un empate `sort` ___."*
+- **P5.3** *"Para ordenar un `Map` por valor, primero ___, después ___, y al final ___. El mapa original ___."*
+- **P5.4** *"`new TreeMap<>(cuenta)` ordena por ___, y el ranking ordena por ___; por eso ___."*
 
-**Objetivo:** usar todo en una clase de dominio real, **sin romper la encapsulación**: los métodos que devuelven
-"ordenado por…" no deben desordenar la lista interna ni dejar que la modifiquen desde fuera.
-**Antes:** relee la sección 3.5 (copiar antes de ordenar) y la lección 03, sección 9 (`unmodifiable`).
-**Archivos:** `src/Models/Catalog.java` (nuevo) y `src/practical/sorting/CatalogMain.java` (nuevo, con `main`).
+**Checklist antes de pedir "revisa tarea 5":**
+- [ ] `ProductTypeComparator` **sin** `main`, con `implements Comparator<Product>`
+- [ ] tabla del paso 4 llenada **antes** de ejecutar, y su `espero`/`real` conservado
+- [ ] pasos 5b y 5c con `espero`
+- [ ] datos exactos (`"curso java"`, `"audífonos"` en minúsculas)
+- [ ] `SalesEntryComparator` con desempate por nombre (`if` sobre el `int`)
+- [ ] ranking con el formato `1. nombre — cantidad` (5 líneas)
+- [ ] separador `---- T5 · Paso N ----` en cada paso; ✅ solo si coincide letra por letra
+- [ ] P5.1–P5.4
+
+---
+
+### Tarea 6 — Entregable: `Catalog` ordenado por precio, nombre y tipo (avanzado · 50 min)
+
+> **Redacción v2 (2026-11-16):** misma tarea, explicada en pasos más pequeños.
+
+**🎯 Qué vas a hacer, en una frase:** una clase `Catalog` que **guarda** productos y te los **entrega
+ordenados** de varias formas, **sin desordenar** su lista interna y **sin dejar** que nadie de fuera la
+modifique.
+
+**Antes:** relee la sección 3.5 (copiar antes de ordenar) y, de la lección 03, la sección 9 (`unmodifiable`).
+Usas los comparadores de las tareas 3 y 5.
+
+**📁 Archivos:**
+
+| Archivo | Qué es | ¿Tiene `main`? |
+|---------|--------|----------------|
+| `src/Models/Catalog.java` | la clase de **dominio** (como `Order`) | ❌ no |
+| `src/practical/sorting/CatalogMain.java` | el laboratorio que la prueba | ✅ sí (ya tienes el esqueleto) |
+
+**🧠 La idea antes de empezar.** Piensa en `Catalog` como una **vitrina de una tienda**:
+- adentro hay una sola fila de productos, en el orden en que llegaron (`products`). **Esa fila nunca se
+  reordena.**
+- si un cliente pide "muéstramelos por precio", el vendedor **saca fotocopias**, ordena las fotocopias y se
+  las da **plastificadas** (no se pueden rayar).
+
+En código, cada `getSortedBy...` hace estos 3 pasos:
+```
+products (interna, orden de llegada)
+     │  1. copiar        →  new ArrayList<>(products)
+     ▼
+copia (se puede ordenar)
+     │  2. ordenar       →  copia.sort(comparador)
+     ▼
+copia ordenada
+     │  3. plastificar   →  Collections.unmodifiableList(copia)
+     ▼
+lo que devuelves (nadie la puede modificar)
+```
+Como los tres `getSortedBy...` hacen **lo mismo** y solo cambia el comparador, esos 3 pasos se escriben **una
+sola vez**, en un método privado que **recibe el comparador como parámetro**. Un comparador es un objeto
+normal: se pasa como parámetro igual que un `String` o un `Product`.
 
 **Requisitos de `Catalog`:**
 
-| Método | Qué hace |
-|--------|----------|
-| campo `private final List<Product> products` | `ArrayList`, en **orden de inserción** |
-| `boolean addProduct(Product product)` | si es `null` o **ya está** (mismo `id`) → `false` y no agrega; si no, agrega y `true` |
-| `List<Product> getProducts()` | la lista en orden de inserción, **no modificable** |
-| `List<Product> getSortedByPrice()` | de menor a mayor; empate → por nombre |
+| Miembro | Qué hace |
+|---------|----------|
+| campo `private final List<Product> products` | un `ArrayList` en **orden de inserción** |
+| `boolean addProduct(Product product)` | si es `null` → `false`; si **ya está** (mismo `id`) → `false`; si no, lo agrega y devuelve `true` |
+| `List<Product> getProducts()` | la lista interna, en orden de inserción, **no modificable** |
+| `private List<Product> sortedCopy(Comparator<Product> comparator)` | los 3 pasos del dibujo (copiar → ordenar → plastificar) |
+| `List<Product> getSortedByPrice()` | de menor a mayor precio; si empatan, por nombre |
 | `List<Product> getSortedByName()` | por nombre, sin importar mayúsculas |
-| `List<Product> getSortedByType()` | por tipo (Tarea 5); dentro del tipo, por precio |
-| `Product getCheapest()` | el más barato (`Collections.min`). ⚠️ Decide qué hacer si el catálogo está vacío y escríbelo en P6.3 |
+| `List<Product> getSortedByType()` | por tipo (Tarea 5) y, dentro del tipo, por precio |
+| `Product getCheapest()` | el más barato, con `Collections.min(lista, comparador)` |
 
-**Restricciones:**
-- Los `getSortedBy...` **no pueden** ordenar `products`: cada uno trabaja sobre una **copia**.
-- Lo que devuelven **no se puede modificar** desde fuera.
-- **Sin duplicar código:** los tres `getSortedBy...` hacen lo mismo con distinto comparador. Escribe **un**
-  método privado `private List<Product> sortedCopy(Comparator<Product> comparator)` y que los tres lo llamen.
-  (Un comparador es un objeto: se puede pasar como parámetro, como cualquier otro.)
+**Esqueleto** (solo firmas; el cuerpo es tuyo):
+```java
+package Models;
 
-**Pasos:**
-1. Escribe `Catalog` cumpliendo la tabla y las restricciones.
-2. En `CatalogMain`, agrega los 6 productos de la Tarea 3 **en ese orden**, y después intenta agregar
-   `sillaGamer` (id 12) y `null`. Imprime lo que devuelve **cada** `addProduct`. `// espero:` (8 `boolean`).
-3. **FOTO ANTES:** imprime los nombres de `getProducts()`. `// espero:`
-4. Imprime `getSortedByPrice()`, `getSortedByName()` y `getSortedByType()`. `// espero:` en cada uno.
-5. **FOTO DESPUÉS:** imprime otra vez `getProducts()`. `// espero:` debe ser **idéntica** a la foto antes. Si no
-   lo es, tu `Catalog` está ordenando la lista interna.
-6. Intenta `catalog.getSortedByPrice().add(mouse)` y `catalog.getProducts().sort(null)`, cada uno en su
-   `try/catch`. `// espero:` ¿qué excepción en cada uno?
-7. Imprime `getCheapest().getName()`. `// espero:` (hay empate en el más barato: ¿cuál sale y por qué?)
-8. Crea un `Catalog` vacío y llama `getCheapest()`. `// espero:` lo que decidiste en el requisito.
+public class Catalog {
+    private final List<Product> products = new ArrayList<>();
 
-**Preguntas:**
+    public boolean addProduct(Product product) { ... }
+    public List<Product> getProducts() { ... }
+
+    public List<Product> getSortedByPrice() { return sortedCopy( /* qué comparador */ ); }
+    public List<Product> getSortedByName()  { return sortedCopy( /* qué comparador */ ); }
+    public List<Product> getSortedByType()  { return sortedCopy( /* qué comparador */ ); }
+
+    public Product getCheapest() { ... }
+
+    private List<Product> sortedCopy(Comparator<Product> comparator) { ... }
+}
+```
+> Cada `getSortedBy...` queda de **una línea**. Si alguno tiene `new ArrayList` o `.sort(` adentro, estás
+> duplicando código: eso va solo en `sortedCopy`.
+
+**Pista para "ya está":** no hace falta recorrer la lista a mano. Una `List` tiene un método que pregunta
+si un elemento está, y usa **`equals`** (lección 01, `ContainsLab`). Tu `equals` de `Product` compara el `id`.
+
+**Pista para `getCheapest()` con el catálogo vacío:** `Collections.min` de una lista vacía lanza una
+excepción. Tienes que **decidir** qué hacer y escribir tu decisión en P6.3. Opciones válidas:
+- (a) dejar que salga la excepción de `Collections.min` (y documentarlo);
+- (b) comprobar `isEmpty()` y lanzar tú una `IllegalStateException("El catálogo está vacío")`;
+- (c) comprobar `isEmpty()` y devolver `null` (la peor: el que llama puede olvidarse de comprobarlo).
+
+En la lección 05 vas a ver la forma moderna (`Optional`) y vas a cambiar este método.
+
+---
+
+**Pasos en `CatalogMain`:**
+
+**Paso 1 — escribe `Catalog`.** Compila antes de seguir.
+
+**Paso 2 — agregar.** Crea un `Catalog`, agrega los 6 productos de la **Tarea 3** (datos exactos, en ese
+orden), después `sillaGamer` (id 12) y después `null`. Imprime lo que devuelve **cada** `addProduct`.
+Llena la tabla **antes** de ejecutar:
+
+| `addProduct(…)` | ¿es `null`? | ¿ya hay alguien con ese id? | espero | real |
+|-----------------|-------------|-----------------------------|--------|------|
+| thinkpad | | | | |
+| silla | | | | |
+| curso | | | | |
+| mac | | | | |
+| mouse | | | | |
+| audifonos | | | | |
+| sillaGamer | | | | |
+| `null` | | | | |
+
+> Recuerda la lección de la Tarea 4: la columna "¿ya hay alguien?" mira **lo que hay dentro en ese momento**,
+> no lo que vas a agregar después.
+
+**Paso 3 — FOTO ANTES.** Imprime solo los **nombres** de `getProducts()` (haz un método
+`static void imprimirNombres(List<Product> l)`). `// espero:`
+
+**Paso 4 — los tres órdenes.** Imprime los nombres de `getSortedByPrice()`, `getSortedByName()` y
+`getSortedByType()`, cada uno con su separador y su `// espero:`. Para cada uno, piensa:
+- **precio:** hay dos empates (`49.00` y `89.90`); aquí el desempate es el **nombre**, no el orden de llegada.
+- **nombre:** sin mayúsculas: ¿dónde quedan `audífonos` y `curso java`?
+- **tipo:** es el mismo orden que el paso 5c de la Tarea 5, pero sin `Silla gamer` (no entró).
+
+**Paso 5 — FOTO DESPUÉS.** Imprime otra vez los nombres de `getProducts()`. `// espero:` tiene que ser
+**idéntica** a la foto del paso 3. Si sale distinta, algún `getSortedBy...` está ordenando `products` en vez
+de una copia.
+
+**Paso 6 — intentar romperlo desde fuera.** Cada línea en su propio `try/catch (UnsupportedOperationException
+e)`, imprimiendo `"no se puede: " + e` en el `catch`:
+```java
+catalog.getSortedByPrice().add(mouse);
+catalog.getProducts().sort(null);
+catalog.getProducts().clear();
+```
+`// espero:` en cada una: ¿entra al `catch`? Y al final imprime los nombres de `getProducts()`: ¿siguen los 6?
+
+**Paso 7 — el más barato.** Imprime `catalog.getCheapest().getName()`. `// espero:` Hay **empate** en el
+precio más bajo (`curso java` y `Mouse`, los dos `49.00`). `Collections.min` devuelve **el primero que
+encuentra** entre los empatados, recorriendo la lista en orden. ¿Cuál de los dos está antes en `products`?
+
+**Paso 8 — catálogo vacío.** `new Catalog().getCheapest()` dentro de un `try/catch (RuntimeException e)`,
+imprimiendo `e` en el `catch` (no `e.getMessage()`: puede ser `null`, como te pasó en la Tarea 1).
+`// espero:` lo que decidiste (si elegiste la opción (c), imprime el resultado sin `try/catch`).
+
+---
+
+**Preguntas** (al final de `CatalogMain`; un hueco = una parte):
 - **P6.1** *"`getSortedByPrice` copia antes de ordenar porque, si ordenara `products` directamente, ___. Lo
-  comprobé en el paso ___."*
-- **P6.2** *"Devuelvo la copia ordenada con `Collections.unmodifiableList(...)` para que ___. No uso
-  `List.copyOf` porque ___ (o: también serviría porque ___)."* ← piensa: aquí la copia ya está ordenada; ¿pierde
-  el orden `List.copyOf` con una `List`? Pruébalo antes de contestar.
-- **P6.3** *"Si el catálogo está vacío, `getCheapest()` ___, porque decidí ___. En la semana 5 esto se hará
-  mejor con ___."*
-- **P6.4** *"`addProduct` detecta que `sillaGamer` ya está usando ___, que a su vez usa el método ___ de
-  `Product`."*
+  comprobé comparando el paso ___ con el paso ___."*
+- **P6.2** *"Envuelvo la copia ordenada con `Collections.unmodifiableList(...)` para que ___. En el paso 6 eso
+  se vio porque ___."*
+- **P6.3** *"Si el catálogo está vacío, `getCheapest()` ___, porque elegí la opción ___. Esa opción es mejor
+  que devolver `null` porque ___."* (si elegiste `null`, explica por qué igual lo prefieres)
+- **P6.4** *"`addProduct` detecta que `sillaGamer` ya está usando el método ___ de la lista, que por dentro
+  llama al método ___ de `Product`, que compara ___."*
+- **P6.5** *"Los tres `getSortedBy...` no repiten código porque ___."*
 
-**Checklist:**
-- [ ] `products` nunca se ordena (foto antes = foto después)
-- [ ] los 3 `getSortedBy...` usan `sortedCopy`
-- [ ] lo devuelto no se puede modificar (paso 6)
-- [ ] `addProduct` rechaza `null` y el id repetido
-- [ ] caso vacío de `getCheapest` decidido y probado
-- [ ] P6.1–P6.4
+**Checklist antes de pedir "revisa tarea 6":**
+- [ ] `Catalog` **sin** `main`; `products` es `private final`
+- [ ] tabla del paso 2 llenada **antes** de ejecutar (8 filas)
+- [ ] foto antes = foto después (pasos 3 y 5)
+- [ ] los 3 `getSortedBy...` son de **una línea** y llaman a `sortedCopy`
+- [ ] paso 6: las 3 modificaciones fallan y la lista sigue con 6
+- [ ] caso vacío de `getCheapest` decidido, probado e impreso con `e` (no `e.getMessage()`)
+- [ ] separadores `---- T6 · Paso N ----`; ✅ solo si coincide letra por letra
+- [ ] P6.1–P6.5
 
 ---
 

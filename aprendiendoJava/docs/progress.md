@@ -5,8 +5,11 @@
 ## ▶ TAREA EN CURSO (retomar aquí)
 
 **Tema:** Ordenar: `Comparable` / `Comparator` (semana 4). Lección: `docs/lessons/04-ordenar-comparable-comparator.md`.
-**Estado:** lección completa publicada el 2026-10-27 (teoría secciones 0 a 13 + tareas 1–6, todo ejecutado en Java 21)
-→ **siguiente:** correcciones de T1–T4 (checklists en cada 🔍 REVISIÓN) y Tarea 5.
+**Estado:** lección completa publicada el 2026-10-27 (teoría secciones 0 a 13 + tareas 1–6, todo ejecutado en Java 21).
+2026-11-16: **tareas 5 y 6 reescritas** (v2: pasos más pequeños, tabla de archivos con "¿tiene main?", esqueletos,
+tablas de predicción). Publicadas también las lecciones **05** (`05-java-moderno.md`) y **06**
+(`06-excepciones-fechas.md`), solo teoría + tareas, sin empezar.
+→ **siguiente:** Tarea 5 y Tarea 6 de L04 (la 6 es requisito de L05 T5), correcciones de T1–T4, y después la teoría de L05.
 
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
@@ -15,8 +18,8 @@
 | 2. `Product implements Comparable` (por id) | `Product`, `ComparableLab` | 🔁 v1 7/10 (2026-11-14): paso 4 = estabilidad, P2.3 NPE |
 | 3. `ProductPrice/NameComparator`, `reversed`, `thenComparing`, estabilidad | `Models/comparators/*`, `ComparatorLab` | 🔁 v1 6,5/10 (2026-11-14): estabilidad con comparador equivocado, P3.3 |
 | 4. Trampa `TreeSet`/`TreeMap` con empates | `TreeTrapLab` | 🔁 v1 7/10 (2026-11-16): predicciones todas ✅; ❌ P4.1 (cree que `TreeSet` usa `equals`); faltan contenido pasos 3 y 5 |
-| 5. Orden por tipo (`instanceof`) + ranking de `Map` por valor | `ProductTypeComparator`, `SalesEntryComparator`, `RankingLab` | pendiente |
-| 6. Entregable `Catalog` (copias ordenadas no modificables) | `Models/Catalog`, `CatalogMain` | pendiente |
+| 5. Orden por tipo (`instanceof`) + ranking de `Map` por valor | `ProductTypeComparator`, `SalesEntryComparator`, `RankingLab` | ⏳ esqueletos (commit `tarea5`); `ProductTypeComparator` tiene `main` y no implementa `Comparator` → la redacción v2 lo avisa |
+| 6. Entregable `Catalog` (copias ordenadas no modificables) | `Models/Catalog`, `CatalogMain` | ⏳ esqueleto de `CatalogMain` |
 
 **Atraso:** hoy (2026-10-27) es la semana 5 del roadmap; vamos 1 semana atrasados (la lección 04 era del 19 oct).
 
@@ -64,6 +67,18 @@ ejemplos, para llegar a 10/10. Mantener ese nivel.
 Detalle en los bloques 🔍 REVISIÓN de `docs/lessons/01-list-arraylist.md`.
 
 ---
+
+## 2026-11-16 — Redacción L04 T5/T6 + lecciones 05 y 06 publicadas
+
+* El alumno pidió mejorar la redacción de L04 T5 y T6 ("soy un poco lento para atender") y la teoría de los temas 5 y 6.
+* L04 T5/T6 v2: mismas tareas, en pasos chicos; tabla de archivos (comparador ≠ laboratorio con `main`); esqueletos
+  con firmas; tablas "¿en qué `if` entra primero?" y de `addProduct`; `getCheapest` vacío con 3 opciones explícitas.
+* L05 (`record`, `enum` con reglas, `switch` moderno, `Optional`, `var`, inmutabilidad): cada sección con "🧠 En una
+  frase"; trampa `BigDecimal` en record (1.5 ≠ 1.50 → `setScale`); entidad vs valor (deuda L02). Tareas: `Money`,
+  inmutabilidad superficial, `OrderStatus`, `SwitchLab`, `Optional` en `Catalog`, `Order` con estado + `OrderSummary`.
+* L06 (excepciones + `java.time`): usa su `Order.addItem` (try/catch que traga) como antipatrón; tareas `Inventory`
+  con `InsufficientStockException`, CSV con try-with-resources, `Renewal` inmutable con `statusOn(today)`.
+* Todo ejecutado en Java 21 (soluciones de referencia en el scratchpad, no en el repo).
 
 ## 2026-10-21 — Revisión Tarea 6 (L03)
 
