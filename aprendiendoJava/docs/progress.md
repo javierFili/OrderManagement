@@ -9,7 +9,10 @@
 2026-11-16: **tareas 5 y 6 reescritas** (v2: pasos más pequeños, tabla de archivos con "¿tiene main?", esqueletos,
 tablas de predicción). Publicadas también las lecciones **05** (`05-java-moderno.md`) y **06**
 (`06-excepciones-fechas.md`), solo teoría + tareas, sin empezar.
-→ **siguiente:** Tarea 5 y Tarea 6 de L04 (la 6 es requisito de L05 T5), correcciones de T1–T4, y después la teoría de L05.
+2026-11-17: el alumno decidió **saltar las tareas 5 y 6** de L04 y pasar a L05 (opinión dada: T5 es de relevancia
+media —`instanceof` y ranking por valor vuelven con Streams/`groupingBy`—; T6 sí importa porque L05 T5 usa `Catalog`).
+→ **siguiente:** teoría de L05 (`05-java-moderno.md`) y sus tareas 1–4. **Antes de L05 T5:** `Catalog` mínimo (ver nota
+"Antes de empezar" de L05 sección 10). Las correcciones de T1–T4 de L04 quedan como deuda.
 
 | Tarea | Archivo | Estado |
 |-------|---------|--------|
@@ -18,8 +21,8 @@ tablas de predicción). Publicadas también las lecciones **05** (`05-java-moder
 | 2. `Product implements Comparable` (por id) | `Product`, `ComparableLab` | 🔁 v1 7/10 (2026-11-14): paso 4 = estabilidad, P2.3 NPE |
 | 3. `ProductPrice/NameComparator`, `reversed`, `thenComparing`, estabilidad | `Models/comparators/*`, `ComparatorLab` | 🔁 v1 6,5/10 (2026-11-14): estabilidad con comparador equivocado, P3.3 |
 | 4. Trampa `TreeSet`/`TreeMap` con empates | `TreeTrapLab` | 🔁 v1 7/10 (2026-11-16): predicciones todas ✅; ❌ P4.1 (cree que `TreeSet` usa `equals`); faltan contenido pasos 3 y 5 |
-| 5. Orden por tipo (`instanceof`) + ranking de `Map` por valor | `ProductTypeComparator`, `SalesEntryComparator`, `RankingLab` | ⏳ esqueletos (commit `tarea5`); `ProductTypeComparator` tiene `main` y no implementa `Comparator` → la redacción v2 lo avisa |
-| 6. Entregable `Catalog` (copias ordenadas no modificables) | `Models/Catalog`, `CatalogMain` | ⏳ esqueleto de `CatalogMain` |
+| 5. Orden por tipo (`instanceof`) + ranking de `Map` por valor | `ProductTypeComparator`, `SalesEntryComparator`, `RankingLab` | ⏸ saltada (2026-11-17, decisión del alumno); quedan esqueletos sin terminar. Reaparece: ordenar por tipo → `switch`/enum en L05; ranking de `Map` por valor → Streams |
+| 6. Entregable `Catalog` (copias ordenadas no modificables) | `Models/Catalog`, `CatalogMain` | ⏸ saltada (2026-11-17). Se hace la versión **mínima** antes de L05 T5 (`addProduct`, `getProducts`, `getCheapest`); el resto (copias ordenadas no modificables) reaparece en L05 sección 2/3.5 (`List.copyOf`) |
 
 **Atraso:** hoy (2026-10-27) es la semana 5 del roadmap; vamos 1 semana atrasados (la lección 04 era del 19 oct).
 

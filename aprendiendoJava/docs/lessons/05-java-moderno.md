@@ -1186,8 +1186,15 @@ fallaste.
 
 ### Antes de empezar: lo que queda abierto de la lección 04
 
-Esta lección usa el `Catalog` de la **Tarea 6 de la lección 04** (en la Tarea 5 de aquí). Si todavía no lo
-tienes, **termina primero esa tarea**: es el entregable de la lección 04. Las correcciones de las tareas 1 a 4
+Esta lección usa el `Catalog` de la **Tarea 6 de la lección 04** (en la Tarea 5 de aquí). Si saltaste esa tarea
+(como se decidió el 2026-11-17), **antes de la Tarea 5** crea un `Catalog` **mínimo** (10 min) en
+`src/Models/Catalog.java`, sin `main`:
+- un campo `private final List<Product> products = new ArrayList<>();`
+- `boolean addProduct(Product product)`: agrega y devuelve lo que devuelve `add`
+- `List<Product> getProducts()`: devuelve una **copia no modificable** (`List.copyOf`, sección 0.4)
+- `Product getCheapest()`: el más barato con `Collections.min(products, new ProductPriceComparator())`
+
+Con eso la Tarea 5 funciona igual. Donde la Tarea 5 menciona `CatalogMain`, ignóralo: no lo tienes. Las correcciones de las tareas 1 a 4
 de la lección 04 siguen en sus checklists; no bloquean esta lección, pero vuelven a aparecer aquí (lo que
 devuelve vs lo que hace, `BigDecimal` con escala, `equals` vs comparación).
 
