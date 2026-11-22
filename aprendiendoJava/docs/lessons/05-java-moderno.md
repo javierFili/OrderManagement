@@ -1,4 +1,4 @@
-# Lección 05 — Java moderno: `record`, `enum` con comportamiento, `switch`, `Optional`, `var`
+#   Lección 05 — Java moderno: `record`, `enum` con comportamiento, `switch`, `Optional`, `var`
 
 > Ruta: Fase 1 (Java moderno), semana 5 del roadmap.
 > Viene de: Lección 04 (ordenar). Prepara: Lección 06 (excepciones y fechas), Streams (semanas 9 y 10, que
@@ -1180,6 +1180,127 @@ fallaste.
 9. ¿Cuándo devuelves `Optional` y en qué **tres** lugares **no** se usa?
 10. ¿Qué pasa con `opt.get()` si está vacío, y qué dos alternativas seguras tienes?
 
+> ## 🔍 REVISIÓN AUTOEVALUACIÓN + 🧪 — 2026-11-21 · **5/10** · 🔁 repite 6 preguntas cortas y 2 🧪 antes de la Tarea 1
+> Historial: **v1 5/10**. Revisado leyendo `ModernPlayground` y ejecutándolo con Java 21.
+
+**✅ Ya está bien:** los 🧪 de las secciones 2, 3, 4, 6 y 7 están hechos y compilan. Acertaste `c1 == c2` false /
+`equals` true, el `IllegalArgumentException` del constructor compacto, el `false` de `Precio` 3.0 vs 3.00, el
+`ordinal()` 4, el `NoSuchElementException` y los dos `var` (3 y 3.5). En la autoevaluación, las preguntas 6, 8 y 10
+están bien entendidas.
+
+### Autoevaluación
+
+| # | Tu respuesta | Nota | Qué falta |
+|---|--------------|------|-----------|
+| 1 | toString, hashCode, equals, getters; accesor `record.x` | ½ | las 4 cosas ✅ (aunque se llaman **accesores**, no getters). El accesor de `x` es **`p.x()`**: un método, con paréntesis y sin `get` (sección 3.2) |
+| 2 | "no puedo escribir el constructor completo; sí validar" | ❌ 0 | ver IMPORTANTE 1 |
+| 3 | `false`; 5.0 y 5.00 son distintos; quitar ceros al comparar | ¾ | el **por qué** exacto: el `equals` del record usa el `equals` de `BigDecimal`, que mira la **escala**. El arreglo no es "al comparar" sino **al crear**: en el constructor compacto, `valor = valor.setScale(2, RoundingMode.HALF_UP);` (sección 3.4) |
+| 4 | por el get; `Collections.unmodifiableList` | ½ | ver IMPORTANTE 2 |
+| 5 | "nose!!" | ❌ 0 | ver IMPORTANTE 3 |
+| 6 | no compila si te equivocas; ordinal cambia (sobre todo en la BD) | ✅ 1 | |
+| 7 | "no necesita break" | ½ | falta la **primera** parte: ¿qué *es* el fall-through? |
+| 8 | con `default` el valor nuevo cae ahí y el compilador no avisa | ¾ | ✅ la idea. Falta decir qué pasa **sin** `default`: el `switch` **deja de compilar** y te obliga a cubrir el valor nuevo |
+| 9 | "cuando son list vacíos; cuando el método devuelve valores diferentes de null" | ❌ 0 | ver IMPORTANTE 4 |
+| 10 | sale un error; preguntar si está vacío u `orElse` | ✅ 1 | el error tiene nombre: `NoSuchElementException: No value present` (lo imprimiste tú en el 🧪 6) |
+
+**Total: 5/10.** Para pasar a las tareas hacen falta 8.
+
+---
+
+#### 🟠 IMPORTANTE 1 — Pregunta 2: qué se puede escribir dentro del constructor compacto
+
+**Qué pasa:** la pregunta no es "¿qué constructor puedo escribir?", sino "dentro del constructor compacto, ¿qué
+**línea** no compila y cuál sí, para cambiar un dato?".
+
+**Teoría (sección 3.3):** al terminar el constructor compacto, Java hace solo `this.titulo = titulo`. Por eso:
+```java
+public Libro {
+    this.titulo = titulo.trim();   // ❌ cannot assign a value to final variable titulo
+    titulo = titulo.trim();        // ✅ cambias el PARÁMETRO; Java copia el valor ya cambiado al campo
+}
+```
+**Respuesta modelo (llena tú los huecos):** *"No puedo escribir `this.____ = ...` porque el campo es ____. Sí
+puedo escribir `____ = ...`, que cambia el ____, y Java lo copia al campo al final."*
+
+#### 🟠 IMPORTANTE 2 — Pregunta 4: dos formas de cambiarlo, y `unmodifiableList` es una **vista**
+
+**Qué pasa:** diste una forma (por el accesor). La otra es **con la lista original**: quien creó el record
+todavía tiene esa lista en una variable y puede hacerle `add`.
+
+Y `Collections.unmodifiableList` **no basta**: es una *vista* (sección 0.4), no una copia. Bloquea el `add` por el
+accesor, pero si cambian la lista original, el record también cambia. Comprobado:
+```java
+record L(List<String> xs) { L { xs = Collections.unmodifiableList(xs); } }
+
+List<String> src = new ArrayList<>(List.of("pan"));
+L l = new L(src);
+src.add("huevos");
+System.out.println(l);    // → L[xs=[pan, huevos]]   😱 cambió
+```
+**La solución es `List.copyOf(...)`** en el constructor compacto: copia independiente **y** no modificable (sección
+3.5). Este es el mismo punto débil de la lección 02 (copia vs vista), y la Tarea 2 lo va a probar.
+
+#### 🟠 IMPORTANTE 3 — Pregunta 5: entidad vs valor
+
+Está en la sección 3.7, con tu propio proyecto. Aplica el truco *"si cambio un dato, ¿sigue siendo el mismo?"*:
+- Un `Customer` cambia de email → ¿sigue siendo el mismo cliente? → ______ → ¿clase o record?
+- Un precio `Money` pasa de 10 a 12 → ¿sigue siendo el mismo precio? → ______ → ¿clase o record?
+
+Responde con **un** ejemplo de cada uno y di cuál es `record`.
+
+#### 🟠 IMPORTANTE 4 — Pregunta 9: dónde sí y dónde no va `Optional`
+
+**Qué pasa:** se mezclaron las ideas. `Optional` tiene **un solo** uso (sección 6.5): el **tipo de retorno** de
+un método que **busca un solo resultado** y puede no encontrarlo (`findById`, `findByName`).
+
+Y **no** se usa en **tres** lugares. Lo de "lista vacía" que escribiste es uno de ellos, pero al revés: un método
+que devuelve **muchos** devuelve `List`, y si no hay nada, una lista **vacía**, nunca `Optional<List<...>>`. Los
+otros dos están en la tabla de la sección 6.5 (pista: son dos cosas que se declaran en una clase o en un método).
+
+#### 🟡 MENOR — Pregunta 7
+
+Respuesta en dos partes: *"Fall-through es cuando el `switch` viejo, al no encontrar `break`, ______. El `switch`
+con `->` no lo tiene porque ______."*
+
+---
+
+### Los 🧪
+
+| Sección | Estado | Qué falta |
+|---------|--------|-----------|
+| 2 | ½ | paso 1: el experimento era **no guardar** el resultado e imprimir **`precio`**. Tú imprimiste `precio.multiply(...)` (40.00). Imprime `precio` y verás `20.00`: eso es lo que demuestra que `BigDecimal` es inmutable |
+| 3 | ✅ casi | falta imprimir `c1` (el formato del `toString` era lo importante). Escribiste `c1.nombre` (el **campo**, compila solo porque el record está **dentro** de tu clase); el paso pedía el accesor `c1.nombre()` |
+| 4 | ½ | paso 1 pedía `Dia.values().length` (→ 7), no `values()`. Paso 3: `esFinDeSemana()` **sin parámetro**: usa `this` (`this == SABADO \|\| this == DOMINGO`). El tuyo recibe otro `Dia` y no tiene sentido (`Dia.SABADO.esFinDeSemana(Dia.LUNES)` → false). Y falta imprimir `DOMINGO` y `LUNES` |
+| 5 | ❌ | no está hecho (dejaste `// toca: switch modermo`) |
+| 6 | ❌ bug | ver CRÍTICO abajo |
+| 7 | ✅ casi | falta el paso 2 (`var vacio;` y copiar el error) |
+
+#### 🔴 CRÍTICO — 🧪 6: tu `buscarPorInicial` nunca encuentra nada, y tu `espero` acertó por culpa del bug
+
+```java
+for (String correo : correos) {
+    if (correos.equals(inicial)) {        // ← compara la LISTA entera con "l"
+        return Optional.of(inicial);      // ← devolvería "l", no el correo
+    }
+}
+```
+- `correos.equals("l")` compara una `List` con un `String` → **siempre false** (comprobado). Por eso `"l"` dio
+  `Optional.empty`.
+- Lo correcto para `"l"` es **`Optional[luis@mail.com]`**: `luis@mail.com` empieza con `l`. Tu `espero:
+  optional.empty` estaba mal, pero el bug hizo que coincidiera. **Cuando tu predicción y la salida coinciden,
+  igual revisa si el código hace lo que pide el enunciado.**
+- Dos arreglos: usa la variable del `for` (`correo`, singular) con `startsWith(inicial)`, y devuelve **el correo**,
+  no la inicial.
+- Falta el `espero` del paso 3 (`orElse`).
+
+---
+
+### Para llegar a 8/10 (y empezar la Tarea 1)
+- [ ] Rehacer preguntas **1, 2, 4, 5, 7 y 9** debajo de las tuyas, como `v2` (no borres las de v1)
+- [ ] 🧪 6: arreglar `buscarPorInicial`, volver a predecir `"l"` y ejecutar
+- [ ] 🧪 5 completo (switch viejo sin `break`, `tipo(Dia)`, error al quitar casos, `yield`)
+- [ ] 🧪 2 paso 1 e 🧪 4 pasos 1 y 3 (los arreglos cortos de la tabla)
+
 ---
 
 ## 10. Tareas
@@ -1361,6 +1482,87 @@ un comentario y **comenta la línea** para que compile:
 - [ ] paso 8 escrito **exactamente** como está (con la línea `m1.add(m2);` sola)
 - [ ] paso 9: dos errores copiados, líneas comentadas
 - [ ] P1.1–P1.4, todos los huecos
+
+> ## 🔍 REVISIÓN TAREA 1 — 2026-11-21 · **6/10** · 🔁 corrige 4 cosas y vuelve a pedir revisión
+> Historial: **v1 6/10**. Revisado compilando `Money` + `RecordLab` con Java 21, con el `Money` final **y** con
+> un `Money` crudo (`record Money(BigDecimal amount) {}`) para comprobar tu tabla del paso 3.
+
+**✅ Lo bueno:** `Money` está **bien hecho**: constructor compacto con las 3 reglas en orden, asigna al
+**parámetro** (`amount = amount.setScale(...)`), `add` y `multiply` devuelven un `Money` nuevo, `isGreaterThan`
+usa `> 0` (¡ya no `== 1`!). La tabla del paso 3 está casi toda acertada en crudo y normalizado, y en la fila (g)
+escribiste un `porque` honesto y correcto (hashCode distinto de 10.5 y 10.50). P1.3 está perfecta.
+
+| Paso | Espero | Real | ¿Bien? |
+|------|--------|------|--------|
+| 3 crudo a–f | `Money[amount=10.5]`, 10.5, false, true, false, 0 | igual | ✅ |
+| 3 crudo g | "m1 Money{amount=10.5}" | 2 | ❌ (corregido con `porque` ✅) |
+| 5 normalizado | `10.50`, 10.50, false, true, **true**, 0, 1 | igual | ✅ |
+| 6 3.333 / 3.335 / 7 | 3.33 / 3.34 / 7.00 | igual | ✅ |
+| 6 -1 y null | "en ambos casos entra por aquí" | **solo** sale el de -1 | ❌ ver IMPORTANTE 2 |
+| 8 `m1` tras `m1.add(m2);` | 10.5 ✅ | `Money[amount=10.50]` | ❌ ✅ mal puesto: es **10.50** (está normalizado) |
+| 8 resto | 21.00, 31.50, true false, 0.00 | igual | ✅ |
+| 9 | — | errores no copiados | ❌ |
+
+---
+
+#### 🟠 IMPORTANTE 1 — P1.1, P1.2 y P1.4: las respuestas contradicen tu propia tabla
+
+Tu tabla está bien; las frases no. Compáralas:
+
+| | Tu tabla dice | Tu frase dice |
+|---|---------------|---------------|
+| P1.1 `m1.equals(m3)` | **true** ✅ | "dio false porque compara 10.5 y 10.50" ← eso es `m2`, no `m3` (m3 también es `"10.5"`) |
+| P1.2 crudo `m1.equals(m2)` | **false** ✅ | "dio true" |
+| P1.2 normalizado | **true** ✅ | "dio 10.50" ← la pregunta es qué devolvió `equals` (true/false) |
+
+**Teoría (secciones 0.3 y 3.4):** el `equals` del record compara campo por campo con el `equals` de cada campo.
+El `equals` de `BigDecimal` mira el valor **y la escala** (cuántos decimales): `10.5` tiene escala 1 y `10.50`
+escala 2 → false. Con `setScale(2, ...)` los dos quedan con escala 2 → true.
+
+**P1.4:** "objeto de **record**" no existe como categoría: es objeto de **valor** (sección 3.7). Usa el truco:
+*"si cambio un dato, ¿sigue siendo el mismo?"*. Un `Money` de 10 que pasa a 12 ya **no es** el mismo dinero → valor.
+Un `Product` que cambia de precio **sigue siendo** el mismo producto (mismo `id`) → entidad → clase con `equals`
+por `id`. Si fuera record, su `equals` miraría también el precio, y al cambiarlo se perdería en un `HashSet`.
+"Es más complejo" no es la razón.
+
+**Qué hacer:** rehaz P1.1, P1.2 y P1.4 mirando tu tabla mientras llenas cada hueco.
+
+#### 🟠 IMPORTANTE 2 — Paso 6: `new Money(null)` nunca se ejecutó
+
+```java
+try {
+    print(new Money(new BigDecimal("-1")));   // ← lanza aquí y salta al catch
+    print(new Money(null));                   // ← esta línea NUNCA corre
+} catch (IllegalArgumentException e) { ... }
+```
+Salida real: solo `amount cannot be negative: -1`. En cuanto una línea del `try` lanza, Java salta al `catch` y
+**no vuelve**. Tu `espero` ("en ambos casos entra por aquí") tiene ✅ pero solo se probó un caso.
+
+**Qué hacer:** **dos** `try/catch`, uno por caso, y en el `catch` imprime `e.getMessage()` (lo pide el paso),
+no `e`. `// espero:` con el mensaje exacto de cada uno.
+
+#### 🟠 IMPORTANTE 3 — Paso 9: faltan los dos errores
+
+- `m1.getAmount();` lo pusiste en `ModernPlayground`, donde **no existe** `m1` (el error ahí sería otro). Va en
+  `RecordLab`, debajo del paso 8.
+- `setAmount` está comentado en `Money`, pero sin el error copiado.
+
+Escribe cada línea, copia el mensaje de IntelliJ en un comentario y luego comenta la línea.
+
+#### 🟡 MENOR
+- Paso 8, primera línea: pusiste `espero: 10.5 ✅`, pero sale `Money[amount=10.50]`. La idea (no cambió) es
+  correcta y P1.3 lo dice bien; solo que el ✅ no se compara carácter por carácter.
+- `multiply`: el paso pedía `BigDecimal.valueOf(quantity)`. El `.setScale(2, ...)` que agregaste sobra: el
+  constructor compacto ya normaliza el resultado.
+- Paso 5 pedía marcar **qué filas cambiaron** y por qué: escribe una línea, por ejemplo *"cambiaron a, b, e y g
+  porque..."*.
+
+### Para llegar a 10/10
+- [ ] P1.1, P1.2 y P1.4 rehechas con tu tabla al lado (como `v2`, sin borrar las de v1)
+- [ ] Paso 6: dos `try/catch` separados, `e.getMessage()`, `espero` de cada mensaje
+- [ ] Paso 9: los dos errores copiados (`getAmount` en `RecordLab`)
+- [ ] Paso 8: corregir el ✅ de la primera línea
+- [ ] Paso 5: una línea con las filas que cambiaron
 
 ---
 
