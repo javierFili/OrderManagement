@@ -1,4 +1,4 @@
-#   Lección 05 — Java moderno: `record`, `enum` con comportamiento, `switch`, `Optional`, `var`
+#      Lección 05 — Java moderno: `record`, `enum` con comportamiento, `switch`, `Optional`, `var`
 
 > Ruta: Fase 1 (Java moderno), semana 5 del roadmap.
 > Viene de: Lección 04 (ordenar). Prepara: Lección 06 (excepciones y fechas), Streams (semanas 9 y 10, que
@@ -1645,6 +1645,116 @@ sección 3.7: *"si cambio un dato, ¿sigue siendo el mismo?"*.
 - [ ] tabla del paso 5 completa, con la columna del "¿sigue siendo el mismo?"
 - [ ] P2.1–P2.4
 
+> ## 🔍 REVISIÓN TAREA 2 — 2026-11-24 · **6/10** · 🔁 ejecuta el paso 4, corrige las columnas `real` y vuelve a pedir revisión
+> Historial: **v1 6/10**. Revisado compilando `ImmutabilityLab` con Java 21. El paso 4 lo probé aparte (tu archivo
+> no tiene código para ese paso).
+
+**✅ Lo bueno:** el código de la Parte A está **bien**. `SafeShoppingList` tiene un constructor compacto correcto
+(`items = List.copyOf(items);`: asigna al **parámetro**, como se corrigió en la Tarea 1). Tus predicciones de la
+Parte A son correctas en el contenido, **también la del paso 4** (`huevos` se ve en el record). En P2.1 la segunda
+parte está perfecta (*"guardó la referencia de la lista, no una copia"*) y P2.2 está bien. En la tabla del paso 5
+aciertas `Product`, `Customer`, `Order`, la dirección y el resumen.
+
+**Salida real de tu programa:**
+```
+ShoppingList[owner=Lucía, items=[pan, leche]]
+ShoppingList[owner=Lucía, items=[pan, leche, huevos]]
+ShoppingList[owner=Lucía, items=[pan, leche, huevos, cafe]]
+---------paso3-------
+SafeShoppingList[owner=Lucía, items=[pan, leche]]
+SafeShoppingList[owner=Lucía, items=[pan, leche]]
+java.lang.UnsupportedOperationException
+------Paso 4.---------
+-------Paso 5------
+```
+
+| Paso | Tu `espero` | Tu `real` | Real de verdad | ¿Bien? |
+|------|-------------|-----------|----------------|--------|
+| 2a | `[pan, leche]` | igual | igual | ✅ (el formato era `ShoppingList[owner=Lucía, items=[pan, leche]]`) |
+| 2b | `[pan, leche, huevos]` | igual | igual | ✅ |
+| 2c | `[pan, leche, huevos, cafe]` | `[pan, leche, huevos]` | `[pan, leche, huevos, cafe]` | espero ✅, **`real` mal copiado** |
+| 2 `items` de afuera | — | — | no se imprimió | ❌ falta |
+| 3a / 3b | `[pan, leche]` | "`ShoppingList[...]`" | `SafeShoppingList[...]` | espero ✅, `real` copiado del espero |
+| 3c | UOE | "UnsupportedUoerationException" | `java.lang.UnsupportedOperationException` | espero ✅, `real` no copiado de la consola |
+| 4b | `[pan, leche, huevos]` | `[pan, leche]` | **`[pan, leche, huevos]`** (no ejecutado) | espero ✅, **`real` inventado** |
+
+---
+
+#### ❌ CRÍTICO — La columna `real` no salió de la consola
+
+En 3 sitios la columna `real` **no coincide** con lo que imprime tu programa:
+- **2c**: escribiste `[pan, leche, huevos]`, pero la consola dice `[pan, leche, huevos, cafe]`. Tu `espero` era
+  el correcto.
+- **Paso 3**: el `real` dice `ShoppingList[Lucia,...` (copiado del `espero`), pero la consola dice
+  `SafeShoppingList[owner=Lucía, ...]`, y el error trae una errata (`Uoeration`) que en la consola no existe.
+- **Paso 4**: **no hay código**, pero la tabla tiene un `real`. Además ese `real` (`[pan, leche]`) es
+  **falso**: lo comprobé y sale `[pan, leche, huevos]`. Tu `espero` estaba bien, y el `real` inventado lo
+  contradice.
+
+**Por qué importa:** el `real` es la prueba. Si lo escribes sin ejecutar, el paso 4 te "demuestra" lo contrario
+de la sección 0.4 (que una vista **sí** refleja los cambios). Es la misma trampa de lecciones anteriores: tabla
+llena con el paso sin hacer.
+
+**Profesionalmente:** en un ticket o en un PR, "probado: funciona" cuando no se probó es lo que más confianza
+quita. Mejor `real: no lo ejecuté` que un `real` inventado.
+
+**Qué hacer:**
+1. Paso 4 de verdad, en código: cambia **temporalmente** el constructor a `Collections.unmodifiableList(items)`,
+   crea `items3`, haz `items3.add("huevos")` e imprime el record. Copia la salida. Después vuelve a `List.copyOf`
+   y deja un comentario con lo que viste.
+2. Rehaz las columnas `real` de los pasos 2, 3 y 4 **copiando y pegando** de la consola.
+
+#### 🟠 IMPORTANTE 1 — Paso 5: la fila de `Money` se contradice, y `OrderItem` no tiene porqué
+
+| Tipo | Tú | Problema |
+|------|----|----------|
+| `Money` | "si cambia, ¿sigue siendo el mismo?" → **si** · valor | Si sigue siendo el mismo, sería **entidad**. Un `Money` de 10 que pasa a 20 **ya no es** el mismo dinero → **no** → valor ✅ |
+| `OrderItem` | id **si** · sigue siendo el mismo **si** · **valor** · clase | Tres columnas que no encajan: con id y "sigue siendo el mismo" sería entidad. Y el `OrderItem` de tu proyecto **no tiene** id |
+
+**Teoría (sección 3.7):** la columna "¿sigue siendo el mismo?" **decide** la siguiente:
+**sí → entidad → clase** (con `equals` por id); **no → valor → `record`**. Si no coinciden, una de las dos
+está mal.
+
+`OrderItem` admite dos respuestas, pero cada una necesita su porqué:
+- **valor → `record`**: "2 × Mouse" y "3 × Mouse" son items distintos; para acumular, se crea uno nuevo
+  (`new OrderItem(product, cantidad + 2)`), igual que `Money.add`.
+- **clase mutable**: si quieres hacer `item.addQuantity(2)` en el mismo objeto. Pero sin id no es una entidad;
+  es una clase de valor mutable, la opción más frágil.
+
+**Qué hacer:** corrige la fila de `Money` y rehaz la de `OrderItem` con una línea de **porqué** (la tarea lo pide).
+
+#### 🟠 IMPORTANTE 2 — P2.1 (primera parte), P2.3 y P2.4: los huecos no dicen lo que hay que decir
+
+- **P2.1** *"final impide el cambio de valor luego de ser inicializada pero no con objetos"*: es vago. Con
+  objetos `final` **sí** hace algo: impide **reasignar** el campo (que apunte a **otra** lista). Lo que no
+  impide es **modificar el contenido** del objeto al que apunta (`add`, `remove`).
+  → *"`final` impide **reasignar el campo / apuntar a otra lista** pero no **cambiar lo que hay dentro de la
+  lista**."*
+- **P2.3** *"la acción (b) la agrego, porque una vista de la lista"*: falta decir si **se ve en el record**, y la
+  frase no termina. → *"la acción (b) **sí aparece en el record**, porque una vista **no copia: mira la lista
+  original y muestra sus cambios**"*. Solo bloquea los cambios hechos **a través de la vista** (la acción c).
+- **P2.4** *Customer*: "viene de la BD y tiene valores importantes" no es la razón (un `Money` también puede venir
+  de la BD). La razón es la **identidad**: si el cliente cambia de email, **sigue siendo el mismo cliente** (mismo
+  `id`). *Dirección*: el primer hueco pedía **entidad o valor** (pusiste "record"), y "porque **puede tener**
+  id" va al revés. Una dirección es **valor** porque si cambias la calle **ya es otra dirección**, y no necesita id.
+
+**Qué hacer:** rehaz P2.1, P2.3 y P2.4 como `v2`, debajo de las de v1, llenando **cada** hueco.
+
+#### 🟡 MENOR
+- Datos exactos: el enunciado dice `"café"` (con tilde), tú usaste `"cafe"`.
+- En el paso 3, `items2.add("huevos")` no necesita `try/catch`: `items2` es un `ArrayList` normal y no puede
+  lanzar UOE. Solo la acción (c) va dentro del `try`. (Tu P2.2 lo dice bien.)
+- Separadores: la plantilla es `---- T2 · Paso N ----` antes de **cada** paso (faltan los de los pasos 1 y 2).
+- El helper `print(Object...)` está bien, buena idea.
+
+### Para llegar a 10/10
+- [ ] Paso 4 **en código**: `unmodifiableList` temporal, `items3`, salida copiada, vuelta a `List.copyOf`
+- [ ] Columnas `real` de los pasos 2, 3 y 4 copiadas de la consola (2c con `cafe`, 3 con `SafeShoppingList`)
+- [ ] Imprimir `items` (la de afuera) después de (c), con su `espero`
+- [ ] Paso 5: fila `Money` corregida, `OrderItem` con su porqué
+- [ ] P2.1, P2.3 y P2.4 como `v2`, todos los huecos
+- [ ] `"café"` con tilde y separadores `---- T2 · Paso N ----`
+
 ---
 
 ### Tarea 3 — `enum OrderStatus` con reglas de transición (medio · 40 min)
@@ -1757,6 +1867,64 @@ que da IntelliJ en un comentario y vuelve a ponerlo.
 - [ ] matriz del paso 5 llenada **antes** de ejecutar, comparada celda por celda
 - [ ] paso 7: error copiado y `case` restaurado
 - [ ] P3.1–P3.4
+
+> ## 🔍 REVISIÓN TAREA 3 — 2026-11-24 · **7,5/10** · 🔁 rehaz 3 preguntas y agrega el `ordinal` del paso 3 (rápido)
+> Historial: **v1 7,5/10**. Revisado compilando todo `src` con Java 21. El error del paso 7 lo comprobé quitando
+> el `case SHIPPED` en una copia: `the switch expression does not cover all possible input values`.
+
+**✅ Lo bueno:** la mejor tarea de la lección hasta ahora. El enum está **correcto**: 5 valores en orden, campo
+`final`, constructor sin `public`, `canTransitionTo` con `switch` expresión **sin `default`**, y juntaste los
+finales en un solo `case`. **La matriz del paso 5 está perfecta**, celda por celda, con exactamente 5 `si`.
+**Todas tus predicciones son correctas** (pasos 3, 4, 5 y 6) y en el paso 7 copiaste el error y restauraste el `case`.
+En P3.2, la parte del compilador es justo lo que había que ver.
+
+| Paso | Espero | Real | ¿Bien? |
+|------|--------|------|--------|
+| 3 | `PENDING Pendiente false` … `CANCELLED Cancelado true` | igual | ✅ pero **falta el `ordinal`** (ver MENOR) |
+| 4 `valueOf("PAID")` / `== PAID` | `PAID` / `true` | igual | ✅ |
+| 4 `"paid"` / `"Pagado"` | "illegalArgumentException" | `java.lang.IllegalArgumentException: No enum constant Models.OrderStatus.paid` (y `.Pagado`) | ✅ la idea; el mensaje completo no lo escribiste |
+| 5 matriz | 5 `si`: P→PAID, P→CANC, PAID→SHIP, PAID→CANC, SHIP→DELIV | igual | ✅ |
+| 6 | `-` / `+` | `-2` / `3` | ✅ |
+| 7 | error copiado | igual que el de `javac` | ✅ |
+
+---
+
+#### 🟠 IMPORTANTE — P3.1, P3.3 y P3.4: la idea va bien, pero los huecos no dicen lo que hay que decir
+
+- **P3.1** *"busca por estado, no por valor"*: los dos son "estados", así que la frase no distingue nada. La
+  diferencia está entre las dos cosas que tiene cada constante: `valueOf` busca por el **nombre de la constante**
+  (`name()`, exacto, con mayúsculas: `"PAID"`), **no por la etiqueta** (`getLabel()`, `"Pagado"`). Por eso
+  `"paid"` también falla.
+- **P3.3** *"porque todos tienen un siguiente estado"*: **no es cierto**: `DELIVERED` y `CANCELLED` no tienen
+  ninguno (tu `case` devuelve `false`). La razón es la de la segunda parte, pero al revés de como la dices:
+  **con** `default`, si agrego `RETURNED` **no hay error**: entra al `default` sin avisar (bug silencioso). **Sin**
+  `default`, el compilador me obliga a decidir qué hace `RETURNED` (el error que viste en el paso 7).
+- **P3.4** la primera parte está bien (si reordeno las constantes, cambian los `ordinal`). La segunda, *"en
+  nuestro caso no está por ordinal"*, es vaga. Usa la pista: `CANCELLED` (4) está **después** de `SHIPPED` (2), así
+  que `next.ordinal() > ordinal()` diría **sí**, pero la regla dice **no** (un pedido enviado no se cancela).
+  Y al revés: `PENDING → DELIVERED` también daría sí (se salta pasos).
+
+**Profesionalmente:** esto es lo que vas a defender en una entrevista ("¿por qué no `default`?", "¿por qué no
+`ordinal`?"). La respuesta corta tiene que salir con el ejemplo concreto.
+
+**Qué hacer:** P3.1, P3.3 y P3.4 como `v2`, debajo de las de v1.
+
+#### 🟡 MENOR
+- **Paso 3:** la línea pedida era `ordinal + " " + name() + ...`. Falta `status.ordinal()` y su `espero`
+  (`0 PENDING Pendiente false` … `4 CANCELLED Cancelado true`). Te sirve para P3.4.
+- **`isFinal`:** el paso pedía `==` y `||`, sin `switch`. Tu `switch` funciona y además es exhaustivo, así que no
+  está mal; solo que no practicaste la otra forma. Opcional: escríbela en un comentario.
+- **Paso 4:** en los `catch`, el `espero` puede ser el mensaje completo
+  (`No enum constant Models.OrderStatus.paid`). Fíjate que el mensaje trae el **nombre** que buscó: eso responde P3.1.
+- Imports sin usar en `EnumLab` (`PrinterInfo`, `Order`, `ArrayList`, `List`): IntelliJ los pone en gris;
+  `Ctrl+Alt+O` los limpia.
+- Separadores `---- T3 · Paso N ----` (falta el del paso 3).
+
+### Para llegar a 10/10
+- [ ] P3.1, P3.3 y P3.4 como `v2`
+- [ ] Paso 3 con `ordinal()` y su `espero`
+- [ ] (opcional) `isFinal` con `==` y `||` en un comentario
+- [ ] Imports limpios y separador del paso 3
 
 ---
 
