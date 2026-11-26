@@ -2027,6 +2027,94 @@ comenta la segunda línea.
 - [ ] tipos de `var` escritos en comentarios
 - [ ] P4.1–P4.4
 
+> ## 🔍 REVISIÓN TAREA 4 — 2026-11-25 · **6,5/10** · 🔁 corrige `shippingCost`, los textos de `describe` y termina el paso 5
+> Historial: **v1 6,5/10**. Revisado compilando todo `src` con Java 21. Los errores de quitar el `default`
+> (paso 3) y de `total = 2.5` (paso 5) los comprobé en un archivo aparte.
+
+**✅ Lo bueno:** `oldStyle` está copiado exacto y las predicciones del *fall-through* son correctas: los 5
+`espero` coinciden con la salida. P4.1 lo explica bien ("continúa hasta el `break` de PAID"). `describe` es un
+`switch` expresión **sin `default`**, y `deliveryDays` junta `"Cusco", "Arequipa"` en un solo `case`. Acertaste
+`"lima"` → 7. El error de quitar el `default` está bien copiado. **P4.3 es perfecta**: `return` saldría del
+método entero.
+
+**Salida real:**
+```
+esperando pago; preparando;          ← paso 1
+preparando;
+en camino; recibido; sin acciones;
+recibido; sin acciones;
+sin acciones;
+esperando pago / preparando / en camino / recibido / sin acciones   ← paso 2 (textos equivocados)
+3 7 1 7                              ← paso 3
+15 40 20 50                          ← paso 4 (el último debería ser 60)
+9.90 3 3 [] SHIPPED                  ← paso 5
+```
+
+| Paso | Espero | Real | ¿Bien? |
+|------|--------|------|--------|
+| 1 PENDING | "fin" en la columna "¿dónde para?" | para en el **`break` de PAID** | ❌ la tabla contradice tu P4.1 (que está bien) |
+| 1 resto | igual que la salida | igual | ✅ |
+| 2 | textos de `oldStyle` | lo mismo, porque `describe` los usa | ❌ el paso pedía otros textos |
+| 3 | `3 7 1 7` | `3 7 1 7` | ✅ |
+| 4 | `15 40 20 50` | `15 40 20 50` | ❌ coinciden porque el `espero` tiene **el mismo error** que el código: debía ser **60** |
+| 5 | valores y tipos | `9.90 3 3 [] SHIPPED` | 🟠 `nombres`: el tipo no es `List`, y el valor `[]` no está |
+
+---
+
+#### ❌ CRÍTICO — Paso 4: Tacna express da 50, la tabla dice 35 + 25 = **60**
+
+```java
+default -> express ? 35 + 15 : 35;   // ← 15 en vez de 25
+```
+Y tu `espero` dice `50`, o sea que **calculaste el `espero` con tu código, no con la tabla del enunciado**. Por eso
+"coincide" y parece que está bien. Es la misma trampa del `buscarPorInicial` de la autoevaluación: el `espero`
+sale del código y el bug se esconde.
+
+**Profesionalmente:** un test se escribe con el valor que pide el **negocio** (la tabla), no con lo que devuelve
+tu código. Si copias el resultado del código al test, el test siempre pasa y no prueba nada.
+
+**Qué hacer:**
+1. Saca los 4 `espero` **de la tabla del enunciado** (deberías llegar a `15 40 20 60`).
+2. Corrige el `default`. El paso pide **bloques con `yield`** para las **dos** últimas filas: `int base = 35;`,
+   `if (express) { base = base + 25; }`, `yield base;`. Lo mismo en `"Cusco", "Arequipa"` (base 20, el doble
+   con un `if`, un solo `yield`). Tu versión de `Cusco` con dos `yield` funciona, pero no es lo que pide el paso.
+
+#### 🟠 IMPORTANTE 1 — Paso 2: `describe` devuelve los textos de `oldStyle`, no los de la tabla
+
+El paso daba sus propios textos: `"Esperando el pago"`, `"Pagado, preparando el envío"`, `"En camino"`,
+`"Entregado al cliente"`, `"Cancelado"`. Usa esos (regla 4: datos exactos). Además:
+- Recorre `OrderStatus.values()` con un for-each e imprime `s + ": " + describe(s)`, como pide el paso.
+  Lo mismo en el paso 1: allí escribiste 5 llamadas a mano y sin el `s + ": "`.
+- Falta responder `// espero: ¿se "cae" alguno?`. La respuesta es **no**: con `->` cada `case` ejecuta solo lo
+  suyo, sin `break`. Es justo el contraste con el paso 1.
+
+#### 🟠 IMPORTANTE 2 — Paso 1, fila PENDING: "fin" debería ser "break de PAID"
+
+PENDING entra en `case PENDING`, no tiene `break`, se **cae** a `case PAID`, y allí sí hay `break`. No llega al
+final del `switch`; si llegara, también imprimiría "en camino; recibido; sin acciones;". Tu P4.1 lo dice bien,
+solo corrige la tabla para que coincida.
+
+#### 🟠 IMPORTANTE 3 — Paso 5 incompleto
+- **`nombres`**: `var` deduce el tipo **exacto** del lado derecho → `ArrayList<String>`, **no** `List`. Esa es
+  justo la diferencia con `List<String> nombres = new ArrayList<>()` (sección 7). Y el valor impreso es `[]`.
+- **Falta `var total = 0;` + `total = 2.5;`**. El error que da es
+  `incompatible types: possible lossy conversion from double to int`: `var` fijó `int` en la primera línea y ya
+  no cambia. Escríbelo, copia el error y comenta la línea.
+- **P4.4** *"porque deduce enteros"* está a medias: vale 3 porque `7` y `2` son `int`, así que la división es
+  **entera** y **corta** los decimales (no redondea). `var` solo copia ese tipo.
+
+#### 🟡 MENOR
+- Paso 3 y paso 4 pedían imprimir **en una línea** (por ejemplo `print(a + " " + b + " " + c + " " + d)`).
+- P4.2: el primer hueco pide el **valor** (`7`). Que "cae en el `default`" es la razón.
+- Separadores `---- T4 · Paso N ----` (falta el del paso 1).
+
+### Para llegar a 10/10
+- [ ] Paso 4: `espero` sacados de la tabla (`15 40 20 60`), `default` corregido, dos bloques con `yield` y `int base`
+- [ ] Paso 2: textos del enunciado, for-each con `s + ": "`, respuesta a "¿se cae alguno?"
+- [ ] Paso 1: for-each con `s + ": "` y fila PENDING → "break de PAID"
+- [ ] Paso 5: tipo de `nombres` = `ArrayList<String>`, `var total` + error copiado
+- [ ] P4.4 como `v2` (división entera)
+
 ---
 
 ### Tarea 5 — `Optional` en el `Catalog` (medio · 40 min)
