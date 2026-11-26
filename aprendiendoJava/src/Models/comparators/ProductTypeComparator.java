@@ -28,7 +28,6 @@ public class ProductTypeComparator implements Comparator<Product> {
         if (p instanceof DigitalProduct) {
             res = 3;
         }
-        System.out.println(p.getClass().getSimpleName() + "-->" + res);
         return res;
     }
 

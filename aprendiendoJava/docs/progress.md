@@ -22,7 +22,7 @@ media —`instanceof` y ranking por valor vuelven con Streams/`groupingBy`—; T
 | 3. `ProductPrice/NameComparator`, `reversed`, `thenComparing`, estabilidad | `Models/comparators/*`, `ComparatorLab` | 🔁 v1 6,5/10 (2026-11-14): estabilidad con comparador equivocado, P3.3 |
 | 4. Trampa `TreeSet`/`TreeMap` con empates | `TreeTrapLab` | 🔁 v1 7/10 (2026-11-16): predicciones todas ✅; ❌ P4.1 (cree que `TreeSet` usa `equals`); faltan contenido pasos 3 y 5 |
 | 5. Orden por tipo (`instanceof`) + ranking de `Map` por valor | `ProductTypeComparator`, `SalesEntryComparator`, `RankingLab` | ⏸ saltada (2026-11-17, decisión del alumno); quedan esqueletos sin terminar. Reaparece: ordenar por tipo → `switch`/enum en L05; ranking de `Map` por valor → Streams |
-| 6. Entregable `Catalog` (copias ordenadas no modificables) | `Models/Catalog`, `CatalogMain` | ⏸ saltada (2026-11-17). Se hace la versión **mínima** antes de L05 T5 (`addProduct`, `getProducts`, `getCheapest`); el resto (copias ordenadas no modificables) reaparece en L05 sección 2/3.5 (`List.copyOf`) |
+| 6. Entregable `Catalog` (copias ordenadas no modificables) | `Models/Catalog`, `CatalogMain` | 🔁 v1 5/10 (2026-11-26, hecha completa): `sortedCopy` ✅ y foto antes=después ✅; ❌ `rank` sin `return` (Laptop→2) + sin `thenComparing` precio, ❌ `IllegalAccessException` checked → paso 8 se cae; 🟠 `addProduct` (null lanza, repetido `true`), precio sin desempate nombre, `getCheapest` por orden natural (acierta por casualidad), P6.4 |
 
 **Atraso:** hoy (2026-10-27) es la semana 5 del roadmap; vamos 1 semana atrasados (la lección 04 era del 19 oct).
 

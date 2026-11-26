@@ -2066,6 +2066,134 @@ imprimiendo `e` en el `catch` (no `e.getMessage()`: puede ser `null`, como te pa
 - [ ] separadores `---- T6 · Paso N ----`; ✅ solo si coincide letra por letra
 - [ ] P6.1–P6.5
 
+> ## 🔍 REVISIÓN TAREA 6 — 2026-11-26 · **5/10** · 🔁 corrige 2 críticos + `addProduct` · Historial: v1 5
+
+**✅ Lo bueno (y es lo más importante de la tarea):** `sortedCopy` está **perfecto**: copia → ordena →
+plastifica, en ese orden, y los tres `getSortedBy...` son de **una línea** que solo pasan el comparador. Por eso
+la foto del paso 3 es idéntica a la del paso 5 (lo comprobé). `products` es `private final`, `Catalog` no tiene
+`main`, usaste `contains` para "ya está" y las 3 modificaciones del paso 6 fallan. `getProducts()` con
+`List.copyOf` también cumple (devuelve una **copia** no modificable en vez de una **vista**; las dos valen aquí,
+lo verás en la lección 05).
+
+**Salida real vs tu `espero`** (lo ejecuté con tu código, Java 21):
+
+| Paso | Tu espero | Real | Lo que **pide** la tarea | |
+|------|-----------|------|--------------------------|---|
+| 2 | 7 × `true`, `null` → excepción | 7 × `true` (línea `null` comentada) | `true`×6, `sillaGamer` → **`false`**, `null` → **`false`** | 🟠 2 |
+| 3 / 5 | orden de llegada | igual en los dos | igual | ✅ |
+| 4 precio | `Curso, Mouse, Silla, Audifonos, ThinkPad, MacBook` | igual | empate 89.90 por **nombre** → `audífonos` antes que `Silla` | 🟠 3 |
+| 4 nombre | `Audifonos, Curso java, MacBook, Mouse, Silla, ThinkPad` | igual | igual | ✅ |
+| 4 tipo | `ThinkPad, Silla, MacBook, Mouse, Audifonos, Curso` | igual | `ThinkPad, MacBook, Mouse, Silla, audífonos, curso java` | ❌ 1 |
+| 6 | cae en el `catch` ×3 | ×3 | igual | ✅ (falta imprimir los nombres al final) |
+| 7 | `Curso java` | `Curso java` | `curso java` | ✅ pero por casualidad, 🟠 4 |
+| 8 | "el catalogo esta vacio" | **el programa se cae** (`Exception in thread "main" java.lang.IllegalAccessException`) | entra al `catch` | ❌ 2 |
+
+---
+
+#### ❌ CRÍTICO 1 — `getSortedByType` no ordena por tipo (y tu `espero` copió el error)
+
+Hay **dos** fallos juntos:
+
+1. **El `rank` de `ProductTypeComparator`** (Tarea 5 que saltaste). Un `Laptop` **es también** un
+   `PhysicalProduct` (`Laptop extends PhysicalProduct`). Tus `if` no terminan el método: el primero pone
+   `res = 1`, y el segundo `if (p instanceof PhysicalProduct)` **también es verdad** y lo pisa con `2`.
+   Resultado: **todos** los físicos, laptops incluidas, valen 2 → empatan → quedan en orden de llegada
+   (`ThinkPad, Silla, MacBook, Mouse, Audifonos`). Es exactamente lo que explica la **sección 10, "⚠️ El orden
+   de los `if` importa"**.
+2. **Falta el desempate por precio.** El requisito dice "por tipo y, **dentro del tipo**, por precio". Eso es
+   `thenComparing` (sección 7.2), dentro del paréntesis de `sortedCopy`.
+
+**Ejemplo con otros datos:** clasificar edades con `if (edad >= 0) res = "niño"; if (edad >= 18) res = "adulto";`.
+Para 30 años entra a los dos y queda `"adulto"`… pero si el orden fuera al revés quedaría `"niño"`. Con
+`instanceof` pasa lo mismo: un hijo cumple el `instanceof` del padre.
+
+**Qué hacer:**
+- En `rank`, que cada `if` **termine el método** con `return`, y pregunta primero por la clase **más específica**
+  (`Laptop`) antes que por su padre (`PhysicalProduct`). Repasa la tabla de la sección 10.
+- En `getSortedByType`, combina el comparador de tipo con el de precio.
+- **Ojo con el `espero`:** escribiste lo que salió, no lo que pide el requisito. Antes de ejecutar, agrupa a mano:
+  laptops (por precio) → físicos (por precio) → digitales. Si tu `espero` y el real coinciden pero el requisito dice
+  otra cosa, el ✅ es falso.
+
+#### ❌ CRÍTICO 2 — Paso 8: el programa se cae
+
+`IllegalAccessException` es una excepción **comprobada** (*checked*) que Java usa para **reflexión** (acceder a un
+campo privado por reflexión), no para "estado inválido". Como es *checked*:
+- el compilador te obligó a poner `throws IllegalAccessException` en `getCheapest` **y** en `main` (esa era la
+  señal de alarma);
+- **no** es una `RuntimeException`, así que tu `catch (RuntimeException e)` del paso 8 **no la atrapa** y el
+  programa termina con error.
+
+**Ejemplo con otros datos:** `Integer.parseInt("abc")` lanza `NumberFormatException`, que **sí** es
+`RuntimeException` → un `catch (RuntimeException e)` la atrapa. Una `IOException` no lo es → no la atrapa.
+
+**Qué hacer:** usa la opción (b) **tal como dice la pista**: `IllegalStateException` (es `RuntimeException`, se usa
+cuando el objeto "no está en un estado válido para esa operación"). Después **borra** los dos `throws
+IllegalAccessException`. Lo verás a fondo en la lección 06 (checked vs unchecked).
+
+#### 🟠 IMPORTANTE 2 — `addProduct` no cumple su contrato
+
+El requisito dice: `null` → **`false`**; ya está → **`false`**. Tu código:
+- con `null` **lanza** `IllegalArgumentException` (por eso tuviste que comentar esa línea del paso 2);
+- si ya está, devuelve **`true`**. Entonces el que llama no puede distinguir "lo agregué" de "lo ignoré": ese es
+  justo el sentido de devolver `boolean` (igual que `Set.add` de la lección 02, que da `false` si ya estaba).
+
+Lanzar una excepción con `null` es una decisión **válida** en general, pero aquí el contrato pedía `false`; si
+cambias un contrato, tiene que ser a propósito y escrito. En tu tabla, `sillaGamer`: `¿ya hay alguien?` = **sí** y
+`espero` = `true` se contradicen.
+
+**Qué hacer:** que los dos `if` devuelvan `false`; descomenta la línea `null` del paso 2; corrige la tabla
+(`sillaGamer` → `false`, `null` → `false`).
+
+#### 🟠 IMPORTANTE 3 — `getSortedByPrice` sin desempate por nombre
+
+Requisito: "si empatan, **por nombre**". Hoy `Silla` sale antes que `Audifonos` solo por **estabilidad** (llegó
+antes), no por nombre. Es la misma confusión de la Tarea 3 (CRÍTICO 1). Con desempate por nombre:
+`curso java, Mouse, audífonos, Silla, ThinkPad, MacBook` (lo ejecuté).
+**Qué hacer:** `thenComparing` con tu `ProductNameComparator`, dentro del paréntesis de `sortedCopy`.
+
+#### 🟠 IMPORTANTE 4 — `getCheapest` acierta por casualidad
+
+`Collections.min(products)` sin comparador usa el **orden natural** de `Product` = el **`id`** (Tarea 2). El de
+`id` más chico es `curso` (id 7)… que **también** es el más barato. Coincidencia: si `curso` tuviera id 50,
+devolverías `Silla` (id 12, 89.90).
+**Ejemplo:** `Collections.min(List.of("pera", "Banana"))` da `"Banana"` (orden de `String`, mayúsculas primero),
+no la fruta más barata. Sin comparador, `min` no sabe que te importa el precio.
+**Qué hacer:** pásale tu comparador de precio como segundo argumento (lo pide la tabla de requisitos).
+
+#### 🟡 MENOR 5 — Preguntas
+
+- **P6.1** a medias. No es "modificar los productos" (los objetos no cambian); es que **la lista interna quedaría
+  reordenada** y `getProducts()` ya no devolvería el orden de llegada. Los pasos que se comparan son **3 y 5**.
+- **P6.2** el "porqué" no es exacto: `getSortedByPrice().add(mouse)` sobre una copia modificable **tampoco** tocaría
+  el catálogo. Lo que se vio es que **las 3 llamadas lanzaron `UnsupportedOperationException`**.
+- **P6.3** "devolver una excepción" → una excepción se **lanza** (`throw`), no se devuelve. Opción **(b)**. Y la
+  ventaja frente a `null`: el error aparece **en el momento y con un mensaje claro**, no como `NullPointerException`
+  más tarde en otro lado.
+- **P6.4** ❌ los métodos están cambiados: la lista usa **`contains`**, que por dentro llama a **`equals`** de
+  `Product`, que compara el **`id`**. (`addProduct` es tu método, no de la lista.)
+- **P6.5** ✅ idea correcta. Más precisa: *"…porque los 3 pasos están solo en `sortedCopy` y cada uno le pasa un
+  comparador distinto."*
+
+#### ⚪ NO RELEVANTE AHORA
+
+- `import org.w3c.dom.ls.LSInput;` sobra (lo agregó el IDE): bórralo.
+- `imprimirNombres` imprime precio y clase; la tarea pedía **solo nombres** (los `espero` quedan larguísimos).
+- Datos de la Tarea 3: `"curso java"` y `"audífonos"` van en minúsculas y con tilde.
+- Separadores `---- T6 · Paso N ----`; y el `//✅` arriba de la clase no dice qué paso coincide.
+
+---
+
+**Para llegar a 10/10:**
+- [ ] `rank` con `return` en cada `if` y `Laptop` antes que `PhysicalProduct`; `getSortedByType` + precio
+- [ ] `espero` del tipo escrito **desde el requisito**, antes de ejecutar
+- [ ] `getCheapest` con `IllegalStateException`; sin `throws` en `main`; paso 8 entra al `catch`
+- [ ] `addProduct`: `null` → `false`, repetido → `false`; línea `null` descomentada; tabla corregida
+- [ ] `getSortedByPrice` con desempate por nombre (`audífonos` antes que `Silla`)
+- [ ] `getCheapest` con comparador de precio
+- [ ] paso 6: imprimir nombres al final (¿siguen 6?)
+- [ ] P6.1, P6.2, P6.4 reescritas
+
 ---
 
 ## 15. Resumen de la lección (se llena al cerrar)
