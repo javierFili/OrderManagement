@@ -2215,6 +2215,123 @@ métodos? (`Optional<...>`, `List<...>` o el tipo directo):
 - [ ] paso 5: todas las líneas del aviso en el `espero`
 - [ ] P5.1–P5.5
 
+> ## 🔍 REVISIÓN TAREA 5 — 2026-11-26 · **6/10** · 🔁 arregla `CatalogMain`, usa los datos exactos y rehaz e/f · Historial: v1 6
+
+**✅ Lo bueno:** los tres métodos de `Catalog` están **bien hechos**: siguen la receta de la sección 6.2 (for-each,
+`return Optional.of(item)` dentro del `if`, `Optional.empty()` al final), **nunca** devuelven `null` y `findById`
+compara con `equals` (no `==`). `getCheapest` devuelve `Optional.empty()` con el catálogo vacío. El paso 6 sale
+exacto, el paso 7 está bien pensado y P5.3 / P5.5 son correctas. Muy bien que en g e i escribiste **por qué** fallaste.
+
+**Salida real vs tu `espero`** (lo ejecuté con tu código, Java 21):
+
+| Fila / paso | Tu espero | Real | |
+|-------------|-----------|------|---|
+| a, b, c, h, j | `true`, `false`, `true`, empty, empty | igual | ✅ |
+| d | error | `49.00` | ❌ ver 🟠 4 |
+| e | `false` | `false` | ⚠️ coincide, pero con los datos **correctos** da `true` (❌ 1) |
+| f | `true` | `true` | ⚠️ con los datos correctos da `false` (❌ 1) |
+| g / i | error | `MacBook` / `Curso java` | ❌ ver 🟠 4 (y en `real` escribiste `Macbook`, `Curso Java`: copia letra por letra) |
+| paso 4 | `Silla: 89.90` | `ExisteSilla Precio:89.90` | 🟡 5 |
+| paso 5 | "va por defecto" / "entra a por defecto" | 4 líneas (abajo) | 🟡 5 |
+| `CatalogMain` paso 7 | `Curso java` | **`vacio`** | ❌ 2 |
+
+---
+
+#### ❌ CRÍTICO 1 — Datos distintos → las filas e/f probaron lo contrario
+
+La tarea pedía `"audífonos"` (minúscula, **con tilde**). Usaste `"Audifonos"` (**sin** tilde). Las filas e y f
+existen justo para ver la tilde, y con tu dato los resultados **se invierten**:
+
+| Fila | Busca | Con tu dato `"Audifonos"` | Con el dato de la tarea `"audífonos"` |
+|------|-------|---------------------------|---------------------------------------|
+| e | `"AUDÍFONOS"` | `false` | **`true`** (solo cambian mayúsculas) |
+| f | `"audifonos"` | `true` | **`false`** (cambia la tilde: `í` ≠ `i`) |
+
+(Lo comprobé ejecutándolo.) Tu P5.2 dice la conclusión correcta ("ignora mayúsculas pero no tildes"), pero **tu
+propia fila f** (`true`) dice lo contrario. Una conclusión tiene que salir de lo que ejecutaste.
+
+**Ejemplo con otros datos:** `"Peña".equalsIgnoreCase("PEÑA")` → `true`; `"Peña".equalsIgnoreCase("Pena")` → `false`.
+Para Java, `ñ` y `n` son letras distintas, igual que `í` e `i`.
+
+**Qué hacer:** cambia los datos a los de la Tarea 3 de L04 (`"curso java"`, `"audífonos"`), vuelve a llenar
+`espero` de e y f **antes** de ejecutar, y reescribe P5.2 con "dio ___" según tu nueva fila f.
+
+#### ❌ CRÍTICO 2 — `CatalogMain` (L04): la condición está al revés
+
+```
+catalog.getCheapest().isEmpty() ? catalog.getCheapest().get() : "vacio"
+```
+Se lee: "**si está vacío**, saca el producto; si no, di vacío". Es al revés:
+- con productos (`isEmpty()` = `false`) → imprime **`"vacio"`** (lo que salió de verdad, y tu `espero` decía `Curso java`);
+- con el catálogo vacío → llamaría a `get()` sobre un vacío → `NoSuchElementException`. Es justo el "`get()` a
+  ciegas" que la sección 6.4 dice que no hagas.
+
+**Ejemplo con otros datos:** `edad >= 18 ? "menor" : "adulto"` — el ternario devuelve la **primera** opción cuando la
+condición es `true`. Lee siempre la condición en voz alta con la primera opción.
+
+**Qué hacer en `CatalogMain`:**
+- paso 7: invierte la condición (o usa `isPresent()`), y saca el `.getName()`;
+- paso 8: la tarea pedía usar `isPresent()`; hoy solo imprime el `Optional` (y el `try/catch` ya no sirve: un
+  `Optional` vacío no lanza nada). Cambia también el `// espero:`;
+- borra `throws IllegalAccessException` de `main` (ya no hace falta) y anota `// actualizado en L05 T5`.
+
+#### 🟠 IMPORTANTE 3 — `getCheapest` sigue con el orden natural (deuda de L04 T6)
+
+`Collections.min(products)` sin comparador usa el **`id`**, no el precio (L04 T6, 🟠 4). Acierta porque `curso`
+tiene id 7. Cambiaste el envoltorio a `Optional` (✅), pero no lo de adentro. Lo mismo con las otras correcciones de
+L04 T6: `addProduct` ya devuelve `false` con `null` ✅, pero con un **repetido sigue devolviendo `true`**; y
+`getSortedByPrice` / `getSortedByType` / `rank` siguen igual. Están en el checklist de la revisión de L04 T6.
+
+#### 🟠 IMPORTANTE 4 — d, g, i: `get()` **no** falla siempre
+
+Pensaste: "`get()` sin preguntar → error". No: `get()` solo falla si el `Optional` **está vacío**. Si hay valor, lo
+devuelve. Preguntar antes con `isPresent()` es para **protegerte** cuando no sabes si hay algo, no una condición
+para que `get()` funcione. En d, g e i el producto **existe**, así que hay valor.
+
+**Ejemplo con otros datos:** `lista.get(0)` funciona si la lista tiene elementos y lanza
+`IndexOutOfBoundsException` si está vacía. No hace falta llamar a `size()` antes para que funcione; lo llamas para no
+arriesgarte.
+
+#### 🟡 MENOR 5 — Pasos 4 y 5: el `espero` no es letra por letra
+
+- **Paso 4:** el formato pedido es `"<nombre>: <precio>"` → `Silla: 89.90`. Imprimes `ExisteSilla Precio:89.90`
+  (y falta un espacio en `No existe:Teclado`). Tu `espero` estaba bien; lo que no cumple es el `print`.
+  Además, mejor preguntar `isPresent()` como pide el esqueleto (tu `isEmpty()` funciona igual, es detalle).
+- **Paso 5:** la tarea pide **todas** las líneas. Salieron 4:
+  ```
+    (porDefecto se ejecutó)
+  Sin producto
+    (porDefecto se ejecutó)
+  Mouse
+  ```
+  Escribe las 4 en el `espero`; la tercera es la trampa.
+
+#### 🟡 MENOR 6 — Preguntas
+
+- **P5.1** circular ("devuelve `Optional` porque así gestionamos el `Optional`"). La idea: *"…porque así **el tipo
+  avisa** que puede no haber resultado. Quien lo llama tiene que **comprobar si hay valor (`isPresent`) o dar uno por
+  defecto (`orElse`) antes de usarlo**."*
+- **P5.3** ✅ 2 veces. Más preciso: *"…porque Java **evalúa el argumento** de `orElse` antes de llamarlo, haya valor o
+  no."* (Por eso existe `orElseGet`, sección 6.4.)
+- **P5.4** la versión de L04 no devolvía `null`: **lanzaba una excepción**. Mejor: *"…porque un catálogo vacío no es
+  un error: no hace falta `try/catch`, y la firma `Optional<Product>` avisa que puede no haber."*
+- **Paso 7:** respuestas ✅. Escribe el tipo completo (`List<Product>`), y `countProducts` → `int`: `BigInteger` es
+  para números gigantes, no para contar elementos de una lista (`size()` devuelve `int`).
+
+#### ⚪ NO RELEVANTE AHORA
+
+- `import javax.swing.text.html.Option;` lo agregó el IDE por error (no es `Optional`): bórralo.
+- En `findById`, si alguien pasa `id = null`, `item.getId().equals(null)` da `false` → `Optional.empty()`. Está bien así.
+
+---
+
+**Para llegar a 10/10:**
+- [ ] datos exactos (`"curso java"`, `"audífonos"`); e/f predichas otra vez **antes** de ejecutar
+- [ ] `CatalogMain`: paso 7 con la condición correcta, paso 8 con `isPresent()`, sin `throws`, `// actualizado en L05 T5`
+- [ ] `getCheapest` con comparador de precio (+ el resto del checklist de L04 T6)
+- [ ] paso 4 con formato `Silla: 89.90`; paso 5 con las 4 líneas en el `espero`
+- [ ] P5.1, P5.2, P5.4 reescritas
+
 ---
 
 ### Tarea 6 — Entregable: `Order` con estado, `findItem` y resumen `record` (avanzado · 50 min)

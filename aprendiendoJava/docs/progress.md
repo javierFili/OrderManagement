@@ -24,6 +24,18 @@ media —`instanceof` y ranking por valor vuelven con Streams/`groupingBy`—; T
 | 5. Orden por tipo (`instanceof`) + ranking de `Map` por valor | `ProductTypeComparator`, `SalesEntryComparator`, `RankingLab` | ⏸ saltada (2026-11-17, decisión del alumno); quedan esqueletos sin terminar. Reaparece: ordenar por tipo → `switch`/enum en L05; ranking de `Map` por valor → Streams |
 | 6. Entregable `Catalog` (copias ordenadas no modificables) | `Models/Catalog`, `CatalogMain` | 🔁 v1 5/10 (2026-11-26, hecha completa): `sortedCopy` ✅ y foto antes=después ✅; ❌ `rank` sin `return` (Laptop→2) + sin `thenComparing` precio, ❌ `IllegalAccessException` checked → paso 8 se cae; 🟠 `addProduct` (null lanza, repetido `true`), precio sin desempate nombre, `getCheapest` por orden natural (acierta por casualidad), P6.4 |
 
+**Lección 05 (`05-java-moderno.md`) — en curso** (notas tomadas de los bloques 🔍 de la lección):
+
+| Tarea L05 | Archivo | Estado |
+|-----------|---------|--------|
+| Autoevaluación + 🧪 | `ModernPlayground` | 🔁 5/10 (2026-11-21) |
+| 1. `record Money` | `Money`, `RecordLab` | 🔁 6/10 (2026-11-21) |
+| 2. Inmutabilidad | `ImmutabilityLab` | 🔁 6/10 (2026-11-24) |
+| 3. `enum OrderStatus` | `OrderStatus`, `EnumLab` | 🔁 7,5/10 (2026-11-24) |
+| 4. `switch` + `var` | `SwitchLab` | 🔁 6,5/10 (2026-11-25) |
+| 5. `Optional` en `Catalog` | `Catalog`, `OptionalLab`, `CatalogMain` | 🔁 v1 6/10 (2026-11-26): métodos `Optional` ✅; ❌ datos sin tilde → filas e/f invertidas (P5.2 contradice su salida); ❌ `CatalogMain` paso 7 ternario invertido (imprime `vacio`), paso 8 sin `isPresent`; 🟠 cree que `get()` siempre falla sin `isPresent`; `getCheapest` sigue por `id` (deuda L04 T6) |
+| 6. `Order` con estado + `OrderSummary` | — | pendiente |
+
 **Atraso:** hoy (2026-10-27) es la semana 5 del roadmap; vamos 1 semana atrasados (la lección 04 era del 19 oct).
 
 ### Lección 03 (`Map`): hecha en la laptop del alumno, sin subir

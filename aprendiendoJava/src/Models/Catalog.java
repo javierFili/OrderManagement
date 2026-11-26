@@ -3,8 +3,8 @@ package Models;
 import Models.comparators.ProductNameComparator;
 import Models.comparators.ProductPriceComparator;
 import Models.comparators.ProductTypeComparator;
-import org.w3c.dom.ls.LSInput;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class Catalog {
@@ -36,11 +36,12 @@ public class Catalog {
         return sortedCopy(new ProductTypeComparator());
     }
 
-    public Product getCheapest() throws IllegalAccessException {
+    public Optional<Product> getCheapest() {
         if (!products.isEmpty()) {
-            return Collections.min(products);
+            Product productMin = getSortedByPrice().getLast();
+            return Optional.of(productMin);
         }
-        throw new IllegalAccessException("el catalogo esta vacio");
+        return Optional.empty();
     }
 
     private List<Product> sortedCopy(Comparator<Product> comparator) {
@@ -48,4 +49,25 @@ public class Catalog {
         newproducts.sort(comparator);
         return Collections.unmodifiableList(newproducts);
     }
+
+    public Optional<Product> findByName(String name) {
+
+        for (Product item : products) {
+            if (item.getName().equalsIgnoreCase(name)) {
+                return Optional.of(item);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<Product> findById(BigInteger id) {
+        for (Product item : products) {
+            if (item.getId().equals(id)) {
+                return Optional.of(item);
+            }
+        }
+        return Optional.empty();
+    }
+
 }

@@ -88,7 +88,7 @@ public class CatalogMain {
             // espero: cae aqui
         }
         print("----Paso 7----");
-        print(catalog.getCheapest().getName());
+        print(catalog.getCheapest().isEmpty() ? "vacio" : catalog.getCheapest().get());
         // espero: Curso java
         print("----Paso 8----");
         try {
